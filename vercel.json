@@ -1,0 +1,11 @@
+{
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "build": {
+    "env": {
+      "NPM_RC_CONFIG": "//registry.npmjs.org/:_authToken=${NPM_TOKEN}"
+    }
+  }
+}
