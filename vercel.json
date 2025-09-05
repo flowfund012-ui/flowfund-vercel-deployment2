@@ -1,3 +1,4 @@
+ HEAD
 {
   "installCommand": "pnpm install",
   "buildCommand": "pnpm build",
@@ -9,3 +10,16 @@
     }
   }
 }
+
+{
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "build": {
+    "env": {
+      "NPM_RC_CONFIG": "//registry.npmjs.org/:_authToken=${NPM_TOKEN}"
+    }
+  }
+}
+ 4b1c700291d43f05d253a70f3ccf1c2407b9c29c
