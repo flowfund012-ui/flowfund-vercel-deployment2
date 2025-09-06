@@ -3,8 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  base: '/', // important for correct asset paths in production
+  plugins: [react( )],
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -14,6 +13,12 @@ export default defineConfig({
     },
     watch: {
       usePolling: true,
+    },
+  },
+  base: '/',
+  build: {
+    rollupOptions: {
+      external: ['path'], // Add this line
     },
   },
 })
