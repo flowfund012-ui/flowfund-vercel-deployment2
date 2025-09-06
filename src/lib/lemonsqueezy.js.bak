@@ -110,7 +110,7 @@ export const generateCheckoutUrl = (planId, customData = {}) => {
     throw new Error(`Invalid plan ID: ${planId}`)
   }
 
-  const checkoutUrl = new URL(`${LEMONSQUEEZY_CONFIG.checkoutUrl}${plan.variantId}`, "https://example.com", import.meta.url)
+  const checkoutUrl = new URL(`${LEMONSQUEEZY_CONFIG.checkoutUrl}${plan.variantId}`)
   
   // Add custom data as URL parameters
   if (customData.userId) {
