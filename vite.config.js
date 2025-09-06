@@ -18,7 +18,7 @@ export default defineConfig({
   base: '/',
   build: {
     rollupOptions: {
-      external: ['path'], // Add this line
+      external: ['path', 'buffer'], // Added 'buffer'
     },
   },
 })
