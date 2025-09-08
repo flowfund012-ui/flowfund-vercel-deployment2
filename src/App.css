@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --deep-space: #001F54;
   --neon-white: #F5F9FF;
