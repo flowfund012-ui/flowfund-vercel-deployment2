@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Rocket, ArrowUp, Clock, Wallet, ChartLine, Users, ChartPie, Tags, Projector, Flame, Bot, Lightbulb, Banknote, TrendingUp } from 'lucide-react';
-import { Chart, registerables } from 'chart.js';
+import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
 const GrowthEngine = () => {
     const chartRef = useRef(null);
@@ -13,7 +13,7 @@ const GrowthEngine = () => {
         }
 
         if (chartRef.current) {
-            Chart.register(...registerables);
+            Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
             const ctx = chartRef.current.getContext("2d");
             chartInstance.current = new Chart(ctx, {
                 type: 'line',
@@ -217,7 +217,7 @@ const GrowthEngine = () => {
                 {/* Financial Heatmaps */}
                 <div className="glass-panel rounded-2xl p-6 mb-12">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-semibold flex items-center">
+                        <h2 className="text-2xl font-semibold mb-6 flex items-center">
                             <Flame className="text-teal mr-3" />
                             Financial Heatmaps
                         </h2>
