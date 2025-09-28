@@ -1,306 +1,225 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Target, 
-  PiggyBank,
-  CreditCard,
-  ArrowUpRight,
-  ArrowDownRight,
-  Plus,
-  Eye,
-  MoreHorizontal
-} from 'lucide-react'
-import { Button } from '../components/ui/button'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Bolt, User, Coins, Waves, ChartLine, Bot, Rocket, GraduationCap, Vault, Shield, Activity } from 'lucide-react';
 
 const Dashboard = () => {
-  const { profile } = useAuth()
-  const [timeRange, setTimeRange] = useState('7d')
-
-  // Mock data - in a real app, this would come from your backend
-  const [dashboardData, setDashboardData] = useState({
-    totalBalance: 12450.75,
-    monthlyIncome: 4200.00,
-    monthlyExpenses: 2850.30,
-    savingsGoal: 15000,
-    currentSavings: 8750.50,
-    recentTransactions: [
-      { id: 1, description: 'Salary Deposit', amount: 4200.00, type: 'income', date: '2024-01-15', category: 'Salary' },
-      { id: 2, description: 'Grocery Shopping', amount: -125.50, type: 'expense', date: '2024-01-14', category: 'Food' },
-      { id: 3, description: 'Freelance Project', amount: 800.00, type: 'income', date: '2024-01-13', category: 'Freelance' },
-      { id: 4, description: 'Rent Payment', amount: -1200.00, type: 'expense', date: '2024-01-12', category: 'Housing' },
-      { id: 5, description: 'Coffee Shop', amount: -15.75, type: 'expense', date: '2024-01-12', category: 'Food' }
-    ],
-    chartData: [
-      { name: 'Jan 1', income: 4000, expenses: 2400 },
-      { name: 'Jan 8', income: 3000, expenses: 1398 },
-      { name: 'Jan 15', income: 2000, expenses: 9800 },
-      { name: 'Jan 22', income: 2780, expenses: 3908 },
-      { name: 'Jan 29', income: 1890, expenses: 4800 },
-      { name: 'Feb 5', income: 2390, expenses: 3800 },
-      { name: 'Feb 12', income: 3490, expenses: 4300 }
-    ],
-    expenseBreakdown: [
-      { name: 'Housing', value: 1200, color: '#3b82f6' },
-      { name: 'Food', value: 450, color: '#10b981' },
-      { name: 'Transportation', value: 300, color: '#f59e0b' },
-      { name: 'Entertainment', value: 200, color: '#ef4444' },
-      { name: 'Utilities', value: 150, color: '#8b5cf6' },
-      { name: 'Other', value: 250, color: '#6b7280' }
-    ]
-  })
-
-  const savingsProgress = (dashboardData.currentSavings / dashboardData.savingsGoal) * 100
-
-  return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="page-header">
-        <h1 className="page-title">
-          Welcome back, {profile?.full_name?.split(' ')[0] || 'Commander'}! 👋
-        </h1>
-        <p className="page-subtitle">
-          Here's your financial overview for today. You're doing great!
-        </p>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-2">
-            <DollarSign className="h-5 w-5 text-primary" />
-            <span className="text-xs text-green-500 flex items-center">
-              <ArrowUpRight className="h-3 w-3 mr-1" />
-              +12.5%
-            </span>
-          </div>
-          <div className="metric-value">${dashboardData.totalBalance.toLocaleString()}</div>
-          <div className="metric-label">Total Balance</div>
-        </div>
-
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-2">
-            <TrendingUp className="h-5 w-5 text-green-500" />
-            <span className="text-xs text-green-500 flex items-center">
-              <ArrowUpRight className="h-3 w-3 mr-1" />
-              +8.2%
-            </span>
-          </div>
-          <div className="metric-value">${dashboardData.monthlyIncome.toLocaleString()}</div>
-          <div className="metric-label">Monthly Income</div>
-        </div>
-
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-2">
-            <TrendingDown className="h-5 w-5 text-red-500" />
-            <span className="text-xs text-red-500 flex items-center">
-              <ArrowDownRight className="h-3 w-3 mr-1" />
-              +3.1%
-            </span>
-          </div>
-          <div className="metric-value">${dashboardData.monthlyExpenses.toLocaleString()}</div>
-          <div className="metric-label">Monthly Expenses</div>
-        </div>
-
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-2">
-            <Target className="h-5 w-5 text-primary" />
-            <span className="text-xs text-primary">
-              {savingsProgress.toFixed(1)}%
-            </span>
-          </div>
-          <div className="metric-value">${dashboardData.currentSavings.toLocaleString()}</div>
-          <div className="metric-label">Savings Goal</div>
-          <div className="progress-bar mt-2">
-            <div 
-              className="progress-fill" 
-              style={{ width: `${Math.min(savingsProgress, 100)}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Income vs Expenses Chart */}
-        <div className="dashboard-card">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="section-title">Income vs Expenses</h3>
-              <p className="section-subtitle">Track your financial flow over time</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <select 
-                value={timeRange} 
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="text-sm bg-input border border-border rounded px-2 py-1"
-              >
-                <option value="7d">7 days</option>
-                <option value="30d">30 days</option>
-                <option value="90d">90 days</option>
-              </select>
-            </div>
-          </div>
-          
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={dashboardData.chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.2 0.05 240)" />
-              <XAxis dataKey="name" stroke="oklch(0.7 0.05 240)" />
-              <YAxis stroke="oklch(0.7 0.05 240)" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'oklch(0.08 0.02 240)', 
-                  border: '1px solid oklch(0.2 0.05 240)',
-                  borderRadius: '8px'
-                }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="income" 
-                stroke="oklch(0.7 0.25 240)" 
-                strokeWidth={3}
-                dot={{ fill: 'oklch(0.7 0.25 240)', strokeWidth: 2, r: 4 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="expenses" 
-                stroke="oklch(0.577 0.245 27.325)" 
-                strokeWidth={3}
-                dot={{ fill: 'oklch(0.577 0.245 27.325)', strokeWidth: 2, r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Expense Breakdown */}
-        <div className="dashboard-card">
-          <div className="mb-6">
-            <h3 className="section-title">Expense Breakdown</h3>
-            <p className="section-subtitle">Where your money goes this month</p>
-          </div>
-          
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={dashboardData.expenseBreakdown}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={120}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {dashboardData.expenseBreakdown.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip 
-                formatter={(value) => [`$${value}`, 'Amount']}
-                contentStyle={{ 
-                  backgroundColor: 'oklch(0.08 0.02 240)', 
-                  border: '1px solid oklch(0.2 0.05 240)',
-                  borderRadius: '8px'
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          
-          <div className="grid grid-cols-2 gap-2 mt-4">
-            {dashboardData.expenseBreakdown.map((item, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-sm text-muted-foreground">{item.name}</span>
-                <span className="text-sm font-medium ml-auto">${item.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Transactions */}
-      <div className="dashboard-card">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="section-title">Recent Transactions</h3>
-            <p className="section-subtitle">Your latest financial activity</p>
-          </div>
-          <Button variant="outline" size="sm">
-            <Eye className="h-4 w-4 mr-2" />
-            View All
-          </Button>
-        </div>
-
-        <div className="space-y-4">
-          {dashboardData.recentTransactions.map((transaction) => (
-            <div key={transaction.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
-              <div className="flex items-center space-x-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  transaction.type === 'income' ? 'bg-green-500/20' : 'bg-red-500/20'
-                }`}>
-                  {transaction.type === 'income' ? (
-                    <TrendingUp className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <TrendingDown className="h-5 w-5 text-red-500" />
-                  )}
+    return (
+        <div className="antialiased min-h-screen bg-deep-space text-white">
+            {/* Top Navigation Bar */}
+            <nav className="px-8 py-4 flex items-center justify-between bg-black bg-opacity-80 backdrop-filter backdrop-blur-lg border-b border-gray-800">
+                <div className="flex items-center space-x-2">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center neon-border">
+                        <Bolt className="text-white text-lg" />
+                    </div>
+                    <h1 className="text-2xl font-bold font-futuristic gradient-text">FlowFund OS</h1>
                 </div>
-                <div>
-                  <p className="font-medium">{transaction.description}</p>
-                  <p className="text-sm text-muted-foreground">{transaction.category} • {transaction.date}</p>
+                
+                <div className="hidden md:flex items-center space-x-8">
+                    <Link to="/vault" className="nav-link text-gray-300 hover:text-white transition">Vault</Link>
+                    <Link to="/security-hub" className="nav-link text-gray-300 hover:text-white transition">Security Hub</Link>
+                    <a href="#" className="nav-link text-gray-300 hover:text-white transition">Docs</a>
                 </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className={`font-semibold ${
-                  transaction.type === 'income' ? 'text-green-500' : 'text-red-500'
-                }`}>
-                  {transaction.type === 'income' ? '+' : ''}${Math.abs(transaction.amount).toLocaleString()}
-                </span>
-                <Button variant="ghost" size="sm">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
+                
+                <div className="flex items-center space-x-4">
+                    <div className="relative">
+                        <img src="https://via.placeholder.com/40" alt="User Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500" />
+                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-black"></span>
+                    </div>
+                    <span className="text-lg font-medium hidden md:block">Commander Nova</span>
+                </div>
+            </nav>
+
+            {/* Main Content Area */}
+            <div className="container mx-auto px-4 py-8">
+                {/* Welcome Section */}
+                <div className="text-center mb-12">
+                    <h2 className="text-4xl font-bold font-futuristic mb-4 neon-text">Welcome, Commander Nova!</h2>
+                    <p className="text-lg text-gray-400">Your financial mission control awaits.</p>
+                </div>
+
+                {/* Overview Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <div className="module-card p-6 rounded-xl flex items-center space-x-4">
+                        <div className="module-icon w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
+                            <Coins className="text-white" size={24} />
+                        </div>
+                        <div>
+                            <p className="text-gray-400">Net Worth</p>
+                            <h3 className="text-2xl font-bold">$1,250,000</h3>
+                        </div>
+                    </div>
+                    <div className="module-card p-6 rounded-xl flex items-center space-x-4">
+                        <div className="module-icon w-12 h-12 rounded-full bg-green-600 flex items-center justify-center">
+                            <Waves className="text-white" size={24} />
+                        </div>
+                        <div>
+                            <p className="text-gray-400">Cash Flow</p>
+                            <h3 className="text-2xl font-bold">+$5,200/mo</h3>
+                        </div>
+                    </div>
+                    <div className="module-card p-6 rounded-xl flex items-center space-x-4">
+                        <div className="module-icon w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
+                            <ChartLine className="text-white" size={24} />
+                        </div>
+                        <div>
+                            <p className="text-gray-400">Investments</p>
+                            <h3 className="text-2xl font-bold">+18.5% YTD</h3>
+                        </div>
+                    </div>
+                    <div className="module-card p-6 rounded-xl flex items-center space-x-4">
+                        <div className="module-icon w-12 h-12 rounded-full bg-red-600 flex items-center justify-center">
+                            <Activity className="text-white" size={24} />
+                        </div>
+                        <div>
+                            <p className="text-gray-400">Recent Activity</p>
+                            <h3 className="text-2xl font-bold">5 new alerts</h3>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Modules Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {/* Mission Tracker */}
+                    <Link to="/mission-tracker" className="module-card p-8 rounded-xl text-center transform hover:scale-105 transition-all duration-300">
+                        <div className="module-icon text-5xl mb-4">
+                            <Bolt />
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">Mission Tracker</h3>
+                        <p className="text-gray-400">Track your financial progress and goals.</p>
+                    </Link>
+
+                    {/* AutoPilot */}
+                    <Link to="/auto-pilot" className="module-card p-8 rounded-xl text-center transform hover:scale-105 transition-all duration-300">
+                        <div className="module-icon text-5xl mb-4">
+                            <Bot />
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">AutoPilot</h3>
+                        <p className="text-gray-400">Automate your savings and investments.</p>
+                    </Link>
+
+                    {/* Growth Engine */}
+                    <Link to="/growth-engine" className="module-card p-8 rounded-xl text-center transform hover:scale-105 transition-all duration-300">
+                        <div className="module-icon text-5xl mb-4">
+                            <Rocket />
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">Growth Engine</h3>
+                        <p className="text-gray-400">Optimize your wealth generation strategies.</p>
+                    </Link>
+
+                    {/* Personal Academy */}
+                    <Link to="/personal-academy" className="module-card p-8 rounded-xl text-center transform hover:scale-105 transition-all duration-300">
+                        <div className="module-icon text-5xl mb-4">
+                            <GraduationCap />
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">Personal Academy</h3>
+                        <p className="text-gray-400">Expand your financial knowledge and skills.</p>
+                    </Link>
+
+                    {/* Vault */}
+                    <Link to="/vault" className="module-card p-8 rounded-xl text-center transform hover:scale-105 transition-all duration-300">
+                        <div className="module-icon text-5xl mb-4">
+                            <Vault />
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">The Vault</h3>
+                        <p className="text-gray-400">Securely store your sensitive financial data.</p>
+                    </Link>
+
+                    {/* Security Hub */}
+                    <Link to="/security-hub" className="module-card p-8 rounded-xl text-center transform hover:scale-105 transition-all duration-300">
+                        <div className="module-icon text-5xl mb-4">
+                            <Shield />
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">Security Hub</h3>
+                        <p className="text-gray-400">Monitor and enhance your financial security.</p>
+                    </Link>
+                </div>
             </div>
-          ))}
+
+            {/* Footer */}
+            <footer className="text-center py-6 text-gray-500 text-sm border-t border-gray-800 mt-12">
+                <p>&copy; 2023 FlowFund OS. All rights reserved.</p>
+            </footer>
+
+            <style jsx>{`
+                .bg-deep-space {
+                    background-color: #000814;
+                }
+
+                .font-futuristic {
+                    font-family: 'Orbitron', sans-serif;
+                }
+
+                .gradient-text {
+                    background: linear-gradient(45deg, #00f2ff, #8a2be2 );
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    color: transparent;
+                }
+
+                .neon-border {
+                    border: 2px solid rgba(0, 242, 255, 0.5);
+                    box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+                }
+
+                .nav-link {
+                    position: relative;
+                }
+
+                .nav-link:after {
+                    content: '';
+                    position: absolute;
+                    width: 0;
+                    height: 2px;
+                    bottom: -2px;
+                    left: 0;
+                    background-color: #00f2ff;
+                    transition: width 0.3s ease;
+                }
+
+                .nav-link:hover:after {
+                    width: 100%;
+                }
+
+                .neon-text {
+                    text-shadow: 0 0 8px #00f2ff, 0 0 12px #00f2ff, 0 0 16px #00f2ff;
+                }
+
+                .module-card {
+                    background: rgba(10, 20, 40, 0.6);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(70, 130, 180, 0.3);
+                    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+                    transition: all 0.3s ease-in-out;
+                }
+
+                .module-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 8px 40px rgba(70, 130, 180, 0.5);
+                }
+
+                .module-icon {
+                    background: linear-gradient(45deg, #4682b4, #8a2be2);
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    color: transparent;
+                }
+
+                .glow-button {
+                    box-shadow: 0 0 8px rgba(70, 130, 180, 0.6), 0 0 15px rgba(70, 130, 180, 0.4);
+                }
+
+                .pulse {
+                    animation: pulse-animation 2s infinite;
+                }
+
+                @keyframes pulse-animation {
+                    0% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.2); opacity: 0.7; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+            `}</style>
         </div>
-      </div>
+    );
+};
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="dashboard-card text-center">
-          <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-            <Plus className="h-6 w-6 text-primary" />
-          </div>
-          <h3 className="font-semibold mb-2">Add Transaction</h3>
-          <p className="text-sm text-muted-foreground mb-4">Record a new income or expense</p>
-          <Button className="w-full">Add Transaction</Button>
-        </div>
-
-        <div className="dashboard-card text-center">
-          <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-            <Target className="h-6 w-6 text-primary" />
-          </div>
-          <h3 className="font-semibold mb-2">Set Goal</h3>
-          <p className="text-sm text-muted-foreground mb-4">Create a new savings goal</p>
-          <Button variant="outline" className="w-full">Create Goal</Button>
-        </div>
-
-        <div className="dashboard-card text-center">
-          <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-            <PiggyBank className="h-6 w-6 text-primary" />
-          </div>
-          <h3 className="font-semibold mb-2">Budget Review</h3>
-          <p className="text-sm text-muted-foreground mb-4">Check your monthly budget</p>
-          <Button variant="outline" className="w-full">Review Budget</Button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default Dashboard
-
+export default Dashboard;

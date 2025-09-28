@@ -1,517 +1,596 @@
-import { useState } from 'react'
-import { 
-  Shield, 
-  Lock, 
-  Key, 
-  Eye, 
-  EyeOff, 
-  Smartphone,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Globe,
-  Monitor,
-  Settings,
-  Bell,
-  Download,
-  Trash2,
-  RefreshCw
-} from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import { Shield, Home, UserCog, Lock, List, Bot, CheckCircle, EyeOff, Fingerprint, Key, Clock, Wifi, AlertTriangle, Cpu, Globe, Cloud, Zap, Bell, Search, BarChart, Activity, ShieldCheck, ShieldOff, HardDrive, Server, RefreshCcw, WifiOff, MessageSquare } from 'lucide-react';
 
 const SecurityHub = () => {
-  const [activeTab, setActiveTab] = useState('overview')
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [smsNotifications, setSmsNotifications] = useState(false)
+    const [loading, setLoading] = useState(true);
+    const [progress, setProgress] = useState(0);
+    const [activeSection, setActiveSection] = useState('hero');
 
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  })
+    useEffect(() => {
+        const loadingInterval = setInterval(() => {
+            setProgress(prev => {
+                if (prev >= 100) {
+                    clearInterval(loadingInterval);
+                    setLoading(false);
+                    return 100;
+                }
+                return prev + 5;
+            });
+        }, 100);
+        return () => clearInterval(loadingInterval);
+    }, []);
 
-  const securityScore = 85
+    const handleScroll = () => {
+        const sections = ['hero', 'privacy', 'encryption', 'logs', 'ai'];
+        for (const sectionId of sections) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
+                    setActiveSection(sectionId);
+                    break;
+                }
+            }
+        }
+    };
 
-  const securityChecks = [
-    {
-      id: 'strong-password',
-      title: 'Strong Password',
-      description: 'Your password meets security requirements',
-      status: 'good',
-      action: 'Change Password'
-    },
-    {
-      id: 'two-factor',
-      title: 'Two-Factor Authentication',
-      description: twoFactorEnabled ? 'Two-factor authentication is enabled' : 'Enable 2FA for extra security',
-      status: twoFactorEnabled ? 'good' : 'warning',
-      action: twoFactorEnabled ? 'Manage 2FA' : 'Enable 2FA'
-    },
-    {
-      id: 'email-verified',
-      title: 'Email Verification',
-      description: 'Your email address is verified',
-      status: 'good',
-      action: 'Update Email'
-    },
-    {
-      id: 'recent-activity',
-      title: 'Recent Activity',
-      description: 'No suspicious activity detected',
-      status: 'good',
-      action: 'View Activity'
-    },
-    {
-      id: 'data-backup',
-      title: 'Data Backup',
-      description: 'Last backup: 2 days ago',
-      status: 'warning',
-      action: 'Backup Now'
-    }
-  ]
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
-  const recentActivity = [
-    {
-      id: 1,
-      action: 'Login',
-      device: 'Chrome on Windows',
-      location: 'New York, US',
-      timestamp: '2024-01-21 14:30:00',
-      status: 'success'
-    },
-    {
-      id: 2,
-      action: 'Password Changed',
-      device: 'Chrome on Windows',
-      location: 'New York, US',
-      timestamp: '2024-01-20 09:15:00',
-      status: 'success'
-    },
-    {
-      id: 3,
-      action: 'Failed Login Attempt',
-      device: 'Unknown Device',
-      location: 'Unknown Location',
-      timestamp: '2024-01-19 22:45:00',
-      status: 'warning'
-    },
-    {
-      id: 4,
-      action: 'Data Export',
-      device: 'Chrome on Windows',
-      location: 'New York, US',
-      timestamp: '2024-01-18 16:20:00',
-      status: 'success'
-    },
-    {
-      id: 5,
-      action: 'Login',
-      device: 'Safari on iPhone',
-      location: 'New York, US',
-      timestamp: '2024-01-18 08:30:00',
-      status: 'success'
-    }
-  ]
-
-  const activeSessions = [
-    {
-      id: 1,
-      device: 'Chrome on Windows',
-      location: 'New York, US',
-      lastActive: '2024-01-21 14:30:00',
-      current: true
-    },
-    {
-      id: 2,
-      device: 'Safari on iPhone',
-      location: 'New York, US',
-      lastActive: '2024-01-21 12:15:00',
-      current: false
-    },
-    {
-      id: 3,
-      device: 'Chrome on Android',
-      location: 'New York, US',
-      lastActive: '2024-01-20 18:45:00',
-      current: false
-    }
-  ]
-
-  const handlePasswordChange = (e) => {
-    e.preventDefault()
-    // In a real app, this would call an API to change the password
-    console.log('Password change requested')
-    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
-  }
-
-  const handleTwoFactorToggle = () => {
-    setTwoFactorEnabled(!twoFactorEnabled)
-  }
-
-  const handleSessionTerminate = (sessionId) => {
-    console.log(`Terminating session: ${sessionId}`)
-  }
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'good': return <CheckCircle className="w-5 h-5 text-green-400" />
-      case 'warning': return <AlertTriangle className="w-5 h-5 text-yellow-400" />
-      case 'danger': return <XCircle className="w-5 h-5 text-red-400" />
-      default: return <CheckCircle className="w-5 h-5 text-gray-400" />
-    }
-  }
-
-  const getActivityIcon = (action) => {
-    switch (action) {
-      case 'Login': return <Globe className="w-4 h-4" />
-      case 'Password Changed': return <Key className="w-4 h-4" />
-      case 'Failed Login Attempt': return <AlertTriangle className="w-4 h-4" />
-      case 'Data Export': return <Download className="w-4 h-4" />
-      default: return <Monitor className="w-4 h-4" />
-    }
-  }
-
-  return (
-    <div className="space-y-8">
-      <div className="page-header">
-        <h1 className="page-title flex items-center gap-3">
-          <Shield className="w-8 h-8 text-green-400" />
-          Security Hub
-        </h1>
-        <p className="page-subtitle">Manage your account security and privacy settings</p>
-      </div>
-
-      {/* Security Score */}
-      <div className="dashboard-card bg-gradient-to-r from-green-600/20 to-blue-600/20 border-green-500/30">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-xl font-semibold text-white mb-2">Security Score</h3>
-            <p className="text-gray-400">Your account security rating</p>
-          </div>
-          <div className="text-right">
-            <div className="text-4xl font-bold text-green-400">{securityScore}</div>
-            <div className="text-sm text-gray-400">out of 100</div>
-          </div>
-        </div>
-        <div className="mt-4">
-          <div className="w-full bg-gray-700 rounded-full h-3">
-            <div 
-              className="bg-gradient-to-r from-green-500 to-blue-500 h-3 rounded-full transition-all duration-300"
-              style={{ width: `${securityScore}%` }}
-            ></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="flex space-x-1 bg-gray-800/50 p-1 rounded-lg">
-        {[
-          { id: 'overview', label: 'Overview', icon: Shield },
-          { id: 'password', label: 'Password', icon: Key },
-          { id: 'two-factor', label: '2FA', icon: Smartphone },
-          { id: 'activity', label: 'Activity', icon: Clock },
-          { id: 'sessions', label: 'Sessions', icon: Monitor },
-          { id: 'notifications', label: 'Notifications', icon: Bell }
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
-              activeTab === tab.id
-                ? 'bg-green-600 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-gray-700'
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Overview Tab */}
-      {activeTab === 'overview' && (
-        <div className="space-y-6">
-          <div className="dashboard-card">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <Settings className="w-5 h-5 text-blue-400" />
-              Security Checklist
-            </h3>
-            <div className="space-y-4">
-              {securityChecks.map((check) => (
-                <div key={check.id} className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(check.status)}
-                    <div>
-                      <h4 className="text-white font-medium">{check.title}</h4>
-                      <p className="text-gray-400 text-sm">{check.description}</p>
+    if (loading) {
+        return (
+            <div className="fixed inset-0 flex items-center justify-center bg-black z-50">
+                <div className="text-center">
+                    <div className="w-32 h-32 mx-auto mb-8 relative overflow-hidden">
+                        <div className="absolute inset-0 rounded-full border-4 border-cyberblue/50 flex items-center justify-center">
+                            <div className="w-24 h-24 rounded-full border-2 border-cyberblue/30 flex items-center justify-center">
+                                <div className="w-16 h-16 rounded-full bg-cyberblue/10 flex items-center justify-center">
+                                    <Shield className="text-cyberblue text-2xl animate-pulse-glow" />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="absolute inset-0 overflow-hidden rounded-full">
+                            <div className="scan-line absolute top-0 left-0 right-0 h-8 opacity-70 animate-scan"></div>
+                        </div>
                     </div>
-                  </div>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    {check.action}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Password Tab */}
-      {activeTab === 'password' && (
-        <div className="space-y-6">
-          <div className="dashboard-card">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <Key className="w-5 h-5 text-yellow-400" />
-              Change Password
-            </h3>
-            <form onSubmit={handlePasswordChange} className="space-y-4">
-              <div>
-                <label className="block text-gray-400 text-sm mb-2">Current Password</label>
-                <div className="relative">
-                  <input
-                    type={showCurrentPassword ? 'text' : 'password'}
-                    value={passwordForm.currentPassword}
-                    onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                    className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-yellow-500 focus:outline-none pr-10"
-                    placeholder="Enter current password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                  >
-                    {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-gray-400 text-sm mb-2">New Password</label>
-                <div className="relative">
-                  <input
-                    type={showNewPassword ? 'text' : 'password'}
-                    value={passwordForm.newPassword}
-                    onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                    className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-yellow-500 focus:outline-none pr-10"
-                    placeholder="Enter new password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                  >
-                    {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-gray-400 text-sm mb-2">Confirm New Password</label>
-                <input
-                  type="password"
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-yellow-500 focus:outline-none"
-                  placeholder="Confirm new password"
-                />
-              </div>
-              
-              <button
-                type="submit"
-                className="w-full py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium"
-              >
-                Update Password
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Two-Factor Tab */}
-      {activeTab === 'two-factor' && (
-        <div className="space-y-6">
-          <div className="dashboard-card">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-purple-400" />
-              Two-Factor Authentication
-            </h3>
-            <div className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-700 rounded-lg mb-4">
-              <div>
-                <h4 className="text-white font-medium">Authenticator App</h4>
-                <p className="text-gray-400 text-sm">
-                  {twoFactorEnabled 
-                    ? 'Two-factor authentication is currently enabled'
-                    : 'Add an extra layer of security to your account'
-                  }
-                </p>
-              </div>
-              <button
-                onClick={handleTwoFactorToggle}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  twoFactorEnabled
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'bg-purple-600 hover:bg-purple-700 text-white'
-                }`}
-              >
-                {twoFactorEnabled ? 'Disable 2FA' : 'Enable 2FA'}
-              </button>
-            </div>
-            
-            {!twoFactorEnabled && (
-              <div className="p-4 bg-purple-600/20 border border-purple-500/30 rounded-lg">
-                <h4 className="text-white font-medium mb-2">How to set up 2FA:</h4>
-                <ol className="text-gray-400 text-sm space-y-1 list-decimal list-inside">
-                  <li>Download an authenticator app (Google Authenticator, Authy, etc.)</li>
-                  <li>Click "Enable 2FA" to generate a QR code</li>
-                  <li>Scan the QR code with your authenticator app</li>
-                  <li>Enter the verification code to complete setup</li>
-                </ol>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Activity Tab */}
-      {activeTab === 'activity' && (
-        <div className="space-y-6">
-          <div className="dashboard-card">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-blue-400" />
-              Recent Activity
-            </h3>
-            <div className="space-y-3">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-center gap-4 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
-                  <div className={`p-2 rounded-full ${
-                    activity.status === 'success' ? 'bg-green-600/20 text-green-400' :
-                    activity.status === 'warning' ? 'bg-yellow-600/20 text-yellow-400' :
-                    'bg-red-600/20 text-red-400'
-                  }`}>
-                    {getActivityIcon(activity.action)}
-                  </div>
-                  <div className="flex-grow">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-white font-medium">{activity.action}</h4>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        activity.status === 'success' ? 'bg-green-400/20 text-green-400' :
-                        activity.status === 'warning' ? 'bg-yellow-400/20 text-yellow-400' :
-                        'bg-red-400/20 text-red-400'
-                      }`}>
-                        {activity.status}
-                      </span>
+                    
+                    <div className="text-cyberblue text-xl mb-2">FlowFund OS</div>
+                    <div className="text-3xl font-bold text-white mb-4">SECURITY HUB</div>
+                    <div className="w-64 h-1 bg-gray-800 mx-auto mb-2 overflow-hidden">
+                        <div className="h-full bg-cyberblue" style={{ width: `${progress}%` }}></div>
                     </div>
-                    <p className="text-gray-400 text-sm">{activity.device} • {activity.location}</p>
-                  </div>
-                  <div className="text-right text-sm text-gray-400">
-                    {new Date(activity.timestamp).toLocaleString()}
-                  </div>
+                    <div className="text-gray-400 text-sm">Initializing fortress protocols...</div>
                 </div>
-              ))}
             </div>
-          </div>
-        </div>
-      )}
+        );
+    }
 
-      {/* Sessions Tab */}
-      {activeTab === 'sessions' && (
-        <div className="space-y-6">
-          <div className="dashboard-card">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <Monitor className="w-5 h-5 text-green-400" />
-              Active Sessions
-            </h3>
-            <div className="space-y-4">
-              {activeSessions.map((session) => (
-                <div key={session.id} className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Monitor className="w-5 h-5 text-blue-400" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-white font-medium">{session.device}</h4>
-                        {session.current && (
-                          <span className="text-xs bg-green-400/20 text-green-400 px-2 py-1 rounded">
-                            Current
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-gray-400 text-sm">{session.location}</p>
-                      <p className="text-gray-500 text-xs">
-                        Last active: {new Date(session.lastActive).toLocaleString()}
-                      </p>
+    return (
+        <div className="min-h-screen font-roboto-mono bg-fortress text-e2e8f0 overflow-x-hidden scroll-smooth">
+            <div className="flex flex-col lg:flex-row">
+                {/* Side Navigation */}
+                <nav className="hidden lg:block w-64 bg-fortress h-screen sticky top-0 border-r border-gray-800/50 py-8 px-4">
+                    <div className="flex items-center mb-8 px-4">
+                        <div className="w-10 h-10 rounded-lg bg-cyberblue/10 flex items-center justify-center mr-3">
+                            <Shield className="text-cyberblue" />
+                        </div>
+                        <h1 className="text-xl font-bold">Security Hub</h1>
                     </div>
-                  </div>
-                  {!session.current && (
-                    <button
-                      onClick={() => handleSessionTerminate(session.id)}
-                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+                    
+                    <div className="space-y-1 mb-8">
+                        <a href="#hero" className={`nav-pill block px-4 py-2 rounded text-gray-300 hover:text-white ${activeSection === 'hero' ? 'active' : ''}`}>
+                            <Home className="inline-block mr-3" size={16} /> Security Overview
+                        </a>
+                        <a href="#privacy" className={`nav-pill block px-4 py-2 rounded text-gray-300 hover:text-white ${activeSection === 'privacy' ? 'active' : ''}`}>
+                            <UserCog className="inline-block mr-3" size={16} /> Privacy Controls
+                        </a>
+                        <a href="#encryption" className={`nav-pill block px-4 py-2 rounded text-gray-300 hover:text-white ${activeSection === 'encryption' ? 'active' : ''}`}>
+                            <Lock className="inline-block mr-3" size={16} /> Encryption Engine
+                        </a>
+                        <a href="#logs" className={`nav-pill block px-4 py-2 rounded text-gray-300 hover:text-white ${activeSection === 'logs' ? 'active' : ''}`}>
+                            <List className="inline-block mr-3" size={16} /> Security Logs
+                        </a>
+                        <a href="#ai" className={`nav-pill block px-4 py-2 rounded text-gray-300 hover:text-white ${activeSection === 'ai' ? 'active' : ''}`}>
+                            <Bot className="inline-block mr-3" size={16} /> AI Auditor
+                        </a>
+                    </div>
+                    
+                    <div className="absolute bottom-8 left-0 right-0 px-4">
+                        <div className="cyber-glass rounded-lg p-4">
+                            <div className="flex items-center mb-2">
+                                <div className="w-8 h-8 rounded-md bg-green-500/10 flex items-center justify-center mr-2">
+                                    <CheckCircle className="text-green-400 text-sm" />
+                                </div>
+                                <span className="text-sm">All systems secure</span>
+                            </div>
+                            <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+                                <div className="h-full progress-bar rounded-full" style={{ width: '98%' }}></div>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+                
+                {/* Main Content */}
+                <div className="flex-1">
+                    {/* Hero Section */}
+                    <section id="hero" className="min-h-screen flex items-center justify-center scroll-section" style={{ background: 'radial-gradient(circle at center, #050a17 0%, #0c1a3a 100%)' }}>
+                        <div className="container mx-auto px-6 py-24 text-center">
+                            <div className="inline-block px-6 py-2 rounded-full bg-cyberblue/10 border border-cyberblue/20 mb-6 animate-fade-in">
+                                <span className="text-cyberblue font-medium">FORTRESS MODE ACTIVE</span>
+                            </div>
+                            <h1 className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyberblue to-green-400 mb-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                                YOUR FINANCIAL FORTRESS
+                            </h1>
+                            <p className="text-xl text-gray-300 max-w-4xl mx-auto mb-10 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                                Where privacy meets power. FlowFund's Security Hub isn't just safe — it's impenetrable. 
+                                Designed with military-grade architecture, encrypted layers, and zero-compromise access protocols.
+                            </p>
+                            <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
+                                <button className="px-8 py-4 rounded-lg bg-cyberblue/10 hover:bg-cyberblue/20 text-cyberblue font-medium border border-cyberblue/20 transition-all transform hover:scale-105 mr-4">
+                                    <ShieldCheck className="inline-block mr-2" size={20} /> Run Security Scan
+                                </button>
+                                <button className="px-8 py-4 rounded-lg bg-transparent hover:bg-gray-800/50 text-white font-medium border border-gray-700 transition-all transform hover:scale-105">
+                                    <ShieldOff className="inline-block mr-2" size={20} /> Lockdown Mode
+                                </button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mt-20 max-w-6xl mx-auto">
+                                <div className="cyber-glass rounded-xl p-6 fortress-feature relative animate-fade-in" style={{ animationDelay: '0.8s' }}>
+                                    <div className="w-12 h-12 rounded-full bg-cyberblue/10 flex items-center justify-center mb-4 mx-auto lock-icon">
+                                        <Lock className="text-cyberblue" />
+                                    </div>
+                                    <h3 className="font-bold mb-2">End-to-End Encryption</h3>
+                                    <p className="text-sm text-gray-400">Bank-level security across all data points</p>
+                                </div>
+                                
+                                <div className="cyber-glass rounded-xl p-6 fortress-feature relative animate-fade-in" style={{ animationDelay: '1s' }}>
+                                    <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center mb-4 mx-auto lock-icon">
+                                        <Wifi className="text-purple-400" />
+                                    </div>
+                                    <h3 className="font-bold mb-2">Private Access</h3>
+                                    <p className="text-sm text-gray-400">Your login, your IP, your key</p>
+                                </div>
+                                
+                                <div className="cyber-glass rounded-xl p-6 fortress-feature relative animate-fade-in" style={{ animationDelay: '1.2s' }}>
+                                    <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-4 mx-auto lock-icon">
+                                        <Bot className="text-blue-400" />
+                                    </div>
+                                    <h3 className="font-bold mb-2">AI Monitoring</h3>
+                                    <p className="text-sm text-gray-400">Real-time alerts and threat detection</p>
+                                </div>
+                                
+                                <div className="cyber-glass rounded-xl p-6 fortress-feature relative animate-fade-in" style={{ animationDelay: '1.4s' }}>
+                                    <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-4 mx-auto lock-icon">
+                                        <HardDrive className="text-green-400" />
+                                    </div>
+                                    <h3 className="font-bold mb-2">Decentralized Vault</h3>
+                                    <p className="text-sm text-gray-400">Your data. Your control</p>
+                                </div>
+                                
+                                <div className="cyber-glass rounded-xl p-6 fortress-feature relative animate-fade-in" style={{ animationDelay: '1.6s' }}>
+                                    <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4 mx-auto lock-icon">
+                                        <Lock className="text-red-400" />
+                                    </div>
+                                    <h3 className="font-bold mb-2">Auto Lockdown</h3>
+                                    <p className="text-sm text-gray-400">Instant session timeout protection</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    {/* Privacy Dashboard */}
+                    <section id="privacy" className="min-h-screen flex items-center scroll-section py-20">
+                        <div className="container mx-auto px-6">
+                            <div className="cyber-glass rounded-2xl overflow-hidden">
+                                <div className="grid grid-cols-1 lg:grid-cols-2">
+                                    <div className="p-12 fortress-wall">
+                                        <div className="flex items-center mb-8">
+                                            <div className="w-14 h-14 rounded-lg bg-cyberblue/10 flex items-center justify-center mr-4">
+                                                <UserCog className="text-cyberblue text-xl" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-3xl font-bold mb-1">Privacy Dashboard</h2>
+                                                <p className="text-cyberblue">Your personal control center</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-6">
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-cyberblue/10 flex items-center justify-center mr-3">
+                                                        <EyeOff className="text-cyberblue" />
+                                                    </div>
+                                                    <span>Stealth Mode</span>
+                                                </div>
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyberblue/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyberblue"></div>
+                                                </label>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-green-500/10 flex items-center justify-center mr-3">
+                                                        <Key className="text-green-400" />
+                                                    </div>
+                                                    <span>Two-Factor Authentication</span>
+                                                </div>
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-400/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                                                </label>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-red-500/10 flex items-center justify-center mr-3">
+                                                        <Fingerprint className="text-red-400" />
+                                                    </div>
+                                                    <span>Biometric Login</span>
+                                                </div>
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" className="sr-only peer" />
+                                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-400/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                                                </label>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-yellow-500/10 flex items-center justify-center mr-3">
+                                                        <Clock className="text-yellow-400" />
+                                                    </div>
+                                                    <span>Auto Logout (5 min)</span>
+                                                </div>
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-400/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="p-12 flex flex-col justify-center items-center text-center bg-fortress-wall-light">
+                                        <ShieldCheck className="text-green-400 text-6xl mb-4" />
+                                        <h3 className="text-2xl font-bold mb-2">Your Privacy, Our Priority</h3>
+                                        <p className="text-gray-400 max-w-md">We employ advanced privacy protocols to ensure your financial data remains confidential and secure at all times.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    {/* Encryption Engine */}
+                    <section id="encryption" className="min-h-screen flex items-center scroll-section py-20">
+                        <div className="container mx-auto px-6">
+                            <div className="cyber-glass rounded-2xl overflow-hidden">
+                                <div className="grid grid-cols-1 lg:grid-cols-2">
+                                    <div className="p-12 fortress-wall">
+                                        <div className="flex items-center mb-8">
+                                            <div className="w-14 h-14 rounded-lg bg-cyberblue/10 flex items-center justify-center mr-4">
+                                                <Lock className="text-cyberblue text-xl" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-3xl font-bold mb-1">Encryption Engine</h2>
+                                                <p className="text-cyberblue">Unbreakable data protection</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-6">
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-cyberblue/10 flex items-center justify-center mr-3">
+                                                        <Globe className="text-cyberblue" />
+                                                    </div>
+                                                    <span>Global Data Encryption</span>
+                                                </div>
+                                                <span className="text-green-400">Active</span>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-purple-500/10 flex items-center justify-center mr-3">
+                                                        <Cloud className="text-purple-400" />
+                                                    </div>
+                                                    <span>Cloud Storage Encryption</span>
+                                                </div>
+                                                <span className="text-green-400">Active</span>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-yellow-500/10 flex items-center justify-center mr-3">
+                                                        <Zap className="text-yellow-400" />
+                                                    </div>
+                                                    <span>Real-time Transaction Encryption</span>
+                                                </div>
+                                                <span className="text-green-400">Active</span>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-red-500/10 flex items-center justify-center mr-3">
+                                                        <Bell className="text-red-400" />
+                                                    </div>
+                                                    <span>Encryption Breach Alerts</span>
+                                                </div>
+                                                <span className="text-green-400">Active</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="p-12 flex flex-col justify-center items-center text-center bg-fortress-wall-light">
+                                        <Lock className="text-cyberblue text-6xl mb-4" />
+                                        <h3 className="text-2xl font-bold mb-2">Unbreakable Security</h3>
+                                        <p className="text-gray-400 max-w-md">Our multi-layered encryption protocols ensure that your financial data is always protected against unauthorized access.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    {/* Security Logs */}
+                    <section id="logs" className="min-h-screen flex items-center scroll-section py-20">
+                        <div className="container mx-auto px-6">
+                            <div className="cyber-glass rounded-2xl overflow-hidden">
+                                <div className="grid grid-cols-1 lg:grid-cols-2">
+                                    <div className="p-12 fortress-wall">
+                                        <div className="flex items-center mb-8">
+                                            <div className="w-14 h-14 rounded-lg bg-cyberblue/10 flex items-center justify-center mr-4">
+                                                <List className="text-cyberblue text-xl" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-3xl font-bold mb-1">Security Logs</h2>
+                                                <p className="text-cyberblue">Transparent activity monitoring</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between p-3 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <Clock className="text-gray-500 mr-3" size={16} />
+                                                    <div>
+                                                        <p className="text-sm">Login from new device</p>
+                                                        <p className="text-xs text-gray-500">IP: 192.168.1.100 | Device: Chrome on Windows | Time: 2023-09-25 10:30 AM</p>
+                                                    </div>
+                                                </div>
+                                                <span className="text-green-400 text-xs">SUCCESS</span>
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <AlertTriangle className="text-yellow-400 mr-3" size={16} />
+                                                    <div>
+                                                        <p className="text-sm">Failed login attempt</p>
+                                                        <p className="text-xs text-gray-500">IP: 203.0.113.45 | Device: Safari on iOS | Time: 2023-09-25 09:15 AM</p>
+                                                    </div>
+                                                </div>
+                                                <span className="text-yellow-400 text-xs">WARNING</span>
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <RefreshCcw className="text-gray-500 mr-3" size={16} />
+                                                    <div>
+                                                        <p className="text-sm">Password changed</p>
+                                                        <p className="text-xs text-gray-500">IP: 192.168.1.100 | Device: Chrome on Windows | Time: 2023-09-24 03:00 PM</p>
+                                                    </div>
+                                                </div>
+                                                <span className="text-green-400 text-xs">SUCCESS</span>
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <WifiOff className="text-red-400 mr-3" size={16} />
+                                                    <div>
+                                                        <p className="text-sm">Unauthorized access attempt</p>
+                                                        <p className="text-xs text-gray-500">IP: 198.51.100.22 | Device: Unknown | Time: 2023-09-24 11:00 AM</p>
+                                                    </div>
+                                                </div>
+                                                <span className="text-red-400 text-xs">CRITICAL</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="p-12 flex flex-col justify-center items-center text-center bg-fortress-wall-light">
+                                        <BarChart className="text-cyberblue text-6xl mb-4" />
+                                        <h3 className="text-2xl font-bold mb-2">Full Transparency</h3>
+                                        <p className="text-gray-400 max-w-md">Monitor all account activity in real-time with detailed logs and alerts for suspicious behavior.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    {/* AI Auditor */}
+                    <section id="ai" className="min-h-screen flex items-center scroll-section py-20">
+                        <div className="container mx-auto px-6">
+                            <div className="cyber-glass rounded-2xl overflow-hidden">
+                                <div className="grid grid-cols-1 lg:grid-cols-2">
+                                    <div className="p-12 fortress-wall">
+                                        <div className="flex items-center mb-8">
+                                            <div className="w-14 h-14 rounded-lg bg-cyberblue/10 flex items-center justify-center mr-4">
+                                                <Bot className="text-cyberblue text-xl" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-3xl font-bold mb-1">AI Auditor</h2>
+                                                <p className="text-cyberblue">Intelligent threat detection</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-6">
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-cyberblue/10 flex items-center justify-center mr-3">
+                                                        <Cpu className="text-cyberblue" />
+                                                    </div>
+                                                    <span>Behavioral Anomaly Detection</span>
+                                                </div>
+                                                <span className="text-green-400">Active</span>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-purple-500/10 flex items-center justify-center mr-3">
+                                                        <Activity className="text-purple-400" />
+                                                    </div>
+                                                    <span>Predictive Threat Intelligence</span>
+                                                </div>
+                                                <span className="text-green-400">Active</span>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-yellow-500/10 flex items-center justify-center mr-3">
+                                                        <MessageSquare className="text-yellow-400" />
+                                                    </div>
+                                                    <span>Automated Incident Response</span>
+                                                </div>
+                                                <span className="text-green-400">Active</span>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between p-4 bg-gray-900/30 rounded-lg border border-gray-800">
+                                                <div className="flex items-center">
+                                                    <div className="w-10 h-10 rounded-md bg-red-500/10 flex items-center justify-center mr-3">
+                                                        <ShieldOff className="text-red-400" />
+                                                    </div>
+                                                    <span>Vulnerability Scanning</span>
+                                                </div>
+                                                <span className="text-green-400">Active</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="p-12 flex flex-col justify-center items-center text-center bg-fortress-wall-light">
+                                        <Bot className="text-cyberblue text-6xl mb-4" />
+                                        <h3 className="text-2xl font-bold mb-2">Intelligent Protection</h3>
+                                        <p className="text-gray-400 max-w-md">Our AI-powered auditor continuously monitors your account for anomalies and proactively defends against emerging threats.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Footer */}
+                    <footer className="text-center py-6 text-gray-500 text-sm border-t border-gray-800 mt-12">
+                        <p>&copy; 2023 FlowFund Security. All rights reserved.</p>
+                    </footer>
                 </div>
-              ))}
             </div>
-          </div>
+
+            <style jsx>{`
+                .font-roboto-mono {
+                    font-family: 'Roboto Mono', monospace;
+                }
+
+                .bg-fortress {
+                    background-color: #0a0a1a;
+                }
+
+                .text-e2e8f0 {
+                    color: #e2e8f0;
+                }
+
+                .text-cyberblue {
+                    color: #00bcd4;
+                }
+
+                .cyber-glass {
+                    background: rgba(10, 20, 40, 0.6);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    border: 1px solid rgba(0, 188, 212, 0.3);
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                }
+
+                .nav-pill.active {
+                    background-color: rgba(0, 188, 212, 0.1);
+                    color: #00bcd4;
+                }
+
+                .nav-pill:hover {
+                    background-color: rgba(0, 188, 212, 0.05);
+                }
+
+                .progress-bar {
+                    background: linear-gradient(90deg, #00bcd4, #2dd4bf);
+                }
+
+                .animate-fade-in {
+                    animation: fadeIn 1s ease-out forwards;
+                    opacity: 0;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                .scan-line {
+                    background: linear-gradient(to bottom, transparent, rgba(0, 188, 212, 0.8), transparent);
+                    animation: scan 2s infinite linear;
+                }
+
+                @keyframes scan {
+                    0% { top: -100%; }
+                    100% { top: 100%; }
+                }
+
+                .animate-pulse-glow {
+                    animation: pulse-glow 2s infinite alternate;
+                }
+
+                @keyframes pulse-glow {
+                    0% { box-shadow: 0 0 10px rgba(0, 188, 212, 0.6), 0 0 20px rgba(0, 188, 212, 0.4); }
+                    100% { box-shadow: 0 0 15px rgba(0, 188, 212, 0.8), 0 0 30px rgba(0, 188, 212, 0.6); }
+                }
+
+                .fortress-feature {
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .fortress-feature::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(45deg, rgba(0, 188, 212, 0.1), rgba(0, 188, 212, 0));
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+
+                .fortress-feature:hover::before {
+                    opacity: 1;
+                }
+
+                .fortress-feature .lock-icon {
+                    transition: transform 0.3s ease;
+                }
+
+                .fortress-feature:hover .lock-icon {
+                    transform: scale(1.1);
+                }
+
+                .fortress-wall {
+                    background: linear-gradient(to right, #161b22, #0d1117);
+                }
+
+                .fortress-wall-light {
+                    background: linear-gradient(to left, #161b22, #0d1117);
+                }
+
+                .scroll-section {
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding-top: 80px; /* Adjust for fixed header if any */
+                    padding-bottom: 80px;
+                }
+            `}</style>
         </div>
-      )}
+    );
+};
 
-      {/* Notifications Tab */}
-      {activeTab === 'notifications' && (
-        <div className="space-y-6">
-          <div className="dashboard-card">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <Bell className="w-5 h-5 text-orange-400" />
-              Security Notifications
-            </h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
-                <div>
-                  <h4 className="text-white font-medium">Email Notifications</h4>
-                  <p className="text-gray-400 text-sm">Receive security alerts via email</p>
-                </div>
-                <button
-                  onClick={() => setEmailNotifications(!emailNotifications)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    emailNotifications ? 'bg-green-600' : 'bg-gray-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      emailNotifications ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
-                <div>
-                  <h4 className="text-white font-medium">SMS Notifications</h4>
-                  <p className="text-gray-400 text-sm">Receive security alerts via SMS</p>
-                </div>
-                <button
-                  onClick={() => setSmsNotifications(!smsNotifications)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    smsNotifications ? 'bg-green-600' : 'bg-gray-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      smsNotifications ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-export default SecurityHub
-
+export default SecurityHub;

@@ -1,3 +1,326 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* FlowFund Global Styles */
+:root {
+  --deep-space: #001F54;
+  --neon-white: #F5F9FF;
+  --stellar-silver: #B0BEC5;
+  --quantum-blue: #0066FF;
+  --nebula-purple: #6E00FF;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #000814;
+  color: var(--neon-white);
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.font-futuristic {
+  font-family: 'Orbitron', sans-serif;
+}
+
+.glow-text {
+  text-shadow: 0 0 8px rgba(245, 249, 255, 0.6);
+}
+
+.glow-box {
+  box-shadow: 0 0 15px rgba(0, 102, 255, 0.5);
+}
+
+.glow-box:hover {
+  box-shadow: 0 0 25px rgba(0, 102, 255, 0.8);
+}
+
+.nav-link {
+  position: relative;
+}
+
+.nav-link:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: var(--quantum-blue);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover:after {
+  width: 100%;
+}
+
+.hero-bg {
+  background: radial-gradient(ellipse at center, var(--deep-space) 0%, #000814 70%);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.module-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(176, 190, 197, 0.2);
+  background: rgba(0, 31, 84, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.module-card:hover {
+  transform: translateY(-10px);
+  border-color: var(--quantum-blue);
+}
+
+.faq-item {
+  border-bottom: 1px solid rgba(176, 190, 197, 0.2);
+}
+
+.faq-question {
+  transition: all 0.3s ease;
+}
+
+.faq-question:hover {
+  color: var(--quantum-blue);
+}
+
+.contact-radar {
+  position: relative;
+  overflow: hidden;
+}
+
+.contact-radar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, transparent 20%, var(--deep-space) 70%);
+  animation: radar 8s infinite linear;
+  opacity: 0.3;
+}
+
+@keyframes radar {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.star {
+  position: absolute;
+  background-color: var(--neon-white);
+  border-radius: 50%;
+  animation: twinkle var(--duration) infinite ease-in-out;
+  opacity: 0;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0; }
+  50% { opacity: var(--opacity); }
+}
+
+.price-card {
+  transition: all 0.3s ease;
+  background: linear-gradient(145deg, var(--deep-space) 0%, #000C2E 100%);
+}
+
+.price-card:hover {
+  transform: scale(1.02);
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  color: var(--quantum-blue);
+  margin-bottom: 1rem;
+}
+
+.scroll-indicator {
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-20px); }
+  60% { transform: translateY(-10px); }
+}
+
+.parallax {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.command-input {
+  background: rgba(0, 31, 84, 0.5);
+  border: 1px solid rgba(0, 102, 255, 0.3);
+  color: var(--neon-white);
+}
+
+.command-input:focus {
+  outline: none;
+  border-color: var(--quantum-blue);
+  box-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+.checkout-step {
+  position: relative;
+}
+
+.checkout-step:not(:last-child):after {
+  content: '';
+  position: absolute;
+  top: 40px;
+  left: 20px;
+  height: 100%;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--quantum-blue), transparent);
+}
+
+.checkout-badge {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--quantum-blue), var(--nebula-purple));
+  color: white;
+  font-weight: bold;
+}
+
+/* Additional styles for dashboard components */
+.metric-card {
+  background: rgba(0, 31, 84, 0.3);
+  border: 1px solid rgba(176, 190, 197, 0.2);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+  border-color: var(--quantum-blue);
+  box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+}
+
+.chart-container {
+  background: rgba(0, 31, 84, 0.2);
+  border: 1px solid rgba(176, 190, 197, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, var(--quantum-blue), var(--nebula-purple));
+  border-radius: 9999px;
+  height: 8px;
+}
+
+.progress-track {
+  background: rgba(176, 190, 197, 0.2);
+  border-radius: 9999px;
+  height: 8px;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.status-active {
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.status-pending {
+  background: #F59E0B;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+}
+
+.status-inactive {
+  background: #6B7280;
+}
+
+/* Animation delays for staggered effects */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-700 { animation-delay: 700ms; }
+
+
+
+/* Login Page Specific Styles */
+.vault-glass {
+  background: rgba(0, 31, 63, 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.input-glow:focus {
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3);
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, #ffd700 0%, #daa520 100%);
+  box-shadow: 0 44px 15px rgba(255, 215, 0, 0.3);
+}
+
+.btn-gold:hover {
+  background: linear-gradient(135deg, #daa520 0%, #b8860b 100%);
+  transform: translateY(-2px);
+}
+
+.security-badge {
+  animation: pulse 2s infinite;
+}
+
+.text-gold {
+  color: #ffd700;
+}
+
+.bg-gold\/20 {
+  background-color: rgba(255, 215, 0, 0.2);
+}
+
+.bg-gold\/10 {
+  background-color: rgba(255, 215, 0, 0.1);
+}
+
+.border-gold\/20 {
+  border-color: rgba(255, 215, 0, 0.2);
+}
+
+.border-gold\/10 {
+  border-color: rgba(255, 215, 0, 0.1);
+}
+
+.bg-royal {
+  background-color: #0a1128;
+}
+

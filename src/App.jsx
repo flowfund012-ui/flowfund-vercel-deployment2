@@ -16,10 +16,11 @@ import MissionTracker from './pages/MissionTracker'
 import AutoPilot from './pages/AutoPilot'
 import GrowthEngine from './pages/GrowthEngine'
 import PersonalAcademy from './pages/PersonalAcademy'
-import VaultAccess from './pages/VaultAccess'
+import Vault from './pages/Vault'
 import SecurityHub from './pages/SecurityHub'
 import Profile from './pages/Profile'
 import UpgradePage from './pages/UpgradePage'
+import ThankYou from './pages/ThankYou'
 
 import './App.css'
 
@@ -33,6 +34,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/upgrade" element={<UpgradePage />} />
+          <Route path="/thank-you" element={<ThankYou />} />
 
           {/* Protected routes */}
           <Route path="/dashboard" element={
@@ -107,10 +109,10 @@ function App() {
             </ProtectedRoute>
           } />
           
-          <Route path="/vault-access" element={
+          <Route path="/vault" element={
             <ProtectedRoute requiredPlan="premium">
               <Layout>
-                <VaultAccess />
+                <Vault />
               </Layout>
             </ProtectedRoute>
           } />
@@ -140,4 +142,3 @@ function App() {
 }
 
 export default App
-

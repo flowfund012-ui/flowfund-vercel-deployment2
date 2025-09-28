@@ -1,364 +1,454 @@
-import { useState } from 'react'
-import { Button } from '../components/ui/button'
-import { Plus, Target, CheckCircle, Clock, Star, Trophy, Zap } from 'lucide-react'
+import React, { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { Plus, Upload, TrendingUp, TrendingDown, Wallet, Lightbulb, LayoutGrid, Eye, Bot, LineChart, BarChart } from 'lucide-react';
+import Chart from 'chart.js/auto';
 
 const MissionTracker = () => {
-  const [missions, setMissions] = useState([
-    {
-      id: 1,
-      title: 'Build Emergency Fund',
-      description: 'Save $10,000 for emergency expenses',
-      category: 'Financial Security',
-      difficulty: 'hard',
-      status: 'in-progress',
-      progress: 35,
-      xpReward: 500,
-      deadline: '2024-12-31',
-      milestones: [
-        { id: 1, title: 'Save first $1,000', completed: true },
-        { id: 2, title: 'Reach $3,500', completed: true },
-        { id: 3, title: 'Hit $5,000 milestone', completed: false },
-        { id: 4, title: 'Complete $10,000 goal', completed: false }
-      ]
-    },
-    {
-      id: 2,
-      title: 'Track Expenses for 30 Days',
-      description: 'Record every expense for a full month',
-      category: 'Habit Building',
-      difficulty: 'medium',
-      status: 'completed',
-      progress: 100,
-      xpReward: 200,
-      deadline: '2024-02-01',
-      milestones: [
-        { id: 1, title: 'Track for 7 days', completed: true },
-        { id: 2, title: 'Track for 14 days', completed: true },
-        { id: 3, title: 'Track for 21 days', completed: true },
-        { id: 4, title: 'Complete 30 days', completed: true }
-      ]
-    },
-    {
-      id: 3,
-      title: 'Reduce Monthly Expenses by 20%',
-      description: 'Cut unnecessary spending and optimize budget',
-      category: 'Optimization',
-      difficulty: 'medium',
-      status: 'in-progress',
-      progress: 60,
-      xpReward: 300,
-      deadline: '2024-03-31',
-      milestones: [
-        { id: 1, title: 'Identify expense categories', completed: true },
-        { id: 2, title: 'Cut 10% of expenses', completed: true },
-        { id: 3, title: 'Reach 15% reduction', completed: true },
-        { id: 4, title: 'Achieve 20% reduction', completed: false }
-      ]
-    }
-  ])
+    const incomeChartRef = useRef(null);
+    const expenseChartRef = useRef(null);
 
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [newMission, setNewMission] = useState({
-    title: '',
-    description: '',
-    category: 'Financial Security',
-    difficulty: 'medium',
-    deadline: '',
-    xpReward: 100
-  })
+    useEffect(() => {
+        // Destroy existing charts if they exist
+        if (incomeChartRef.current && incomeChartRef.current.chart) {
+            incomeChartRef.current.chart.destroy();
+        }
+        if (expenseChartRef.current && expenseChartRef.current.chart) {
+            expenseChartRef.current.chart.destroy();
+        }
 
-  const totalXP = missions.filter(m => m.status === 'completed').reduce((sum, mission) => sum + mission.xpReward, 0)
-  const completedMissions = missions.filter(m => m.status === 'completed').length
-  const activeMissions = missions.filter(m => m.status === 'in-progress').length
+        // Income Trend Chart
+        const incomeCtx = incomeChartRef.current.getContext('2d');
+        incomeChartRef.current.chart = new Chart(incomeCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Income',
+                    data: [3000, 3200, 3500, 3300, 3800, 4200],
+                    borderColor: '#00f2ff',
+                    backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
 
-  const handleAddMission = (e) => {
-    e.preventDefault()
-    const mission = {
-      id: Date.now(),
-      title: newMission.title,
-      description: newMission.description,
-      category: newMission.category,
-      difficulty: newMission.difficulty,
-      status: 'in-progress',
-      progress: 0,
-      xpReward: parseInt(newMission.xpReward),
-      deadline: newMission.deadline,
-      milestones: [
-        { id: 1, title: 'Get started', completed: false },
-        { id: 2, title: 'Reach 25% progress', completed: false },
-        { id: 3, title: 'Reach 50% progress', completed: false },
-        { id: 4, title: 'Complete mission', completed: false }
-      ]
-    }
-    setMissions([...missions, mission])
-    setNewMission({ title: '', description: '', category: 'Financial Security', difficulty: 'medium', deadline: '', xpReward: 100 })
-    setShowAddForm(false)
-  }
+        // Expense Distribution Chart
+        const expenseCtx = expenseChartRef.current.getContext('2d');
+        expenseChartRef.current.chart = new Chart(expenseCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Housing', 'Food', 'Transport', 'Entertain.', 'Subscript.'],
+                datasets: [{
+                    label: 'Expenses',
+                    data: [1200, 450, 300, 180, 120],
+                    backgroundColor: ['#00f2ff', '#7BBF8B', '#EBC96D', '#FF6B6B', '#8A2BE2'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
 
-  const handleCompleteMission = (missionId) => {
-    setMissions(missions.map(mission => 
-      mission.id === missionId 
-        ? { ...mission, status: 'completed', progress: 100 }
-        : mission
-    ))
-  }
+        return () => {
+            if (incomeChartRef.current && incomeChartRef.current.chart) {
+                incomeChartRef.current.chart.destroy();
+            }
+            if (expenseChartRef.current && expenseChartRef.current.chart) {
+                expenseChartRef.current.chart.destroy();
+            }
+        };
+    }, []);
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'easy': return 'text-green-500 bg-green-500/20'
-      case 'medium': return 'text-yellow-500 bg-yellow-500/20'
-      case 'hard': return 'text-red-500 bg-red-500/20'
-      default: return 'text-gray-500 bg-gray-500/20'
-    }
-  }
+    const liveFeedItems = [
+        {
+            type: 'expense',
+            amount: 45,
+            category: 'Transport',
+            tag: 'Mobility',
+            time: '2 min ago',
+            aiTag: null
+        },
+        {
+            type: 'income',
+            amount: 1200,
+            category: 'Client Project',
+            tag: 'Freelance Income',
+            time: '1 hour ago',
+            aiTag: null
+        },
+        {
+            type: 'expense',
+            amount: 89.99,
+            category: 'Amazon',
+            tag: 'Shopping',
+            time: '3 hours ago',
+            aiTag: 'Irregular Expense'
+        },
+        {
+            type: 'expense',
+            amount: 15.99,
+            category: 'Netflix',
+            tag: 'Subscription',
+            time: '5 hours ago',
+            aiTag: 'Recurring Subscription'
+        },
+        {
+            type: 'income',
+            amount: 50,
+            category: 'Side Hustle',
+            tag: 'Passive Income',
+            time: 'Yesterday',
+            aiTag: null
+        },
+        {
+            type: 'expense',
+            amount: 75,
+            category: 'Groceries',
+            tag: 'Food',
+            time: 'Yesterday',
+            aiTag: null
+        },
+    ];
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'completed': return <CheckCircle className="h-5 w-5 text-green-500" />
-      case 'in-progress': return <Clock className="h-5 w-5 text-yellow-500" />
-      default: return <Target className="h-5 w-5 text-gray-500" />
-    }
-  }
-
-  const categories = ['Financial Security', 'Habit Building', 'Optimization', 'Investment', 'Education', 'Goal Achievement']
-  const difficulties = ['easy', 'medium', 'hard']
-
-  return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="page-header">
-        <h1 className="page-title">Mission Tracker</h1>
-        <p className="page-subtitle">
-          Complete financial missions to level up your money management skills
-        </p>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-2">
-            <Star className="h-5 w-5 text-yellow-500" />
-          </div>
-          <div className="metric-value">{totalXP}</div>
-          <div className="metric-label">Total XP Earned</div>
-        </div>
-
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-2">
-            <Trophy className="h-5 w-5 text-gold-500" />
-          </div>
-          <div className="metric-value">{completedMissions}</div>
-          <div className="metric-label">Missions Completed</div>
-        </div>
-
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-2">
-            <Zap className="h-5 w-5 text-blue-500" />
-          </div>
-          <div className="metric-value">{activeMissions}</div>
-          <div className="metric-label">Active Missions</div>
-        </div>
-
-        <div className="metric-card">
-          <div className="flex items-center justify-between mb-2">
-            <Target className="h-5 w-5 text-primary" />
-          </div>
-          <div className="metric-value">{missions.length}</div>
-          <div className="metric-label">Total Missions</div>
-        </div>
-      </div>
-
-      {/* Add Mission Button */}
-      <div className="flex justify-between items-center">
-        <h2 className="section-title">Your Missions</h2>
-        <Button onClick={() => setShowAddForm(true)} className="btn-primary">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Mission
-        </Button>
-      </div>
-
-      {/* Add Mission Form */}
-      {showAddForm && (
-        <div className="dashboard-card">
-          <h3 className="section-title mb-4">Create New Mission</h3>
-          <form onSubmit={handleAddMission} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="form-field">
-              <label className="form-label">Mission Title</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g., Save $5,000"
-                value={newMission.title}
-                onChange={(e) => setNewMission({...newMission, title: e.target.value})}
-                required
-              />
-            </div>
-
-            <div className="form-field">
-              <label className="form-label">Category</label>
-              <select
-                className="form-input"
-                value={newMission.category}
-                onChange={(e) => setNewMission({...newMission, category: e.target.value})}
-              >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-field md:col-span-2">
-              <label className="form-label">Description</label>
-              <textarea
-                className="form-input"
-                rows="3"
-                placeholder="Describe what this mission involves..."
-                value={newMission.description}
-                onChange={(e) => setNewMission({...newMission, description: e.target.value})}
-                required
-              />
-            </div>
-
-            <div className="form-field">
-              <label className="form-label">Difficulty</label>
-              <select
-                className="form-input"
-                value={newMission.difficulty}
-                onChange={(e) => setNewMission({...newMission, difficulty: e.target.value})}
-              >
-                {difficulties.map(diff => (
-                  <option key={diff} value={diff}>
-                    {diff.charAt(0).toUpperCase() + diff.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-field">
-              <label className="form-label">XP Reward</label>
-              <input
-                type="number"
-                className="form-input"
-                placeholder="100"
-                value={newMission.xpReward}
-                onChange={(e) => setNewMission({...newMission, xpReward: e.target.value})}
-                required
-              />
-            </div>
-
-            <div className="form-field">
-              <label className="form-label">Deadline</label>
-              <input
-                type="date"
-                className="form-input"
-                value={newMission.deadline}
-                onChange={(e) => setNewMission({...newMission, deadline: e.target.value})}
-                required
-              />
-            </div>
-
-            <div className="md:col-span-2 flex space-x-4">
-              <Button type="submit" className="btn-primary">Create Mission</Button>
-              <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Missions Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {missions.map((mission) => (
-          <div key={mission.id} className={`dashboard-card ${mission.status === 'completed' ? 'border-green-500/50 bg-green-500/5' : ''}`}>
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                {getStatusIcon(mission.status)}
-                <div>
-                  <h3 className="font-semibold text-lg">{mission.title}</h3>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <span className={`text-xs px-2 py-1 rounded ${getDifficultyColor(mission.difficulty)}`}>
-                      {mission.difficulty.toUpperCase()}
-                    </span>
-                    <span className="text-sm text-muted-foreground">{mission.category}</span>
-                  </div>
+    return (
+        <div className="min-h-screen bg-onyx text-white relative">
+            <div className="financial-network"></div>
+            
+            {/* Main Container */}
+            <div className="container mx-auto px-4 py-8 max-w-7xl">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 className="text-3xl font-bold neon-glow">Mission Tracker</h1>
+                        <p className="text-gray-400">Live Financial Telemetry</p>
+                    </div>
+                    <div className="flex space-x-4">
+                        <button className="px-4 py-2 rounded-lg glass-panel neon-border btn-hover-glow flex items-center">
+                            <Plus className="h-5 w-5 mr-2" />
+                            Add Entry
+                        </button>
+                        <button className="px-4 py-2 rounded-lg glass-panel neon-border btn-hover-glow flex items-center">
+                            <Upload className="h-5 w-5 mr-2" />
+                            Export
+                        </button>
+                    </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center space-x-1 text-yellow-500">
-                  <Star className="h-4 w-4" />
-                  <span className="font-semibold">{mission.xpReward} XP</span>
+                
+                {/* KPI Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div className="glass-panel rounded-xl p-6 kpi-card neon-border">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-gray-400 text-sm">Total Income</p>
+                                <h2 className="text-3xl font-bold mt-2">$4,850</h2>
+                            </div>
+                            <div className="bg-green-900 bg-opacity-30 p-2 rounded-full">
+                                <TrendingUp className="h-6 w-6 text-green-400" />
+                            </div>
+                        </div>
+                        <p className="text-green-400 text-sm mt-4">+12% from last month</p>
+                    </div>
+                    
+                    <div className="glass-panel rounded-xl p-6 kpi-card neon-border">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-gray-400 text-sm">Total Expenses</p>
+                                <h2 className="text-3xl font-bold mt-2">$2,670</h2>
+                            </div>
+                            <div className="bg-red-900 bg-opacity-30 p-2 rounded-full">
+                                <TrendingDown className="h-6 w-6 text-red-400" />
+                            </div>
+                        </div>
+                        <p className="text-red-400 text-sm mt-4">+5% from last month</p>
+                    </div>
+                    
+                    <div className="glass-panel rounded-xl p-6 kpi-card neon-border">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-gray-400 text-sm">Net Balance</p>
+                                <h2 className="text-3xl font-bold mt-2">$2,180</h2>
+                            </div>
+                            <div className="bg-green-900 bg-opacity-30 p-2 rounded-full">
+                                <Wallet className="h-6 w-6 text-green-400" />
+                            </div>
+                        </div>
+                        <p className="text-green-400 text-sm mt-4">Savings rate: 45%</p>
+                    </div>
+                    
+                    <div className="glass-panel rounded-xl p-6 kpi-card neon-border">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-gray-400 text-sm">AI Insights</p>
+                                <h2 className="text-xl font-bold mt-2">Optimize Subscriptions</h2>
+                            </div>
+                            <div className="bg-blue-900 bg-opacity-30 p-2 rounded-full">
+                                <Lightbulb className="h-6 w-6 text-blue-400" />
+                            </div>
+                        </div>
+                        <p className="text-blue-400 text-sm mt-4">Potential savings: $120/mo</p>
+                    </div>
                 </div>
-              </div>
+                
+                {/* Main Content */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Column - Categories */}
+                    <div className="lg:col-span-1 glass-panel rounded-xl p-6 neon-border">
+                        <h3 className="text-xl font-bold mb-6 flex items-center">
+                            <LayoutGrid className="h-6 w-6 mr-2 text-blue-400" />
+                            Categories
+                        </h3>
+                        
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center p-3 rounded-lg bg-gray-900 bg-opacity-50">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 rounded-full bg-blue-500 mr-3"></div>
+                                    <span>Housing</span>
+                                </div>
+                                <span className="font-mono">$1,200</span>
+                            </div>
+                            
+                            <div className="flex justify-between items-center p-3 rounded-lg bg-gray-900 bg-opacity-50">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 rounded-full bg-green-500 mr-3"></div>
+                                    <span>Food</span>
+                                </div>
+                                <span className="font-mono">$450</span>
+                            </div>
+                            
+                            <div className="flex justify-between items-center p-3 rounded-lg bg-gray-900 bg-opacity-50">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 rounded-full bg-purple-500 mr-3"></div>
+                                    <span>Transport</span>
+                                </div>
+                                <span className="font-mono">$300</span>
+                            </div>
+                            
+                            <div className="flex justify-between items-center p-3 rounded-lg bg-gray-900 bg-opacity-50">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 rounded-full bg-yellow-500 mr-3"></div>
+                                    <span>Entertainment</span>
+                                </div>
+                                <span className="font-mono">$180</span>
+                            </div>
+                            
+                            <div className="flex justify-between items-center p-3 rounded-lg bg-gray-900 bg-opacity-50">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 rounded-full bg-red-500 mr-3"></div>
+                                    <span>Subscriptions</span>
+                                </div>
+                                <span className="font-mono">$120</span>
+                            </div>
+                            
+                            <div className="flex justify-between items-center p-3 rounded-lg bg-gray-900 bg-opacity-50">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 rounded-full bg-pink-500 mr-3"></div>
+                                    <span>Health</span>
+                                </div>
+                                <span className="font-mono">$90</span>
+                            </div>
+                            
+                            <div className="flex justify-between items-center p-3 rounded-lg bg-gray-900 bg-opacity-50">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 rounded-full bg-indigo-500 mr-3"></div>
+                                    <span>Other</span>
+                                </div>
+                                <span className="font-mono">$230</span>
+                            </div>
+                        </div>
+                        
+                        <div className="mt-8">
+                            <h4 className="text-sm font-semibold text-gray-400 mb-3">AI Smart Tags</h4>
+                            <div className="flex flex-wrap gap-2">
+                                <span className="px-3 py-1 rounded-full text-xs ai-tag">Irregular Expense</span>
+                                <span className="px-3 py-1 rounded-full text-xs ai-tag">Recurring Subscription</span>
+                                <span className="px-3 py-1 rounded-full text-xs ai-tag">Potential Savings</span>
+                                <span className="px-3 py-1 rounded-full text-xs ai-tag">High Impact</span>
+                                <span className="px-3 py-1 rounded-full text-xs ai-tag">Needs Review</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Right Column - Live Feed and Analytics */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Live Feed */}
+                        <div className="glass-panel rounded-xl p-6 neon-border">
+                            <h3 className="text-xl font-bold mb-6 flex items-center">
+                                <Eye className="h-6 w-6 mr-2 text-blue-400" />
+                                Live Feed
+                            </h3>
+                            
+                            <div className="h-64 overflow-y-auto scrollbar-hide space-y-4 pr-2">
+                                {liveFeedItems.map((item, index) => (
+                                    <div key={index} className="live-feed-item p-3 rounded-lg">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <p className="font-medium">
+                                                    {item.type === 'expense' ? 'You spent ' : 'Received '}
+                                                    <span className={item.type === 'expense' ? 'text-red-400' : 'text-green-400'}>
+                                                        ${item.amount}
+                                                    </span>
+                                                    {item.type === 'expense' ? ' on ' : ' from '}
+                                                    {item.category}
+                                                </p>
+                                                <p className="text-sm text-gray-400">
+                                                    Categorized as <span className="category-tag px-2 py-1 rounded text-xs">{item.tag}</span>
+                                                </p>
+                                                {item.aiTag && (
+                                                    <span className="px-2 py-1 rounded-full text-xs ai-tag mt-1 inline-block">{item.aiTag}</span>
+                                                )}
+                                            </div>
+                                            <span className="text-xs text-gray-500">{item.time}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-6 text-center">
+                                <button className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors font-medium">
+                                    View All Transactions
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {/* Analytics */}
+                        <div className="glass-panel rounded-xl p-6 neon-border">
+                            <h3 className="text-xl font-bold mb-6 flex items-center">
+                                <BarChart className="h-6 w-6 mr-2 text-blue-400" />
+                                Financial Analytics
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 className="text-lg font-semibold mb-3">Income Trend</h4>
+                                    <div className="h-48">
+                                        <canvas ref={incomeChartRef}></canvas>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 className="text-lg font-semibold mb-3">Expense Distribution</h4>
+                                    <div className="h-48">
+                                        <canvas ref={expenseChartRef}></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* AI Recommendations */}
+                        <div className="glass-panel rounded-xl p-6 neon-border">
+                            <h3 className="text-xl font-bold mb-6 flex items-center">
+                                <Bot className="h-6 w-6 mr-2 text-blue-400" />
+                                AI Recommendations
+                            </h3>
+                            <div className="space-y-4">
+                                <div className="flex items-start">
+                                    <div className="mr-3 mt-1">
+                                        <Lightbulb className="h-5 w-5 text-yellow-400" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium">Consider reducing 'Entertainment' spending by 10% to reach your savings goal 2 months faster.</p>
+                                        <p className="text-sm text-gray-400 mt-1">Actionable Insight</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start">
+                                    <div className="mr-3 mt-1">
+                                        <LineChart className="h-5 w-5 text-green-400" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium">Your 'Freelance Income' has shown consistent growth. Explore opportunities to scale.</p>
+                                        <p className="text-sm text-gray-400 mt-1">Growth Opportunity</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <p className="text-muted-foreground mb-4">{mission.description}</p>
+            <style jsx>{`
+                .bg-onyx {
+                    background-color: #0a0a1a;
+                }
 
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Progress</span>
-                <span className="font-semibold">{mission.progress}%</span>
-              </div>
+                .neon-glow {
+                    text-shadow: 0 0 8px #00f2ff, 0 0 12px #00f2ff, 0 0 16px #00f2ff;
+                }
 
-              <div className="progress-bar">
-                <div 
-                  className={`h-full transition-all duration-500 rounded-full ${
-                    mission.status === 'completed' ? 'bg-green-500' : 'bg-primary'
-                  }`}
-                  style={{ width: `${mission.progress}%` }}
-                />
-              </div>
+                .financial-network {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: radial-gradient(circle at center, rgba(0, 242, 255, 0.1) 0%, transparent 70%);
+                    opacity: 0.3;
+                    pointer-events: none;
+                    z-index: -1;
+                }
 
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">Milestones</h4>
-                {mission.milestones.map((milestone) => (
-                  <div key={milestone.id} className="flex items-center space-x-2">
-                    <CheckCircle className={`h-4 w-4 ${milestone.completed ? 'text-green-500' : 'text-gray-400'}`} />
-                    <span className={`text-sm ${milestone.completed ? 'text-foreground' : 'text-muted-foreground'}`}>
-                      {milestone.title}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                .glass-panel {
+                    background: rgba(10, 20, 40, 0.6);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(0, 242, 255, 0.3);
+                    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+                }
 
-              <div className="flex justify-between items-center pt-4 border-t border-border/50">
-                <span className="text-sm text-muted-foreground">
-                  Deadline: {new Date(mission.deadline).toLocaleDateString()}
-                </span>
-                {mission.status === 'in-progress' && (
-                  <Button
-                    size="sm"
-                    onClick={() => handleCompleteMission(mission.id)}
-                    className="btn-primary"
-                  >
-                    Mark Complete
-                  </Button>
-                )}
-                {mission.status === 'completed' && (
-                  <span className="text-sm text-green-500 font-medium">✓ Completed</span>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+                .neon-border {
+                    border-color: rgba(0, 242, 255, 0.5);
+                }
 
-      {missions.length === 0 && (
-        <div className="dashboard-card text-center py-12">
-          <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No Missions Yet</h3>
-          <p className="text-muted-foreground mb-4">
-            Create your first financial mission to start earning XP and building good habits
-          </p>
-          <Button onClick={() => setShowAddForm(true)} className="btn-primary">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Your First Mission
-          </Button>
+                .btn-hover-glow:hover {
+                    box-shadow: 0 0 8px rgba(0, 242, 255, 0.6), 0 0 15px rgba(0, 242, 255, 0.4);
+                }
+
+                .kpi-card .progress-bar {
+                    background: linear-gradient(90deg, #00f2ff, #8a2be2);
+                }
+
+                .ai-tag {
+                    background-color: rgba(0, 242, 255, 0.1);
+                    color: #00f2ff;
+                    border: 1px solid rgba(0, 242, 255, 0.3);
+                }
+
+                .live-feed-item {
+                    background-color: rgba(10, 20, 40, 0.4);
+                    border: 1px solid rgba(0, 242, 255, 0.1);
+                }
+
+                .category-tag {
+                    background-color: rgba(138, 43, 226, 0.1);
+                    color: #8a2be2;
+                }
+
+                .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                }
+
+                .scrollbar-hide {
+                    -ms-overflow-style: none;  /* IE and Edge */
+                    scrollbar-width: none;  /* Firefox */
+                }
+            `}</style>
         </div>
-      )}
-    </div>
-  )
-}
+    );
+};
 
-export default MissionTracker
-
+export default MissionTracker;
