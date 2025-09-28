@@ -1,6 +1,7 @@
+
 import React, { useEffect, useRef } from 'react';
 import { Rocket, ArrowUp, Clock, Wallet, ChartLine, Users, ChartPie, Tags, Projector, Flame, Bot, Lightbulb, Banknote, TrendingUp } from 'lucide-react';
-import Chart from 'chart.js/auto';
+import { Chart, registerables } from 'chart.js';
 
 const GrowthEngine = () => {
     const chartRef = useRef(null);
@@ -12,7 +13,8 @@ const GrowthEngine = () => {
         }
 
         if (chartRef.current) {
-            const ctx = chartRef.current.getContext('2d');
+            Chart.register(...registerables);
+            const ctx = chartRef.current.getContext("2d");
             chartInstance.current = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -270,98 +272,52 @@ const GrowthEngine = () => {
                         </h2>
                         
                         <div className="space-y-4">
-                            <div className="bg-ocean rounded-xl p-4 border border-emerald/20">
-                                <div className="flex items-center mb-2">
-                                    <Lightbulb className="text-emerald mr-2" size={20} />
-                                    <h3 className="font-semibold text-white">Revenue Growth Opportunity</h3>
+                            <div className="bg-ocean rounded-xl p-4 flex items-start">
+                                <Lightbulb className="text-teal mr-4 mt-1 flex-shrink-0" />
+                                <div>
+                                    <h3 className="font-semibold text-lg mb-1">Revenue Growth Opportunity</h3>
+                                    <p className="text-mist/70">AI predicts a 15% revenue increase by optimizing your pricing strategy. Consider offering tiered subscriptions to capture more market segments.</p>
                                 </div>
-                                <p className="text-mist/70 text-sm">
-                                    Our AI detects a <strong>15% potential revenue increase</strong> by optimizing your pricing strategy for the 'Elite Commander' tier. Consider A/B testing a higher price point.
-                                </p>
                             </div>
-                            <div className="bg-ocean rounded-xl p-4 border border-teal/20">
-                                <div className="flex items-center mb-2">
-                                    <Banknote className="text-teal mr-2" size={20} />
-                                    <h3 className="font-semibold text-white">Expense Reduction Alert</h3>
+                            <div className="bg-ocean rounded-xl p-4 flex items-start">
+                                <Banknote className="text-emerald mr-4 mt-1 flex-shrink-0" />
+                                <div>
+                                    <h3 className="font-semibold text-lg mb-1">Expense Reduction Alert</h3>
+                                    <p className="text-mist/70">Your cloud hosting costs have increased by 8% this quarter. AI suggests migrating to a more cost-effective provider or optimizing current resource usage.</p>
                                 </div>
-                                <p className="text-mist/70 text-sm">
-                                    Significant savings identified in cloud infrastructure. Downgrading unused services could reduce monthly expenses by <strong>$1,200</strong>.
-                                </p>
+                            </div>
+                            <div className="bg-ocean rounded-xl p-4 flex items-start">
+                                <TrendingUp className="text-sapphire mr-4 mt-1 flex-shrink-0" />
+                                <div>
+                                    <h3 className="font-semibold text-lg mb-1">Market Trend Analysis</h3>
+                                    <p className="text-mist/70">Emerging market data indicates a growing demand for sustainable investment options. Consider developing new features or products in this area.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
                     <div className="glass-panel rounded-2xl p-6">
                         <h2 className="text-2xl font-semibold mb-6 flex items-center">
-                            <TrendingUp className="text-sapphire mr-3" />
-                            Growth Projections
+                            <Users className="text-purple-400 mr-3" />
+                            Customer Segmentation
                         </h2>
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-mist/80">Next Quarter Revenue:</span>
-                                <span className="text-white font-bold text-lg">+18%</span>
+                            <div className="bg-ocean rounded-xl p-4">
+                                <h3 className="font-semibold text-lg mb-1">High-Value Clients</h3>
+                                <p className="text-mist/70">Identify and nurture clients with the highest lifetime value. Personalized outreach can increase retention by 20%.</p>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-mist/80">Customer Acquisition:</span>
-                                <span className="text-white font-bold text-lg">+25%</span>
+                            <div className="bg-ocean rounded-xl p-4">
+                                <h3 className="font-semibold text-lg mb-1">At-Risk Customers</h3>
+                                <p className="text-mist/70">Proactively engage with customers showing signs of churn. Targeted offers can reduce churn rate by 10%.</p>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-mist/80">Profit Margin:</span>
-                                <span className="text-white font-bold text-lg">+5%</span>
+                            <div className="bg-ocean rounded-xl p-4">
+                                <h3 className="font-semibold text-lg mb-1">Growth Opportunities</h3>
+                                <p className="text-mist/70">Discover segments ready for upsell or cross-sell. AI recommends product bundles based on their usage patterns.</p>
                             </div>
-                            <button className="w-full py-2 rounded-lg bg-sapphire/10 hover:bg-sapphire/20 text-sapphire font-medium transition-colors mt-4">
-                                View Detailed Report
-                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <style jsx>{`
-                .bg-void {
-                    background-color: #0d1117;
-                }
-
-                .text-mist {
-                    color: #e0f2fe;
-                }
-
-                .bg-gradient-to-r.from-teal.to-emerald {
-                    background: linear-gradient(to right, #2dd4bf, #34d399);
-                }
-
-                .growth-radar {
-                    background: radial-gradient(circle at center, #2dd4bf 0%, #34d399 50%, transparent 70%);
-                    box-shadow: 0 0 20px rgba(45, 212, 191, 0.8), 0 0 40px rgba(52, 211, 153, 0.6);
-                    animation: radar-pulse 3s infinite alternate;
-                }
-
-                @keyframes radar-pulse {
-                    0% { box-shadow: 0 0 20px rgba(45, 212, 191, 0.8), 0 0 40px rgba(52, 211, 153, 0.6); }
-                    100% { box-shadow: 0 0 30px rgba(45, 212, 191, 1), 0 0 60px rgba(52, 211, 153, 0.8); }
-                }
-
-                .glass-panel {
-                    background: rgba(15, 23, 42, 0.7);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    border: 1px solid rgba(45, 212, 191, 0.3);
-                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-                }
-
-                .tool-card:hover {
-                    border-color: #34d399;
-                    box-shadow: 0 8px 40px rgba(52, 211, 153, 0.5);
-                }
-
-                .heatmap-cell {
-                    transition: background-color 0.3s ease;
-                }
-
-                .bg-ocean {
-                    background-color: rgba(10, 20, 40, 0.6);
-                }
-            `}</style>
         </div>
     );
 };
