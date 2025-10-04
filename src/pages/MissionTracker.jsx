@@ -1,7 +1,8 @@
+
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Upload, TrendingUp, TrendingDown, Wallet, Lightbulb, LayoutGrid, Eye, Bot, LineChart, BarChart } from 'lucide-react';
-import Chart from 'chart.js/auto';
+import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
 const MissionTracker = () => {
     const incomeChartRef = useRef(null);
@@ -16,6 +17,7 @@ const MissionTracker = () => {
             expenseChartRef.current.chart.destroy();
         }
 
+        Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
         // Income Trend Chart
         const incomeCtx = incomeChartRef.current.getContext('2d');
         incomeChartRef.current.chart = new Chart(incomeCtx, {
@@ -322,131 +324,32 @@ const MissionTracker = () => {
                                     </div>
                                 ))}
                             </div>
-                            <div className="mt-6 text-center">
-                                <button className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors font-medium">
-                                    View All Transactions
-                                </button>
-                            </div>
                         </div>
                         
                         {/* Analytics */}
-                        <div className="glass-panel rounded-xl p-6 neon-border">
-                            <h3 className="text-xl font-bold mb-6 flex items-center">
-                                <BarChart className="h-6 w-6 mr-2 text-blue-400" />
-                                Financial Analytics
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h4 className="text-lg font-semibold mb-3">Income Trend</h4>
-                                    <div className="h-48">
-                                        <canvas ref={incomeChartRef}></canvas>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 className="text-lg font-semibold mb-3">Expense Distribution</h4>
-                                    <div className="h-48">
-                                        <canvas ref={expenseChartRef}></canvas>
-                                    </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="glass-panel rounded-xl p-6 neon-border">
+                                <h3 className="text-xl font-bold mb-6 flex items-center">
+                                    <LineChart className="h-6 w-6 mr-2 text-green-400" />
+                                    Income Trend
+                                </h3>
+                                <div className="h-48">
+                                    <canvas ref={incomeChartRef}></canvas>
                                 </div>
                             </div>
-                        </div>
-                        
-                        {/* AI Recommendations */}
-                        <div className="glass-panel rounded-xl p-6 neon-border">
-                            <h3 className="text-xl font-bold mb-6 flex items-center">
-                                <Bot className="h-6 w-6 mr-2 text-blue-400" />
-                                AI Recommendations
-                            </h3>
-                            <div className="space-y-4">
-                                <div className="flex items-start">
-                                    <div className="mr-3 mt-1">
-                                        <Lightbulb className="h-5 w-5 text-yellow-400" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium">Consider reducing 'Entertainment' spending by 10% to reach your savings goal 2 months faster.</p>
-                                        <p className="text-sm text-gray-400 mt-1">Actionable Insight</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start">
-                                    <div className="mr-3 mt-1">
-                                        <LineChart className="h-5 w-5 text-green-400" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium">Your 'Freelance Income' has shown consistent growth. Explore opportunities to scale.</p>
-                                        <p className="text-sm text-gray-400 mt-1">Growth Opportunity</p>
-                                    </div>
+                            <div className="glass-panel rounded-xl p-6 neon-border">
+                                <h3 className="text-xl font-bold mb-6 flex items-center">
+                                    <BarChart className="h-6 w-6 mr-2 text-purple-400" />
+                                    Expense Distribution
+                                </h3>
+                                <div className="h-48">
+                                    <canvas ref={expenseChartRef}></canvas>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <style jsx>{`
-                .bg-onyx {
-                    background-color: #0a0a1a;
-                }
-
-                .neon-glow {
-                    text-shadow: 0 0 8px #00f2ff, 0 0 12px #00f2ff, 0 0 16px #00f2ff;
-                }
-
-                .financial-network {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: radial-gradient(circle at center, rgba(0, 242, 255, 0.1) 0%, transparent 70%);
-                    opacity: 0.3;
-                    pointer-events: none;
-                    z-index: -1;
-                }
-
-                .glass-panel {
-                    background: rgba(10, 20, 40, 0.6);
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(0, 242, 255, 0.3);
-                    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-                }
-
-                .neon-border {
-                    border-color: rgba(0, 242, 255, 0.5);
-                }
-
-                .btn-hover-glow:hover {
-                    box-shadow: 0 0 8px rgba(0, 242, 255, 0.6), 0 0 15px rgba(0, 242, 255, 0.4);
-                }
-
-                .kpi-card .progress-bar {
-                    background: linear-gradient(90deg, #00f2ff, #8a2be2);
-                }
-
-                .ai-tag {
-                    background-color: rgba(0, 242, 255, 0.1);
-                    color: #00f2ff;
-                    border: 1px solid rgba(0, 242, 255, 0.3);
-                }
-
-                .live-feed-item {
-                    background-color: rgba(10, 20, 40, 0.4);
-                    border: 1px solid rgba(0, 242, 255, 0.1);
-                }
-
-                .category-tag {
-                    background-color: rgba(138, 43, 226, 0.1);
-                    color: #8a2be2;
-                }
-
-                .scrollbar-hide::-webkit-scrollbar {
-                    display: none;
-                }
-
-                .scrollbar-hide {
-                    -ms-overflow-style: none;  /* IE and Edge */
-                    scrollbar-width: none;  /* Firefox */
-                }
-            `}</style>
         </div>
     );
 };
