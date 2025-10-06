@@ -1,7 +1,6 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Rocket, ArrowUp, Clock, Wallet, ChartLine, Users, ChartPie, Tags, Projector, Flame, Bot, Lightbulb, Banknote, TrendingUp } from 'lucide-react';
-import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import Chart from 'chart.js/auto';
 
 const GrowthEngine = () => {
     const chartRef = useRef(null);
@@ -13,7 +12,7 @@ const GrowthEngine = () => {
         }
 
         if (chartRef.current) {
-            Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+            // Chart.register(...registerables); // No longer needed with chart.js/auto
             const ctx = chartRef.current.getContext("2d");
             chartInstance.current = new Chart(ctx, {
                 type: 'line',
