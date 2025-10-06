@@ -165,7 +165,7 @@ const MissionTracker = () => {
                                 <h2 className="text-3xl font-bold mt-2">$4,850</h2>
                             </div>
                             <div className="bg-green-900 bg-opacity-30 p-2 rounded-full">
-                                <TrendingUp className="h-6 w-6 text-green-400" />
+                                <TrendingUp className="h-5 w-5 text-green-400" />
                             </div>
                         </div>
                         <p className="text-green-400 text-sm mt-4">+12% from last month</p>
@@ -178,7 +178,7 @@ const MissionTracker = () => {
                                 <h2 className="text-3xl font-bold mt-2">$2,670</h2>
                             </div>
                             <div className="bg-red-900 bg-opacity-30 p-2 rounded-full">
-                                <TrendingDown className="h-6 w-6 text-red-400" />
+                                <TrendingDown className="h-5 w-5 text-red-400" />
                             </div>
                         </div>
                         <p className="text-red-400 text-sm mt-4">+5% from last month</p>
@@ -191,7 +191,7 @@ const MissionTracker = () => {
                                 <h2 className="text-3xl font-bold mt-2">$2,180</h2>
                             </div>
                             <div className="bg-green-900 bg-opacity-30 p-2 rounded-full">
-                                <Wallet className="h-6 w-6 text-green-400" />
+                                <Wallet className="h-5 w-5 text-green-400" />
                             </div>
                         </div>
                         <p className="text-green-400 text-sm mt-4">Savings rate: 45%</p>
@@ -204,7 +204,7 @@ const MissionTracker = () => {
                                 <h2 className="text-xl font-bold mt-2">Optimize Subscriptions</h2>
                             </div>
                             <div className="bg-blue-900 bg-opacity-30 p-2 rounded-full">
-                                <Lightbulb className="h-6 w-6 text-blue-400" />
+                                <Lightbulb className="h-5 w-5 text-blue-400" />
                             </div>
                         </div>
                         <p className="text-blue-400 text-sm mt-4">Potential savings: $120/mo</p>

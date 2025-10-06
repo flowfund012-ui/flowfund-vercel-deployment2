@@ -12,7 +12,7 @@ const GrowthEngine = () => {
         }
 
         if (chartRef.current) {
-            // Chart.register(...registerables); // No longer needed with chart.js/auto
+            // Chart.register(...registerables); // Not needed with chart.js/auto
             const ctx = chartRef.current.getContext("2d");
             chartInstance.current = new Chart(ctx, {
                 type: 'line',
