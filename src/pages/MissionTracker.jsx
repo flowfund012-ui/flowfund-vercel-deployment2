@@ -1,8 +1,7 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Upload, TrendingUp, TrendingDown, Wallet, Lightbulb, LayoutGrid, Eye, Bot, LineChart, BarChart } from 'lucide-react';
-import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Chart, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
 const MissionTracker = () => {
     const incomeChartRef = useRef(null);
@@ -17,7 +16,8 @@ const MissionTracker = () => {
             expenseChartRef.current.chart.destroy();
         }
 
-        Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+        Chart.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
+        
         // Income Trend Chart
         const incomeCtx = incomeChartRef.current.getContext('2d');
         incomeChartRef.current.chart = new Chart(incomeCtx, {
@@ -260,77 +260,15 @@ const MissionTracker = () => {
                                 </div>
                                 <span className="font-mono">$120</span>
                             </div>
-                            
-                            <div className="flex justify-between items-center p-3 rounded-lg bg-gray-900 bg-opacity-50">
-                                <div className="flex items-center">
-                                    <div className="w-3 h-3 rounded-full bg-pink-500 mr-3"></div>
-                                    <span>Health</span>
-                                </div>
-                                <span className="font-mono">$90</span>
-                            </div>
-                            
-                            <div className="flex justify-between items-center p-3 rounded-lg bg-gray-900 bg-opacity-50">
-                                <div className="flex items-center">
-                                    <div className="w-3 h-3 rounded-full bg-indigo-500 mr-3"></div>
-                                    <span>Other</span>
-                                </div>
-                                <span className="font-mono">$230</span>
-                            </div>
-                        </div>
-                        
-                        <div className="mt-8">
-                            <h4 className="text-sm font-semibold text-gray-400 mb-3">AI Smart Tags</h4>
-                            <div className="flex flex-wrap gap-2">
-                                <span className="px-3 py-1 rounded-full text-xs ai-tag">Irregular Expense</span>
-                                <span className="px-3 py-1 rounded-full text-xs ai-tag">Recurring Subscription</span>
-                                <span className="px-3 py-1 rounded-full text-xs ai-tag">Potential Savings</span>
-                                <span className="px-3 py-1 rounded-full text-xs ai-tag">High Impact</span>
-                                <span className="px-3 py-1 rounded-full text-xs ai-tag">Needs Review</span>
-                            </div>
                         </div>
                     </div>
                     
-                    {/* Right Column - Live Feed and Analytics */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {/* Live Feed */}
-                        <div className="glass-panel rounded-xl p-6 neon-border">
-                            <h3 className="text-xl font-bold mb-6 flex items-center">
-                                <Eye className="h-6 w-6 mr-2 text-blue-400" />
-                                Live Feed
-                            </h3>
-                            
-                            <div className="h-64 overflow-y-auto scrollbar-hide space-y-4 pr-2">
-                                {liveFeedItems.map((item, index) => (
-                                    <div key={index} className="live-feed-item p-3 rounded-lg">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <p className="font-medium">
-                                                    {item.type === 'expense' ? 'You spent ' : 'Received '}
-                                                    <span className={item.type === 'expense' ? 'text-red-400' : 'text-green-400'}>
-                                                        ${item.amount}
-                                                    </span>
-                                                    {item.type === 'expense' ? ' on ' : ' from '}
-                                                    {item.category}
-                                                </p>
-                                                <p className="text-sm text-gray-400">
-                                                    Categorized as <span className="category-tag px-2 py-1 rounded text-xs">{item.tag}</span>
-                                                </p>
-                                                {item.aiTag && (
-                                                    <span className="px-2 py-1 rounded-full text-xs ai-tag mt-1 inline-block">{item.aiTag}</span>
-                                                )}
-                                            </div>
-                                            <span className="text-xs text-gray-500">{item.time}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        
-                        {/* Analytics */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Right Column - Charts */}
+                    <div className="lg:col-span-2 space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="glass-panel rounded-xl p-6 neon-border">
                                 <h3 className="text-xl font-bold mb-6 flex items-center">
-                                    <LineChart className="h-6 w-6 mr-2 text-green-400" />
+                                    <LineChart className="h-6 w-6 mr-2 text-blue-400" />
                                     Income Trend
                                 </h3>
                                 <div className="h-48">

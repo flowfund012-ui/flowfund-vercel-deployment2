@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Rocket, ArrowUp, Clock, Wallet, ChartLine, Users, ChartPie, Tags, Projector, Flame, Bot, Lightbulb, Banknote, TrendingUp } from 'lucide-react';
-import Chart from 'chart.js/auto';
+import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
 const GrowthEngine = () => {
     const chartRef = useRef(null);
@@ -12,7 +12,7 @@ const GrowthEngine = () => {
         }
 
         if (chartRef.current) {
-            // Chart.register(...registerables); // Not needed with chart.js/auto
+            Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
             const ctx = chartRef.current.getContext("2d");
             chartInstance.current = new Chart(ctx, {
                 type: 'line',
@@ -222,97 +222,44 @@ const GrowthEngine = () => {
                         </h2>
                         <div className="flex space-x-2">
                             <button className="px-3 py-1 rounded-full bg-ocean text-xs text-mist">Revenue</button>
-                            <button className="px-3 py-1 rounded-full bg-ocean text-xs text-mist">Expenses</button>
-                            <button className="px-3 py-1 rounded-full bg-teal/10 text-teal text-xs">Profit</button>
+                            <button className="px-3 py-1 rounded-full bg-ocean text-xs text-mist">Profit</button>
+                            <button className="px-3 py-1 rounded-full bg-ocean text-xs text-mist">Costs</button>
                         </div>
                     </div>
-                    
-                    <div className="grid grid-cols-5 gap-2">
-                        {/* Heatmap cells - would be dynamic in a real app */}
-                        <div className="heatmap-cell bg-emerald/90 h-16 rounded flex items-center justify-center text-xs font-medium">$5,421</div>
-                        <div className="heatmap-cell bg-emerald/70 h-16 rounded flex items-center justify-center text-xs font-medium">$4,873</div>
-                        <div className="heatmap-cell bg-emerald/50 h-16 rounded flex items-center justify-center text-xs font-medium">$4,210</div>
-                        <div className="heatmap-cell bg-teal/50 h-16 rounded flex items-center justify-center text-xs font-medium">$3,987</div>
-                        <div className="heatmap-cell bg-teal/70 h-16 rounded flex items-center justify-center text-xs font-medium">$4,356</div>
-                        
-                        <div className="heatmap-cell bg-emerald/70 h-16 rounded flex items-center justify-center text-xs font-medium">$4,921</div>
-                        <div className="heatmap-cell bg-emerald/90 h-16 rounded flex items-center justify-center text-xs font-medium">$5,632</div>
-                        <div className="heatmap-cell bg-emerald/80 h-16 rounded flex items-center justify-center text-xs font-medium">$5,123</div>
-                        <div className="heatmap-cell bg-emerald/60 h-16 rounded flex items-center justify-center text-xs font-medium">$4,543</div>
-                        <div className="heatmap-cell bg-emerald/40 h-16 rounded flex items-center justify-center text-xs font-medium">$3,876</div>
-                        
-                        <div className="heatmap-cell bg-emerald/50 h-16 rounded flex items-center justify-center text-xs font-medium">$4,321</div>
-                        <div className="heatmap-cell bg-emerald/70 h-16 rounded flex items-center justify-center text-xs font-medium">$4,987</div>
-                        <div className="heatmap-cell bg-emerald/90 h-16 rounded flex items-center justify-center text-xs font-medium">$5,789</div>
-                        <div className="heatmap-cell bg-emerald/80 h-16 rounded flex items-center justify-center text-xs font-medium">$5,432</div>
-                        <div className="heatmap-cell bg-emerald/60 h-16 rounded flex items-center justify-center text-xs font-medium">$4,765</div>
-                        
-                        <div className="heatmap-cell bg-emerald/40 h-16 rounded flex items-center justify-center text-xs font-medium">$3,987</div>
-                        <div className="heatmap-cell bg-emerald/60 h-16 rounded flex items-center justify-center text-xs font-medium">$4,543</div>
-                        <div className="heatmap-cell bg-emerald/80 h-16 rounded flex items-center justify-center text-xs font-medium">$5,321</div>
-                        <div className="heatmap-cell bg-emerald/90 h-16 rounded flex items-center justify-center text-xs font-medium">$5,876</div>
-                        <div className="heatmap-cell bg-emerald/70 h-16 rounded flex items-center justify-center text-xs font-medium">$4,987</div>
-                    </div>
-                    
-                    <div className="flex justify-between mt-3 text-xs text-mist/60">
-                        <span>Week 1</span>
-                        <span>Week 2</span>
-                        <span>Week 3</span>
-                        <span>Week 4</span>
+                    <div className="relative h-64">
+                        {/* Placeholder for heatmap visualization */}
+                        <div className="absolute inset-0 flex items-center justify-center text-mist/50 text-lg">
+                            [Interactive Heatmap Visualization Here]
+                        </div>
                     </div>
                 </div>
-                
-                {/* AI Insights */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                    <div className="lg:col-span-2 glass-panel rounded-2xl p-6">
-                        <h2 className="text-2xl font-semibold mb-6 flex items-center">
-                            <Bot className="text-emerald mr-3" />
-                            AI Insights
-                        </h2>
-                        
-                        <div className="space-y-4">
-                            <div className="bg-ocean rounded-xl p-4 flex items-start">
-                                <Lightbulb className="text-teal mr-4 mt-1 flex-shrink-0" />
-                                <div>
-                                    <h3 className="font-semibold text-lg mb-1">Revenue Growth Opportunity</h3>
-                                    <p className="text-mist/70">AI predicts a 15% revenue increase by optimizing your pricing strategy. Consider offering tiered subscriptions to capture more market segments.</p>
-                                </div>
-                            </div>
-                            <div className="bg-ocean rounded-xl p-4 flex items-start">
-                                <Banknote className="text-emerald mr-4 mt-1 flex-shrink-0" />
-                                <div>
-                                    <h3 className="font-semibold text-lg mb-1">Expense Reduction Alert</h3>
-                                    <p className="text-mist/70">Your cloud hosting costs have increased by 8% this quarter. AI suggests migrating to a more cost-effective provider or optimizing current resource usage.</p>
-                                </div>
-                            </div>
-                            <div className="bg-ocean rounded-xl p-4 flex items-start">
-                                <TrendingUp className="text-sapphire mr-4 mt-1 flex-shrink-0" />
-                                <div>
-                                    <h3 className="font-semibold text-lg mb-1">Market Trend Analysis</h3>
-                                    <p className="text-mist/70">Emerging market data indicates a growing demand for sustainable investment options. Consider developing new features or products in this area.</p>
-                                </div>
-                            </div>
+
+                {/* AI-Powered Insights */}
+                <div className="glass-panel rounded-2xl p-6">
+                    <h2 className="text-2xl font-semibold mb-6 flex items-center">
+                        <Bot className="text-emerald mr-3" />
+                        AI-Powered Insights
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-ocean rounded-xl p-4">
+                            <h3 className="font-semibold text-lg mb-1">Customer Segmentation</h3>
+                            <p className="text-mist/70">AI identifies key customer segments and their unique behaviors. Tailored marketing campaigns can increase engagement by 15%.</p>
                         </div>
-                    </div>
-                    
-                    <div className="glass-panel rounded-2xl p-6">
-                        <h2 className="text-2xl font-semibold mb-6 flex items-center">
-                            <Users className="text-purple-400 mr-3" />
-                            Customer Segmentation
-                        </h2>
-                        <div className="space-y-4">
-                            <div className="bg-ocean rounded-xl p-4">
-                                <h3 className="font-semibold text-lg mb-1">High-Value Clients</h3>
-                                <p className="text-mist/70">Identify and nurture clients with the highest lifetime value. Personalized outreach can increase retention by 20%.</p>
-                            </div>
-                            <div className="bg-ocean rounded-xl p-4">
-                                <h3 className="font-semibold text-lg mb-1">At-Risk Customers</h3>
-                                <p className="text-mist/70">Proactively engage with customers showing signs of churn. Targeted offers can reduce churn rate by 10%.</p>
-                            </div>
-                            <div className="bg-ocean rounded-xl p-4">
-                                <h3 className="font-semibold text-lg mb-1">Growth Opportunities</h3>
-                                <p className="text-mist/70">Discover segments ready for upsell or cross-sell. AI recommends product bundles based on their usage patterns.</p>
-                            </div>
+                        <div className="bg-ocean rounded-xl p-4">
+                            <h3 className="font-semibold text-lg mb-1">Churn Prediction</h3>
+                            <p className="text-mist/70">Predicts customers likely to churn with 90% accuracy. Proactive interventions can save up to 10% of at-risk revenue.</p>
+                        </div>
+                        <div className="bg-ocean rounded-xl p-4">
+                            <h3 className="font-semibold text-lg mb-1">High-Value Clients</h3>
+                            <p className="text-mist/70">Identify and nurture clients with the highest lifetime value. Personalized outreach can increase retention by 20%.</p>
+                        </div>
+                        <div className="bg-ocean rounded-xl p-4">
+                            <h3 className="font-semibold text-lg mb-1">At-Risk Customers</h3>
+                            <p className="text-mist/70">Proactively engage with customers showing signs of churn. Targeted offers can reduce churn rate by 10%.</p>
+                        </div>
+                        <div className="bg-ocean rounded-xl p-4">
+                            <h3 className="font-semibold text-lg mb-1">Growth Opportunities</h3>
+                            <p className="text-mist/70">Discover segments ready for upsell or cross-sell. AI recommends product bundles based on their usage patterns.</p>
                         </div>
                     </div>
                 </div>

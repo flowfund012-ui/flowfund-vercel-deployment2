@@ -41,7 +41,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: [],
+      external: ['chart.js'],
     },
   },
   optimizeDeps: {
