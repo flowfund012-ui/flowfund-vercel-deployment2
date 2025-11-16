@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Rocket, ArrowUp, Clock, Wallet, LineChart, Users, ChartPie, Tags, Projector, Flame, Bot, Lightbulb, Banknote, TrendingUp } from 'lucide-react';
+import { Rocket, ArrowUp, Clock, Wallet, LineChart, Users, PieChart, Tags, Projector, Flame, Bot, Lightbulb, Banknote, TrendingUp } from 'lucide-react';
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
 const GrowthEngine = () => {
