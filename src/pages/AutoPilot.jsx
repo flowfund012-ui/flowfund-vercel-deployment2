@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain, ChartLine, SlidersHorizontal, Bot, Projector, Shield, Wallet, PiggyBank, Lock } from 'lucide-react';
+import { Brain, LineChart, SlidersHorizontal, Bot, Projector, Shield, Wallet, PiggyBank, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AutoPilot = () => {
