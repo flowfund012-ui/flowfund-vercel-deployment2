@@ -1,1 +1,25 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Production
+/build
+/dist
+/out
+/public
+
+# Debugging
+.DS_Store
+.env
+.env.local
+.vscode
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+pnpm-lock.yaml
 .vercel
