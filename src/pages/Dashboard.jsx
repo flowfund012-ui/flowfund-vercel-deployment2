@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Bolt, User, Coins, Waves, ChartLine, Bot, Rocket, GraduationCap, Vault, Shield, Activity } from 'lucide-react';
+import { Bolt, User, Coins, Waves, LineChart, Bot, Rocket, GraduationCap, Vault, Shield, Activity } from 'lucide-react';
 
 const Dashboard = () => {
     return (
