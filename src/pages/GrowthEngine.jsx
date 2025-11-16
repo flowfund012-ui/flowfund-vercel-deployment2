@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Rocket, ArrowUp, Clock, Wallet, ChartLine, Users, ChartPie, Tags, Projector, Flame, Bot, Lightbulb, Banknote, TrendingUp } from 'lucide-react';
+import { Rocket, ArrowUp, Clock, Wallet, LineChart, Users, ChartPie, Tags, Projector, Flame, Bot, Lightbulb, Banknote, TrendingUp } from 'lucide-react';
 import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
 const GrowthEngine = () => {
@@ -132,7 +132,7 @@ const GrowthEngine = () => {
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-mist/80">Conversion Rate</h3>
                             <div className="px-2 py-1 rounded-full bg-teal/10 text-teal text-xs font-medium">
-                                <ChartLine className="inline-block mr-1" size={12} /> 3.2%
+                                <LineChart className="inline-block mr-1" size={12} /> 3.2%
                             </div>
                         </div>
                         <div className="text-3xl font-bold text-sapphire mb-2">4.7%</div>

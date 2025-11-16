@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Gauge, FileText, ChartLine, Sprout, Coins, Rocket, Lightbulb, Bookmark, Mail, HelpCircle, ArrowRight, Download, Loader2 } from 'lucide-react';
+import { CheckCircle, Gauge, FileText, LineChart, Sprout, Coins, Rocket, Lightbulb, Bookmark, Mail, HelpCircle, ArrowRight, Download, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const ThankYou = () => {
@@ -86,7 +86,7 @@ const ThankYou = () => {
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div className="flex flex-col items-center">
                                         <div className="w-10 h-10 mb-2 rounded-full bg-gold/10 flex items-center justify-center border border-gold/20">
-                                            <ChartLine className="text-gold" />
+                                            <LineChart className="text-gold" />
                                         </div>
                                         <span className="text-sm text-gray-300">Track</span>
                                     </div>

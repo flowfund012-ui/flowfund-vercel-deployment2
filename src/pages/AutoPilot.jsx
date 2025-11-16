@@ -72,7 +72,7 @@ const AutoPilot = () => {
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center">
                                     <div className="w-10 h-10 rounded-full bg-quantum/20 flex items-center justify-center mr-4">
-                                        <ChartLine className="text-quantum text-xl" />
+                                        <LineChart className="text-quantum text-xl" />
                                     </div>
                                     <h2 className="text-2xl font-semibold">Auto Invest</h2>
                                 </div>
@@ -165,7 +165,7 @@ const AutoPilot = () => {
                                     </div>
                                     <div className="text-center">
                                         <div className="w-12 h-12 bg-nebula rounded-full flex items-center justify-center mx-auto mb-2">
-                                            <ChartLine className="text-ion" />
+                                            <LineChart className="text-ion" />
                                         </div>
                                         <span className="text-sm">Auto Invest</span>
                                     </div>
@@ -215,7 +215,7 @@ const AutoPilot = () => {
                                     <div className="flex justify-between items-center mb-2">
                                         <div className="flex items-center">
                                             <div className="w-8 h-8 rounded-full bg-quantum/10 flex items-center justify-center mr-3">
-                                                <ChartLine className="text-quantum text-sm" />
+                                                <LineChart className="text-quantum text-sm" />
                                             </div>
                                             <span className="font-medium">Investment Portfolio</span>
                                         </div>

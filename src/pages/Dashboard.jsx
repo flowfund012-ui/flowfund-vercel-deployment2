@@ -59,7 +59,7 @@ const Dashboard = () => {
                     </div>
                     <div className="module-card p-6 rounded-xl flex items-center space-x-4">
                         <div className="module-icon w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
-                            <ChartLine className="text-white" size={24} />
+                            <LineChart className="text-white" size={24} />
                         </div>
                         <div>
                             <p className="text-gray-400">Investments</p>
