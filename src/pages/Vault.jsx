@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Projector, Target, ChartPie, BookOpen, Download, Filter, DollarSign, Briefcase, Bot, Book, FileText, Search, MessageSquare } from 'lucide-react';
+import { Lock, Projector, Target, PieChart, BookOpen, Download, Filter, DollarSign, Briefcase, Bot, Book, FileText, Search, MessageSquare } from 'lucide-react';
 
 const Vault = () => {
     const [vaultOpen, setVaultOpen] = useState(false);
@@ -44,7 +44,7 @@ const Vault = () => {
             type: 'Sheets',
             category: 'Business',
             updated: 'New',
-            icon: <ChartPie className="text-5xl text-cyber" />,
+            icon: <PieChart className="text-5xl text-cyber" />,
             typeIcon: <FileText size={16} />,
             size: '5.7MB'
         },
