@@ -6,7 +6,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(  ),
+    react(   ),
     nodePolyfills({
       exclude: [
         'fs',
@@ -33,7 +33,7 @@ export default defineConfig({
       usePolling: true,
     },
   },
-  base: '/',
+  base: './', // <-- **THIS IS THE FIX**
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'), // Add this line
