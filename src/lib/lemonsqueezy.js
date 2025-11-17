@@ -104,13 +104,13 @@ export const PLANS = {
 }
 
 // Generate checkout URL for a specific plan
-export const generateCheckoutUrl = (planId, customData = {}) => {
+export const generateCheckoutUrl = (planId, customData = {} ) => {
   const plan = PLANS[planId]
   if (!plan || !plan.variantId) {
     throw new Error(`Invalid plan ID: ${planId}`)
   }
 
-  const checkoutUrl = new URL(`${LEMONSQUEEZY_CONFIG.checkoutUrl}${plan.variantId}`, "https://example.com", import.meta.url)
+  const checkoutUrl = new URL(`${LEMONSQUEEZY_CONFIG.checkoutUrl}${plan.variantId}`, "https://example.com", import.meta.url )
   
   // Add custom data as URL parameters
   if (customData.userId) {
@@ -131,160 +131,6 @@ export const generateCheckoutUrl = (planId, customData = {}) => {
   }
 
   return checkoutUrl.toString()
-}
-
-// Verify webhook signature
-export const verifyWebhookSignature = (payload, signature, secret) => {
-  const crypto = require('crypto')
-  const expectedSignature = crypto
-    .createHmac('sha256', secret)
-    .update(payload)
-    .digest('hex')
-  
-  return crypto.timingSafeEqual(
-    Buffer.from(signature, 'hex'),
-    Buffer.from(expectedSignature, 'hex')
-  )
-}
-
-// Process webhook event
-export const processWebhookEvent = async (event, supabase) => {
-  const { type, data } = event
-  
-  switch (type) {
-    case 'order_created':
-      return await handleOrderCreated(data, supabase)
-    case 'subscription_created':
-      return await handleSubscriptionCreated(data, supabase)
-    case 'subscription_updated':
-      return await handleSubscriptionUpdated(data, supabase)
-    case 'subscription_cancelled':
-      return await handleSubscriptionCancelled(data, supabase)
-    case 'subscription_resumed':
-      return await handleSubscriptionResumed(data, supabase)
-    default:
-      console.log(`Unhandled webhook event type: ${type}`)
-      return { success: true, message: 'Event ignored' }
-  }
-}
-
-// Handle order created (for one-time purchases like Premium)
-const handleOrderCreated = async (orderData, supabase) => {
-  try {
-    const userId = orderData.attributes.custom_data?.user_id
-    const variantId = orderData.attributes.variant_id
-    
-    if (!userId) {
-      throw new Error('No user ID found in order data')
-    }
-    
-    // Determine plan based on variant ID
-    let planId = 'free'
-    for (const [key, plan] of Object.entries(PLANS)) {
-      if (plan.variantId === variantId) {
-        planId = key
-        break
-      }
-    }
-    
-    // Update user's subscription in Supabase
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        subscription_plan: planId,
-        is_subscribed: true,
-        subscription_updated_at: new Date().toISOString()
-      })
-      .eq('id', userId)
-    
-    if (error) {
-      throw error
-    }
-    
-    return { success: true, message: 'Order processed successfully' }
-  } catch (error) {
-    console.error('Error processing order:', error)
-    return { success: false, error: error.message }
-  }
-}
-
-// Handle subscription created
-const handleSubscriptionCreated = async (subscriptionData, supabase) => {
-  try {
-    const userId = subscriptionData.attributes.custom_data?.user_id
-    const variantId = subscriptionData.attributes.variant_id
-    
-    if (!userId) {
-      throw new Error('No user ID found in subscription data')
-    }
-    
-    // Determine plan based on variant ID
-    let planId = 'free'
-    for (const [key, plan] of Object.entries(PLANS)) {
-      if (plan.variantId === variantId) {
-        planId = key
-        break
-      }
-    }
-    
-    // Update user's subscription in Supabase
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        subscription_plan: planId,
-        is_subscribed: true,
-        subscription_updated_at: new Date().toISOString(),
-        lemonsqueezy_subscription_id: subscriptionData.id
-      })
-      .eq('id', userId)
-    
-    if (error) {
-      throw error
-    }
-    
-    return { success: true, message: 'Subscription created successfully' }
-  } catch (error) {
-    console.error('Error processing subscription creation:', error)
-    return { success: false, error: error.message }
-  }
-}
-
-// Handle subscription updated
-const handleSubscriptionUpdated = async (subscriptionData, supabase) => {
-  // Similar to handleSubscriptionCreated but for updates
-  return await handleSubscriptionCreated(subscriptionData, supabase)
-}
-
-// Handle subscription cancelled
-const handleSubscriptionCancelled = async (subscriptionData, supabase) => {
-  try {
-    const subscriptionId = subscriptionData.id
-    
-    // Find user by subscription ID and downgrade to free
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        subscription_plan: 'free',
-        is_subscribed: false,
-        subscription_updated_at: new Date().toISOString()
-      })
-      .eq('lemonsqueezy_subscription_id', subscriptionId)
-    
-    if (error) {
-      throw error
-    }
-    
-    return { success: true, message: 'Subscription cancelled successfully' }
-  } catch (error) {
-    console.error('Error processing subscription cancellation:', error)
-    return { success: false, error: error.message }
-  }
-}
-
-// Handle subscription resumed
-const handleSubscriptionResumed = async (subscriptionData, supabase) => {
-  // Similar to handleSubscriptionCreated but for resuming
-  return await handleSubscriptionCreated(subscriptionData, supabase)
 }
 
 // Get user's current plan
@@ -308,4 +154,3 @@ export const hasFeatureAccess = (userPlan, requiredPlan) => {
 }
 
 export default LEMONSQUEEZY_CONFIG
-
