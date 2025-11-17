@@ -1,10 +1,10 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './contexts/AuthContext' // Keep the import, but we won't use the component
+import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 
 // Pages
-import LandingPage from './pages/LandingPage' // Keep the import, but we won't use the component
+import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import Dashboard from './pages/Dashboard'
@@ -26,119 +26,119 @@ import './App.css'
 
 function App() {
   return (
-    // Removed <AuthProvider> wrapper
-    <Router>
-      <Routes>
-        {/* Public routes */}
-        {/* Replaced <LandingPage /> with a simple test div */}
-        <Route path="/" element={<div style={{ color: 'blue', fontSize: '32px', padding: '50px', backgroundColor: 'cyan' }}>ROUTER TEST SUCCESSFUL!</div>} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/upgrade" element={<UpgradePage />} />
-        <Route path="/thank-you" element={<ThankYou />} />
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          {/* Keeping the simple test div on the root route */}
+          <Route path="/" element={<div style={{ color: 'blue', fontSize: '32px', padding: '50px', backgroundColor: 'cyan' }}>ROUTER TEST SUCCESSFUL!</div>} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/upgrade" element={<UpgradePage />} />
+          <Route path="/thank-you" element={<ThankYou />} />
 
-        {/* Protected routes (these will likely fail without AuthProvider, but that's fine for this test) */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <Layout>
-              <Dashboard />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/income-tracker" element={
-          <ProtectedRoute>
-            <Layout>
-              <IncomeTracker />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/expense-manager" element={
-          <ProtectedRoute>
-            <Layout>
-              <ExpenseManager />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/budget-planner" element={
-          <ProtectedRoute requiredPlan="starter">
-            <Layout>
-              <BudgetPlanner />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/savings-goals" element={
-          <ProtectedRoute requiredPlan="starter">
-            <Layout>
-              <SavingsGoals />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/mission-tracker" element={
-          <ProtectedRoute requiredPlan="starter">
-            <Layout>
-              <MissionTracker />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/autopilot" element={
-          <ProtectedRoute requiredPlan="business">
-            <Layout>
-              <AutoPilot />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/growth-engine" element={
-          <ProtectedRoute requiredPlan="business">
-            <Layout>
-              <GrowthEngine />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/personal-academy" element={
-          <ProtectedRoute requiredPlan="business">
-            <Layout>
-              <PersonalAcademy />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/vault" element={
-          <ProtectedRoute requiredPlan="premium">
-            <Layout>
-              <Vault />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/security-hub" element={
-          <ProtectedRoute>
-            <Layout>
-              <SecurityHub />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <Layout>
-              <Profile />
-            </Layout>
-          </ProtectedRoute>
-        } />
+          {/* Protected routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/income-tracker" element={
+            <ProtectedRoute>
+              <Layout>
+                <IncomeTracker />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/expense-manager" element={
+            <ProtectedRoute>
+              <Layout>
+                <ExpenseManager />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/budget-planner" element={
+            <ProtectedRoute requiredPlan="starter">
+              <Layout>
+                <BudgetPlanner />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/savings-goals" element={
+            <ProtectedRoute requiredPlan="starter">
+              <Layout>
+                <SavingsGoals />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/mission-tracker" element={
+            <ProtectedRoute requiredPlan="starter">
+              <Layout>
+                <MissionTracker />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/autopilot" element={
+            <ProtectedRoute requiredPlan="business">
+              <Layout>
+                <AutoPilot />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/growth-engine" element={
+            <ProtectedRoute requiredPlan="business">
+              <Layout>
+                <GrowthEngine />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/personal-academy" element={
+            <ProtectedRoute requiredPlan="business">
+              <Layout>
+                <PersonalAcademy />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/vault" element={
+            <ProtectedRoute requiredPlan="premium">
+              <Layout>
+                <Vault />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/security-hub" element={
+            <ProtectedRoute>
+              <Layout>
+                <SecurityHub />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Layout>
+                <Profile />
+              </Layout>
+            </ProtectedRoute>
+          } />
 
-        {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
-    // Removed closing </AuthProvider>
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   )
 }
 
