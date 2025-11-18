@@ -30,7 +30,7 @@ function App() {
       <Router>
         <Routes>
           {/* Public routes */}
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<div style={{ color: 'lime', fontSize: '32px', padding: '50px', backgroundColor: 'purple' }}>LANDING PAGE BYPASSED!</div>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/upgrade" element={<UpgradePage />} />
