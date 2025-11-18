@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { SUBSCRIPTION_PLANS } from '../lib/supabase'
+import { PLANS } from '../lib/lemonsqueezy'
 
 const ProtectedRoute = ({ children, requiredPlan = null }) => {
   const { isAuthenticated, checkAccess, loading } = useAuth()
