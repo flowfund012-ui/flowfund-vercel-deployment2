@@ -1,7 +1,7 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
-import Layout from './components/Layout'
+// import Layout from './components/Layout' // <-- REMOVED THIS IMPORT
 
 // Pages
 import LandingPage from './pages/LandingPage'
@@ -30,106 +30,83 @@ function App() {
       <Router>
         <Routes>
           {/* Public routes */}
+          {/* Root route with simple test div */}
           <Route path="/" element={<div style={{ color: 'lime', fontSize: '32px', padding: '50px', backgroundColor: 'purple' }}>LANDING PAGE BYPASSED!</div>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/upgrade" element={<UpgradePage />} />
           <Route path="/thank-you" element={<ThankYou />} />
 
-          {/* Protected routes */}
+          {/* Protected routes - Layout component REMOVED from all */}
           <Route path="/dashboard" element={
             <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
+              <Dashboard />
             </ProtectedRoute>
           } />
           
           <Route path="/income-tracker" element={
             <ProtectedRoute>
-              <Layout>
-                <IncomeTracker />
-              </Layout>
+              <IncomeTracker />
             </ProtectedRoute>
           } />
           
           <Route path="/expense-manager" element={
             <ProtectedRoute>
-              <Layout>
-                <ExpenseManager />
-              </Layout>
+              <ExpenseManager />
             </ProtectedRoute>
           } />
           
           <Route path="/budget-planner" element={
             <ProtectedRoute requiredPlan="starter">
-              <Layout>
-                <BudgetPlanner />
-              </Layout>
+              <BudgetPlanner />
             </ProtectedRoute>
           } />
           
           <Route path="/savings-goals" element={
             <ProtectedRoute requiredPlan="starter">
-              <Layout>
-                <SavingsGoals />
-              </Layout>
+              <SavingsGoals />
             </ProtectedRoute>
           } />
           
           <Route path="/mission-tracker" element={
             <ProtectedRoute requiredPlan="starter">
-              <Layout>
-                <MissionTracker />
-              </Layout>
+              <MissionTracker />
             </ProtectedRoute>
           } />
           
           <Route path="/autopilot" element={
             <ProtectedRoute requiredPlan="business">
-              <Layout>
-                <AutoPilot />
-              </Layout>
+              <AutoPilot />
             </ProtectedRoute>
           } />
           
           <Route path="/growth-engine" element={
             <ProtectedRoute requiredPlan="business">
-              <Layout>
-                <GrowthEngine />
-              </Layout>
+              <GrowthEngine />
             </ProtectedRoute>
           } />
           
           <Route path="/personal-academy" element={
             <ProtectedRoute requiredPlan="business">
-              <Layout>
-                <PersonalAcademy />
-              </Layout>
+              <PersonalAcademy />
             </ProtectedRoute>
           } />
           
           <Route path="/vault" element={
             <ProtectedRoute requiredPlan="premium">
-              <Layout>
-                <Vault />
-              </Layout>
+              <Vault />
             </ProtectedRoute>
           } />
           
           <Route path="/security-hub" element={
             <ProtectedRoute>
-              <Layout>
-                <SecurityHub />
-              </Layout>
+              <SecurityHub />
             </ProtectedRoute>
           } />
           
           <Route path="/profile" element={
             <ProtectedRoute>
-              <Layout>
-                <Profile />
-              </Layout>
+              <Profile />
             </ProtectedRoute>
           } />
 
