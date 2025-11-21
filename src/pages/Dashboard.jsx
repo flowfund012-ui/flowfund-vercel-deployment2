@@ -139,87 +139,8 @@ const Dashboard = () => {
             <footer className="text-center py-6 text-gray-500 text-sm border-t border-gray-800 mt-12">
                 <p>&copy; 2023 FlowFund OS. All rights reserved.</p>
             </footer>
-
-            <style jsx>{`
-                .bg-deep-space {
-                    background-color: #000814;
-                }
-
-                .font-futuristic {
-                    font-family: 'Orbitron', sans-serif;
-                }
-
-                .gradient-text {
-                    background: linear-gradient(45deg, #00f2ff, #8a2be2 );
-                    -webkit-background-clip: text;
-                    background-clip: text;
-                    color: transparent;
-                }
-
-                .neon-border {
-                    border: 2px solid rgba(0, 242, 255, 0.5);
-                    box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
-                }
-
-                .nav-link {
-                    position: relative;
-                }
-
-                .nav-link:after {
-                    content: '';
-                    position: absolute;
-                    width: 0;
-                    height: 2px;
-                    bottom: -2px;
-                    left: 0;
-                    background-color: #00f2ff;
-                    transition: width 0.3s ease;
-                }
-
-                .nav-link:hover:after {
-                    width: 100%;
-                }
-
-                .neon-text {
-                    text-shadow: 0 0 8px #00f2ff, 0 0 12px #00f2ff, 0 0 16px #00f2ff;
-                }
-
-                .module-card {
-                    background: rgba(10, 20, 40, 0.6);
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(70, 130, 180, 0.3);
-                    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-                    transition: all 0.3s ease-in-out;
-                }
-
-                .module-card:hover {
-                    transform: translateY(-5px);
-                    box-shadow: 0 8px 40px rgba(70, 130, 180, 0.5);
-                }
-
-                .module-icon {
-                    background: linear-gradient(45deg, #4682b4, #8a2be2);
-                    -webkit-background-clip: text;
-                    background-clip: text;
-                    color: transparent;
-                }
-
-                .glow-button {
-                    box-shadow: 0 0 8px rgba(70, 130, 180, 0.6), 0 0 15px rgba(70, 130, 180, 0.4);
-                }
-
-                .pulse {
-                    animation: pulse-animation 2s infinite;
-                }
-
-                @keyframes pulse-animation {
-                    0% { transform: scale(1); opacity: 1; }
-                    50% { transform: scale(1.2); opacity: 0.7; }
-                    100% { transform: scale(1); opacity: 1; }
-                }
-            `}</style>
         </div>
-    );
+     );
 };
 
 export default Dashboard;
