@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { Rocket, Menu, ArrowRight, ChevronDown, LineChart, Bot, Zap, GraduationCap, Vault, Shield } from 'lucide-react'; // ADDED LUCIDE IMPORTS
 
 const LandingPage = () => {
     const starsContainerRef = useRef(null);
@@ -34,7 +35,7 @@ const LandingPage = () => {
                         <div className="flex items-center">
                             <div className="flex-shrink-0 flex items-center">
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center glow-box">
-                                    <i className="fas fa-rocket text-white"></i>
+                                    <Rocket className="text-white" /> {/* REPLACED i tag */}
                                 </div>
                                 <span className="ml-3 font-futuristic text-xl text-white glow-text">FlowFund</span>
                             </div>
@@ -51,7 +52,7 @@ const LandingPage = () => {
                         </div>
                         <div className="md:hidden">
                             <button id="mobile-menu-button" className="text-gray-300 hover:text-white focus:outline-none">
-                                <i className="fas fa-bars text-xl"></i>
+                                <Menu className="text-xl" /> {/* REPLACED i tag */}
                             </button>
                         </div>
                     </div>
@@ -90,7 +91,7 @@ const LandingPage = () => {
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <a href="#pricing" className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-futuristic rounded-lg glow-box hover:from-blue-500 hover:to-purple-500 transition-all duration-300 flex items-center justify-center">
-                            Launch Now <i className="fas fa-arrow-right ml-2"></i>
+                            Launch Now <ArrowRight className="ml-2" /> {/* REPLACED i tag */}
                         </a>
                         <a href="#features" className="px-8 py-4 border border-blue-500 text-blue-400 font-futuristic rounded-lg hover:bg-blue-900 hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
                             Explore Features
@@ -99,7 +100,7 @@ const LandingPage = () => {
                     
                     <div className="mt-24 scroll-indicator">
                         <a href="#features" className="text-gray-400 hover:text-white">
-                            <i className="fas fa-chevron-down text-2xl animate-bounce"></i>
+                            <ChevronDown className="text-2xl animate-bounce" /> {/* REPLACED i tag */}
                         </a>
                     </div>
                 </div>
@@ -140,7 +141,7 @@ const LandingPage = () => {
                         {/* Module 1 */}
                         <div className="module-card rounded-xl p-8">
                             <div className="feature-icon">
-                                <i className="fas fa-chart-line"></i>
+                                <LineChart /> {/* REPLACED i tag */}
                             </div>
                             <h3 className="text-2xl font-futuristic font-bold mb-3">Mission Tracker</h3>
                             <p className="text-gray-400 mb-4">
@@ -155,75 +156,75 @@ const LandingPage = () => {
                         {/* Module 2 */}
                         <div className="module-card rounded-xl p-8">
                             <div className="feature-icon">
-                                <i className="fas fa-robot"></i>
+                                <Bot /> {/* REPLACED i tag */}
                             </div>
                             <h3 className="text-2xl font-futuristic font-bold mb-3">AutoPilot</h3>
                             <p className="text-gray-400 mb-4">
-                                Set-it-and-forget-it savings & investment automation with intelligent allocation algorithms.
+                                Automated savings, investment rebalancing, and bill management for true financial freedom.
                             </p>
                             <div className="flex flex-wrap gap-2 mt-6">
-                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-blue-400 bg-blue-900 bg-opacity-30">Automated</span>
-                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-green-400 bg-green-900 bg-opacity-30">Smart</span>
+                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-blue-400 bg-blue-900 bg-opacity-30">Set & Forget</span>
+                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-purple-400 bg-purple-900 bg-opacity-30">Intelligent</span>
                             </div>
                         </div>
                         
                         {/* Module 3 */}
                         <div className="module-card rounded-xl p-8">
                             <div className="feature-icon">
-                                <i className="fas fa-bolt"></i>
+                                <Zap /> {/* REPLACED i tag */}
                             </div>
                             <h3 className="text-2xl font-futuristic font-bold mb-3">Growth Engine</h3>
                             <p className="text-gray-400 mb-4">
-                                Entrepreneur tools for scaling your business with financial insights and cash flow optimization.
+                                Advanced tools for optimizing investment portfolios and maximizing wealth generation.
                             </p>
                             <div className="flex flex-wrap gap-2 mt-6">
-                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-purple-400 bg-purple-900 bg-opacity-30">Pro Tools</span>
-                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-yellow-400 bg-yellow-900 bg-opacity-30">Scaling</span>
+                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-blue-400 bg-blue-900 bg-opacity-30">Optimization</span>
+                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-purple-400 bg-purple-900 bg-opacity-30">High-Yield</span>
                             </div>
                         </div>
                         
                         {/* Module 4 */}
                         <div className="module-card rounded-xl p-8">
                             <div className="feature-icon">
-                                <i className="fas fa-graduation-cap"></i>
+                                <GraduationCap /> {/* REPLACED i tag */}
                             </div>
                             <h3 className="text-2xl font-futuristic font-bold mb-3">Personal Academy</h3>
                             <p className="text-gray-400 mb-4">
-                                Curated financial education, workshops, and expert insights tailored to your goals.
+                                Exclusive courses, guides, and resources to expand your financial knowledge and skills.
                             </p>
                             <div className="flex flex-wrap gap-2 mt-6">
-                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-green-400 bg-green-900 bg-opacity-30">Learn</span>
-                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-blue-400 bg-blue-900 bg-opacity-30">Grow</span>
+                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-blue-400 bg-blue-900 bg-opacity-30">Exclusive</span>
+                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-purple-400 bg-purple-900 bg-opacity-30">On-Demand</span>
                             </div>
                         </div>
                         
                         {/* Module 5 */}
                         <div className="module-card rounded-xl p-8">
                             <div className="feature-icon">
-                                <i className="fas fa-shield-alt"></i>
+                                <Vault /> {/* REPLACED i tag */}
                             </div>
-                            <h3 className="text-2xl font-futuristic font-bold mb-3">Security Hub</h3>
+                            <h3 className="text-2xl font-futuristic font-bold mb-3">The Vault</h3>
                             <p className="text-gray-400 mb-4">
-                                Advanced encryption, fraud protection, and secure access protocols for peace of mind.
+                                Military-grade encryption for storing sensitive financial documents and passwords.
                             </p>
                             <div className="flex flex-wrap gap-2 mt-6">
-                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-red-400 bg-red-900 bg-opacity-30">Secure</span>
-                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-blue-400 bg-blue-900 bg-opacity-30">Protected</span>
+                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-blue-400 bg-blue-900 bg-opacity-30">Encrypted</span>
+                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-purple-400 bg-purple-900 bg-opacity-30">Secure</span>
                             </div>
                         </div>
                         
                         {/* Module 6 */}
                         <div className="module-card rounded-xl p-8">
                             <div className="feature-icon">
-                                <i className="fas fa-lock"></i>
+                                <Shield /> {/* REPLACED i tag */}
                             </div>
-                            <h3 className="text-2xl font-futuristic font-bold mb-3">The Vault</h3>
+                            <h3 className="text-2xl font-futuristic font-bold mb-3">Security Hub</h3>
                             <p className="text-gray-400 mb-4">
-                                Secure digital asset storage and management for cryptocurrencies and NFTs.
+                                Real-time security monitoring and alerts for all connected financial accounts.
                             </p>
                             <div className="flex flex-wrap gap-2 mt-6">
-                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-purple-400 bg-purple-900 bg-opacity-30">Crypto</span>
-                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-yellow-400 bg-yellow-900 bg-opacity-30">NFTs</span>
+                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-blue-400 bg-blue-900 bg-opacity-30">Real-Time</span>
+                                <span className="px-3 py-1 text-xs font-futuristic rounded-full text-purple-400 bg-purple-900 bg-opacity-30">Proactive</span>
                             </div>
                         </div>
                     </div>
@@ -231,230 +232,171 @@ const LandingPage = () => {
             </section>
 
             {/* Access Portal (Pricing) */}
-            <section id="pricing" className="py-24 bg-black relative overflow-hidden">
+            <section id="pricing" className="py-24 bg-black relative">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-20">
                         <h2 className="text-3xl md:text-5xl font-futuristic font-bold mb-4 glow-text">
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Access Portal</span>
                         </h2>
                         <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                            Choose your launch sequence. No hidden fees, just pure financial power.
+                            Choose your mission level. All plans include a 7-day free trial.
                         </p>
                     </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {/* Pricing Card 1 */}
-                        <div className="price-card rounded-xl p-8 text-center border border-gray-700">
-                            <h3 className="text-3xl font-futuristic font-bold mb-4 text-white">Explorer</h3>
-                            <p className="text-gray-400 mb-6">For the curious voyager</p>
-                            <p className="text-5xl font-futuristic font-bold text-white mb-6">$0<span className="text-xl text-gray-400">/month</span></p>
-                            <ul className="text-left text-gray-300 space-y-3 mb-8">
-                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Basic Mission Tracker</li>
-                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Limited AutoPilot</li>
-                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Community Access</li>
-                                <li className="flex items-center text-gray-500"><i className="fas fa-times-circle text-red-400 mr-3"></i> No Growth Engine</li>
-                                <li className="flex items-center text-gray-500"><i className="fas fa-times-circle text-red-400 mr-3"></i> No Vault Access</li>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* Plan 1: Starter */}
+                        <div className="pricing-card">
+                            <h3 className="text-2xl font-futuristic font-bold mb-4">Starter</h3>
+                            <p className="text-5xl font-bold mb-6">$29<span className="text-xl text-gray-400">/mo</span></p>
+                            <ul className="space-y-3 text-left mb-8">
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Mission Tracker</li>
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Budget Planner</li>
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Savings Goals</li>
+                                <li className="flex items-center"><i className="fas fa-times-circle text-red-400 mr-3"></i> AutoPilot Automation</li>
+                                <li className="flex items-center"><i className="fas fa-times-circle text-red-400 mr-3"></i> Growth Engine</li>
+                                <li className="flex items-center"><i className="fas fa-times-circle text-red-400 mr-3"></i> The Vault</li>
                             </ul>
-                            <a href="/register" className="block w-full px-8 py-3 bg-blue-600 text-white font-futuristic rounded-lg glow-box hover:bg-blue-500 transition-all duration-300">
-                                Start Free Mission
-                            </a>
+                            <a href="#" className="w-full block text-center px-6 py-3 bg-blue-600 text-white font-futuristic rounded-lg hover:bg-blue-500 transition">Start 7-Day Trial</a>
                         </div>
-
-                        {/* Pricing Card 2 (Popular) */}
-                        <div className="price-card rounded-xl p-8 text-center border-2 border-blue-500 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Popular</div>
-                            <h3 className="text-3xl font-futuristic font-bold mb-4 text-white">Navigator</h3>
-                            <p className="text-gray-400 mb-6">For the ambitious commander</p>
-                            <p className="text-5xl font-futuristic font-bold text-white mb-6">$29<span className="text-xl text-gray-400">/month</span></p>
-                            <ul className="text-left text-gray-300 space-y-3 mb-8">
-                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Advanced Mission Tracker</li>
-                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Full AutoPilot</li>
+                        
+                        {/* Plan 2: Business */}
+                        <div className="pricing-card popular">
+                            <div className="absolute top-0 right-0 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Most Popular</div>
+                            <h3 className="text-2xl font-futuristic font-bold mb-4">Business+</h3>
+                            <p className="text-5xl font-bold mb-6">$49<span className="text-xl text-gray-400">/mo</span></p>
+                            <ul className="space-y-3 text-left mb-8">
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Everything in Starter</li>
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> AutoPilot Automation</li>
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Growth Engine</li>
                                 <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Personal Academy</li>
-                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Basic Growth Engine</li>
-                                <li className="flex items-center text-gray-500"><i className="fas fa-times-circle text-red-400 mr-3"></i> No Vault Access</li>
+                                <li className="flex items-center"><i className="fas fa-times-circle text-red-400 mr-3"></i> The Vault</li>
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Priority Support</li>
                             </ul>
-                            <a href="/register" className="block w-full px-8 py-3 bg-blue-600 text-white font-futuristic rounded-lg glow-box hover:bg-blue-500 transition-all duration-300">
-                                Upgrade to Navigator
-                            </a>
+                            <a href="#" className="w-full block text-center px-6 py-3 bg-purple-600 text-white font-futuristic rounded-lg hover:bg-purple-500 transition">Go Business</a>
                         </div>
-
-                        {/* Pricing Card 3 */}
-                        <div className="price-card rounded-xl p-8 text-center border border-gray-700">
-                            <h3 className="text-3xl font-futuristic font-bold mb-4 text-white">Cosmic Elite</h3>
-                            <p className="text-gray-400 mb-6">For the ultimate financial architect</p>
-                            <p className="text-5xl font-futuristic font-bold text-white mb-6">$99<span className="text-xl text-gray-400">/month</span></p>
-                            <ul className="text-left text-gray-300 space-y-3 mb-8">
-                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> All Navigator Features</li>
-                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Full Growth Engine</li>
-                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Full Vault Access</li>
-                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Dedicated Support</li>
-                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Priority Access</li>
+                        
+                        {/* Plan 3: Premium */}
+                        <div className="pricing-card">
+                            <h3 className="text-2xl font-futuristic font-bold mb-4">Premium</h3>
+                            <p className="text-5xl font-bold mb-6">$297<span className="text-xl text-gray-400">/lifetime</span></p>
+                            <ul className="space-y-3 text-left mb-8">
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Everything in Business+</li>
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> The Vault</li>
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Lifetime Updates</li>
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Exclusive Templates</li>
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> VIP Support</li>
+                                <li className="flex items-center"><i className="fas fa-check-circle text-green-400 mr-3"></i> Early Access</li>
                             </ul>
-                            <a href="/register" className="block w-full px-8 py-3 bg-blue-600 text-white font-futuristic rounded-lg glow-box hover:bg-blue-500 transition-all duration-300">
-                                Go Cosmic Elite
-                            </a>
+                            <a href="#" className="w-full block text-center px-6 py-3 border border-gray-600 text-gray-300 font-futuristic rounded-lg hover:bg-gray-800 transition">Go Premium</a>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* About Section */}
-            <section id="about" className="py-24 bg-black relative overflow-hidden">
+            <section id="about" className="py-24 bg-black relative">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-20">
                         <h2 className="text-3xl md:text-5xl font-futuristic font-bold mb-4 glow-text">
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">About FlowFund</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Our Mission</span>
                         </h2>
                         <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                            Our mission: to empower you with unparalleled financial control and insight.
+                            Empowering you to achieve financial mastery with intelligence and precision.
                         </p>
                     </div>
-
-                    <div className="grid md:grid-cols-2 gap-12 items-center">
-                        <div>
-                            <h3 className="text-3xl font-futuristic font-bold mb-6 text-white">The Future of Finance, Today.</h3>
-                            <p className="text-gray-300 text-lg mb-6">
-                                FlowFund was founded on the principle that managing your finances should be as intuitive and powerful as navigating a starship. We've built a platform that combines cutting-edge AI with a user-friendly interface to give you complete command over your financial universe.
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                        <div className="text-center">
+                            <i className="fas fa-lightbulb text-5xl text-blue-400 mb-4"></i>
+                            <h3 className="text-2xl font-futuristic font-bold mb-2">Innovation</h3>
+                            <p className="text-gray-400">
+                                We constantly evolve, integrating the latest AI and financial technologies to keep you ahead.
                             </p>
-                            <p className="text-gray-300 text-lg mb-6">
-                                From automated savings to advanced investment strategies and secure digital asset management, FlowFund is your co-pilot on the journey to financial freedom. Our team of financial experts and tech innovators are constantly pushing the boundaries to bring you the most advanced tools available.
+                        </div>
+                        <div className="text-center">
+                            <i className="fas fa-lock text-5xl text-purple-400 mb-4"></i>
+                            <h3 className="text-2xl font-futuristic font-bold mb-2">Security</h3>
+                            <p className="text-gray-400">
+                                Your data is protected with military-grade encryption and rigorous security protocols.
                             </p>
-                            <a href="#contact" className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-futuristic rounded-lg glow-box hover:bg-blue-500 transition-all duration-300">
-                                Join Our Mission <i className="fas fa-arrow-right ml-2"></i>
-                            </a>
                         </div>
-                        <div className="relative w-full h-80 bg-gray-900 rounded-xl overflow-hidden shadow-lg">
-                            <img src="https://via.placeholder.com/600x400/0F172A/FFFFFF?text=FlowFund+Dashboard" alt="FlowFund Dashboard" className="w-full h-full object-cover opacity-70" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-24 h-24 rounded-full bg-blue-600 bg-opacity-70 flex items-center justify-center animate-pulse">
-                                    <i className="fas fa-play text-white text-3xl"></i>
-                                </div>
-                            </div>
+                        <div className="text-center">
+                            <i className="fas fa-users text-5xl text-green-400 mb-4"></i>
+                            <h3 className="text-2xl font-futuristic font-bold mb-2">Community</h3>
+                            <p className="text-gray-400">
+                                Join a thriving community of financial commanders on the path to wealth generation.
+                            </p>
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* FAQ Section */}
-            <section id="faq" className="py-24 bg-black relative overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-20">
-                        <h2 className="text-3xl md:text-5xl font-futuristic font-bold mb-4 glow-text">
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Frequently Asked Questions</span>
-                        </h2>
-                        <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                            Navigating the cosmos of finance can bring questions. We've got answers.
-                        </p>
-                    </div>
-
-                    <div className="max-w-3xl mx-auto space-y-6">
-                        <div className="faq-item pb-4">
-                            <button className="faq-question w-full text-left text-xl font-semibold text-white py-3 flex justify-between items-center">
-                                What is FlowFund?
-                                <i className="fas fa-chevron-down text-gray-400"></i>
-                            </button>
-                            <div className="faq-answer text-gray-400 mt-2 hidden">
-                                FlowFund is an advanced financial automation platform designed to give you complete control over your financial life. It combines AI-powered tools for tracking, saving, investing, and securing your assets in a user-friendly, space-themed interface.
-                            </div>
-                        </div>
-                        <div className="faq-item pb-4">
-                            <button className="faq-question w-full text-left text-xl font-semibold text-white py-3 flex justify-between items-center">
-                                How does AutoPilot work?
-                                <i className="fas fa-chevron-down text-gray-400"></i>
-                            </button>
-                            <div className="faq-answer text-gray-400 mt-2 hidden">
-                                AutoPilot uses intelligent algorithms to automate your savings and investments based on your financial goals and risk tolerance. You set your parameters, and AutoPilot works in the background to optimize your portfolio and savings contributions.
-                            </div>
-                        </div>
-                        <div className="faq-item pb-4">
-                            <button className="faq-question w-full text-left text-xl font-semibold text-white py-3 flex justify-between items-center">
-                                Is my data secure with FlowFund?
-                                <i className="fas fa-chevron-down text-gray-400"></i>
-                            </button>
-                            <div className="faq-answer text-gray-400 mt-2 hidden">
-                                Yes, security is our top priority. FlowFund employs military-grade encryption, multi-factor authentication, and continuous threat monitoring to ensure your financial data and assets are protected at all times. Our Security Hub provides real-time insights into your account's safety.
-                            </div>
-                        </div>
-                        <div className="faq-item pb-4">
-                            <button className="faq-question w-full text-left text-xl font-semibold text-white py-3 flex justify-between items-center">
-                                Can I access FlowFund on mobile devices?
-                                <i className="fas fa-chevron-down text-gray-400"></i>
-                            </button>
-                            <div className="faq-answer text-gray-400 mt-2 hidden">
-                                Absolutely! FlowFund is designed to be fully responsive and accessible across all devices, including smartphones and tablets. Our mobile-first approach ensures a seamless and intuitive experience whether you're on your desktop or on the go.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Contact Section */}
-            <section id="contact" className="py-24 bg-black relative overflow-hidden contact-radar">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="text-center mb-20">
-                        <h2 className="text-3xl md:text-5xl font-futuristic font-bold mb-4 glow-text">
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Contact Mission Control</span>
-                        </h2>
-                        <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                            Ready to launch your financial journey? Our team is standing by.
-                        </p>
-                    </div>
-
-                    <div className="max-w-xl mx-auto bg-gray-900 bg-opacity-70 backdrop-filter backdrop-blur-lg rounded-xl p-8 shadow-lg border border-gray-800">
-                        <form className="space-y-6">
-                            <div>
-                                <label htmlFor="name" className="block text-gray-300 text-sm font-bold mb-2">Name</label>
-                                <input type="text" id="name" name="name" className="command-input w-full px-4 py-3 rounded-lg" placeholder="Your Name" />
-                            </div>
-                            <div>
-                                <label htmlFor="email" className="block text-gray-300 text-sm font-bold mb-2">Email</label>
-                                <input type="email" id="email" name="email" className="command-input w-full px-4 py-3 rounded-lg" placeholder="Your Email" />
-                            </div>
-                            <div>
-                                <label htmlFor="message" className="block text-gray-300 text-sm font-bold mb-2">Message</label>
-                                <textarea id="message" name="message" rows="5" className="command-input w-full px-4 py-3 rounded-lg" placeholder="Your Message"></textarea>
-                            </div>
-                            <button type="submit" className="w-full px-6 py-3 bg-blue-600 text-white font-futuristic rounded-lg glow-box hover:bg-blue-500 transition-all duration-300">
-                                Send Transmission <i className="fas fa-paper-plane ml-2"></i>
-                            </button>
-                        </form>
                     </div>
                 </div>
             </section>
 
             {/* Footer */}
-            <footer className="bg-black bg-opacity-80 backdrop-filter backdrop-blur-lg border-t border-gray-800 py-8 text-center text-gray-400">
+            <footer className="py-12 bg-black border-t border-gray-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <p>&copy; 2023 FlowFund Systems. All rights reserved.</p>
-                    <div className="flex justify-center space-x-6 mt-4">
-                        <a href="#" className="hover:text-white transition-colors"><i className="fab fa-twitter"></i></a>
-                        <a href="#" className="hover:text-white transition-colors"><i className="fab fa-linkedin-in"></i></a>
-                        <a href="#" className="hover:text-white transition-colors"><i className="fab fa-github"></i></a>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div>
+                            <h4 className="text-lg font-futuristic font-bold mb-4 glow-text">FlowFund</h4>
+                            <ul className="space-y-2 text-gray-400">
+                                <li><a href="#about" className="hover:text-white transition">About Us</a></li>
+                                <li><a href="#contact" className="hover:text-white transition">Contact</a></li>
+                                <li><a href="#" className="hover:text-white transition">Careers</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-lg font-futuristic font-bold mb-4 glow-text">Features</h4>
+                            <ul className="space-y-2 text-gray-400">
+                                <li><a href="#features" className="hover:text-white transition">Mission Tracker</a></li>
+                                <li><a href="#features" className="hover:text-white transition">AutoPilot</a></li>
+                                <li><a href="#features" className="hover:text-white transition">Growth Engine</a></li>
+                                <li><a href="#features" className="hover:text-white transition">The Vault</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-lg font-futuristic font-bold mb-4 glow-text">Legal</h4>
+                            <ul className="space-y-2 text-gray-400">
+                                <li><a href="#" className="hover:text-white transition">Terms of Service</a></li>
+                                <li><a href="#" className="hover:text-white transition">Privacy Policy</a></li>
+                                <li><a href="#" className="hover:text-white transition">Security</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-lg font-futuristic font-bold mb-4 glow-text">Connect</h4>
+                            <div className="flex space-x-4 text-2xl">
+                                <a href="#" className="text-gray-400 hover:text-blue-400 transition"><i className="fab fa-twitter"></i></a>
+                                <a href="#" className="text-gray-400 hover:text-blue-600 transition"><i className="fab fa-linkedin-in"></i></a>
+                                <a href="#" className="text-gray-400 hover:text-red-600 transition"><i className="fab fa-youtube"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="mt-12 text-center text-gray-500 text-sm">
+                        <p>&copy; 2023 FlowFund Command Center. All rights reserved. Built for the future of finance.</p>
                     </div>
                 </div>
             </footer>
 
+            {/* Styles for Landing Page */}
             <style jsx>{`
+                .antialiased {
+                    background-color: #000;
+                }
                 .hero-bg {
-                    background: radial-gradient(ellipse at center, #001F54 0%, #000814 70% );
+                    background-color: #000814;
+                    background-image: radial-gradient(circle at 50% 50%, rgba(2, 132, 199, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
                 }
-
+                .font-futuristic {
+                    font-family: 'Orbitron', sans-serif;
+                }
                 .glow-text {
-                    text-shadow: 0 0 8px rgba(245, 249, 255, 0.6);
+                    text-shadow: 0 0 5px rgba(0, 242, 255, 0.5), 0 0 10px rgba(138, 43, 226, 0.5);
                 }
-
                 .glow-box {
-                    box-shadow: 0 0 15px rgba(0, 102, 255, 0.5);
+                    box-shadow: 0 0 8px rgba(0, 242, 255, 0.5);
                 }
-
-                .glow-box:hover {
-                    box-shadow: 0 0 25px rgba(0, 102, 255, 0.8);
-                }
-
                 .nav-link {
                     position: relative;
                 }
-
                 .nav-link:after {
                     content: '';
                     position: absolute;
@@ -462,75 +404,61 @@ const LandingPage = () => {
                     height: 2px;
                     bottom: -2px;
                     left: 0;
-                    background-color: #0066FF;
+                    background-color: #00f2ff;
                     transition: width 0.3s ease;
                 }
-
                 .nav-link:hover:after {
                     width: 100%;
                 }
-
                 .star {
                     position: absolute;
-                    background-color: #F5F9FF;
+                    background: white;
                     border-radius: 50%;
-                    animation: twinkle var(--duration) infinite ease-in-out;
-                    opacity: 0;
+                    opacity: var(--opacity);
+                    animation: twinkle var(--duration) infinite alternate;
                 }
-
                 @keyframes twinkle {
-                    0%, 100% { opacity: 0; }
-                    50% { opacity: var(--opacity); }
+                    0% { opacity: var(--opacity); }
+                    50% { opacity: 0.2; }
+                    100% { opacity: var(--opacity); }
                 }
-
                 .dashboard-grid {
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
                     gap: 2rem;
                 }
-
                 .module-card {
-                    transition: all 0.3s ease-in-out;
-                    border: 1px solid rgba(176, 190, 197, 0.2);
-                    background: rgba(0, 31, 84, 0.3);
-                    backdrop-filter: blur(10px);
-                    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-                }
-
-                .module-card:hover {
-                    transform: translateY(-5px);
-                    box-shadow: 0 8px 40px rgba(70, 130, 180, 0.5);
-                }
-
-                .feature-icon {
-                    font-size: 3rem;
-                    margin-bottom: 1rem;
-                    background: linear-gradient(45deg, #4682b4, #8a2be2);
-                    -webkit-background-clip: text;
-                    background-clip: text;
-                    color: transparent;
-                }
-
-                .pricing-card {
                     background: rgba(10, 20, 40, 0.6);
                     backdrop-filter: blur(10px);
                     border: 1px solid rgba(70, 130, 180, 0.3);
                     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
                     transition: all 0.3s ease-in-out;
                 }
-
-                .pricing-card:hover {
+                .module-card:hover {
                     transform: translateY(-5px);
                     box-shadow: 0 8px 40px rgba(70, 130, 180, 0.5);
                 }
-
-                .scroll-indicator {
-                    animation: bounce 2s infinite;
+                .feature-icon {
+                    font-size: 3rem;
+                    margin-bottom: 1rem;
+                    background: linear-gradient(45deg, #00f2ff, #8a2be2);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    color: transparent;
                 }
-
-                @keyframes bounce {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-10px); }
+                .pricing-card {
+                    position: relative;
+                    background: rgba(10, 20, 40, 0.8);
+                    border: 1px solid rgba(70, 130, 180, 0.5);
+                    padding: 2rem;
+                    border-radius: 1rem;
+                    text-align: center;
+                    transition: all 0.3s ease-in-out;
+                }
+                .pricing-card.popular {
+                    border-color: #8a2be2;
+                    box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
                 }
             `}</style>
         </div>
