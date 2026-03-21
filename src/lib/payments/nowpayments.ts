@@ -1,17 +1,12 @@
 /**
- * NOWPayments Integration — Hardened v2
- * - Zero KYC, zero business registration
- * - 150+ cryptocurrencies
- * - Retry logic, deduplication, verification
- * - Works globally including Germany
- * Sign up free: https://nowpayments.io
+ * NOWPayments Integration — v3 (fetch-based, no axios)
+ * Real keys configured via environment variables
  */
 
-import axios from 'axios';
+import { createHmac } from 'crypto';
 import { logger } from '@/lib/logger';
 
 const NOWPAYMENTS_API = 'https://api.nowpayments.io/v1';
-const API_KEY = process.env.NOWPAYMENTS_API_KEY!;
 
 export const PLANS = {
   pro: {
@@ -47,82 +42,76 @@ export interface NOWPaymentResponse {
   expiration_estimate_date: string;
 }
 
+async function npFetch(endpoint: string, options?: RequestInit) {
+  const apiKey = process.env.NOWPAYMENTS_API_KEY;
+  if (!apiKey || apiKey === 'placeholder') {
+    throw new Error('NOWPayments API key not configured');
+  }
+  const res = await fetch(`${NOWPAYMENTS_API}${endpoint}`, {
+    ...options,
+    headers: {
+      'x-api-key': apiKey,
+      'Content-Type': 'application/json',
+      ...(options?.headers ?? {}),
+    },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`NOWPayments API error ${res.status}: ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
 export const nowPayments = {
-  // Create a crypto payment
   async createPayment(opts: {
     planId: PlanId;
-    orderId: string;   // Our internal order UUID
+    orderId: string;
     userId: string;
-    currency?: string; // Default: BTC
+    currency?: string;
   }): Promise<NOWPaymentResponse> {
     const plan = PLANS[opts.planId];
     const currency = opts.currency || 'btc';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://flowfund-v3.vercel.app';
 
-    const response = await axios.post(
-      `${NOWPAYMENTS_API}/payment`,
-      {
+    const data = await npFetch('/payment', {
+      method: 'POST',
+      body: JSON.stringify({
         price_amount: plan.price,
         price_currency: 'usd',
         pay_currency: currency,
         order_id: opts.orderId,
-        order_description: `${plan.name} - ${opts.userId}`,
-        ipn_callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/nowpayments`,
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?payment=success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?payment=cancelled`,
-      },
-      {
-        headers: {
-          'x-api-key': API_KEY,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    return response.data;
-  },
-
-  // Get payment status
-  async getPaymentStatus(paymentId: string) {
-    const response = await axios.get(
-      `${NOWPAYMENTS_API}/payment/${paymentId}`,
-      { headers: { 'x-api-key': API_KEY } }
-    );
-    return response.data;
-  },
-
-  // Get available currencies
-  async getCurrencies(): Promise<string[]> {
-    const response = await axios.get(`${NOWPAYMENTS_API}/currencies`, {
-      headers: { 'x-api-key': API_KEY },
+        order_description: `${plan.name} - ${opts.userId.slice(0, 8)}`,
+        ipn_callback_url: `${appUrl}/api/webhooks/nowpayments`,
+        success_url: `${appUrl}/dashboard/settings?payment=success`,
+        cancel_url: `${appUrl}/dashboard/settings?payment=cancelled`,
+      }),
     });
-    return response.data.currencies ?? [];
+
+    logger.info('nowpayments_created', { paymentId: data.payment_id, plan: opts.planId });
+    return data;
   },
 
-  // Get minimum payment amount for a currency
-  async getMinAmount(currency: string): Promise<number> {
-    const response = await axios.get(
-      `${NOWPAYMENTS_API}/min-amount?currency_from=${currency}&currency_to=usd`,
-      { headers: { 'x-api-key': API_KEY } }
-    );
-    return response.data.min_amount ?? 0;
+  async getPaymentStatus(paymentId: string) {
+    return npFetch(`/payment/${paymentId}`);
   },
 
-  // Verify IPN signature from webhook
+  async getCurrencies(): Promise<string[]> {
+    const data = await npFetch('/currencies');
+    return data.currencies ?? [];
+  },
+
   verifyIPN(receivedHmac: string, sortedBody: string): boolean {
-    const crypto = require('crypto');
-    const secret = process.env.NOWPAYMENTS_IPN_SECRET!;
-    const hmac = crypto.createHmac('sha512', secret);
+    const secret = process.env.NOWPAYMENTS_IPN_SECRET;
+    if (!secret) return false;
+    const hmac = createHmac('sha512', secret);
     hmac.update(sortedBody);
-    const expectedHmac = hmac.digest('hex');
-    return receivedHmac === expectedHmac;
+    return receivedHmac === hmac.digest('hex');
   },
 
-  // Statuses that mean payment is complete
   isCompleted(status: string): boolean {
     return status === 'finished';
   },
 
-  // Statuses that mean payment failed
   isFailed(status: string): boolean {
     return ['failed', 'refunded', 'expired'].includes(status);
   },
