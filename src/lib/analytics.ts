@@ -22,5 +22,6 @@ const analytics = {
 };
 
 export default analytics;
+export { analytics };
 export const track = analytics.track.bind(analytics);
 export const trackServerEvent = analytics.trackServer.bind(analytics);
