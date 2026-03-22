@@ -8,18 +8,9 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
   return (
     <DashboardShell user={user} profile={profile}>
       {children}
