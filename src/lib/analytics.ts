@@ -1,42 +1,26 @@
-// Analytics module - supports both named and default exports
 'use client';
 
-const BATCH_INTERVAL = 1000;
-const queue: Array<{ event: string; properties?: Record<string, unknown> }> = [];
-let flushTimer: ReturnType<typeof setTimeout> | null = null;
+const queue = [];
+let timer = null;
 
 function flush() {
-  if (queue.length === 0) return;
+  if (!queue.length || typeof window === 'undefined') return;
   const events = queue.splice(0, queue.length);
-  if (typeof window === 'undefined') return;
-  fetch(window.location.origin + '/api/analytics', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ events }),
-  }).catch(() => {});
+  fetch('/api/analytics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ events }) }).catch(() => {});
 }
 
-export function track(event: string, properties?: Record<string, unknown>) {
-  if (typeof window === 'undefined') return;
-  queue.push({ event, properties });
-  if (flushTimer) clearTimeout(flushTimer);
-  flushTimer = setTimeout(flush, BATCH_INTERVAL);
-}
+const analytics = {
+  track(event, properties) {
+    if (typeof window === 'undefined') return;
+    queue.push({ event, properties });
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(flush, 1000);
+  },
+  trackServer(event, properties) {
+    return Promise.resolve();
+  }
+};
 
-export async function trackServerEvent(
-  event: string,
-  properties?: Record<string, unknown>
-): Promise<void> {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://flowfund-v3.vercel.app';
-    await fetch(baseUrl + '/api/analytics', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ events: [{ event, properties }] }),
-    });
-  } catch { /* silent */ }
-}
-
-// Default export for legacy imports: import analytics from '@/lib/analytics'
-const analytics = { track, trackServerEvent };
 export default analytics;
+export const track = analytics.track.bind(analytics);
+export const trackServerEvent = analytics.trackServer.bind(analytics);
