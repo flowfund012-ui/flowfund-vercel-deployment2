@@ -1,28 +1,26 @@
 'use client';
 
-const _q = [];
-let _t = null;
+const queue = [];
+let timer = null;
 
-function _flush() {
-  if (!_q.length || typeof window === 'undefined') return;
-  const ev = _q.splice(0, _q.length);
-  fetch('/api/analytics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ events: ev }) }).catch(() => {});
+function flush() {
+  if (!queue.length || typeof window === 'undefined') return;
+  const events = queue.splice(0, queue.length);
+  fetch('/api/analytics', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ events }) }).catch(() => {});
 }
 
-function _track(event, properties) {
-  if (typeof window === 'undefined') return;
-  _q.push({ event, properties });
-  if (_t) clearTimeout(_t);
-  _t = setTimeout(_flush, 1000);
-}
+const analytics = {
+  track(event, properties) {
+    if (typeof window === 'undefined') return;
+    queue.push({ event, properties });
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(flush, 1000);
+  },
+  trackServer(event, properties) {
+    return Promise.resolve();
+  }
+};
 
-// Named exports
-export const track = _track;
-export const trackServerEvent = (event, properties) => Promise.resolve();
-
-// Default export as object - for: import analytics from '@/lib/analytics'
-const analytics = { track: _track, trackServerEvent };
 export default analytics;
-
-// Also export as named 'analytics' - for: import { analytics } from '@/lib/analytics'
-export { analytics };
+export const track = analytics.track.bind(analytics);
+export const trackServerEvent = analytics.trackServer.bind(analytics);
