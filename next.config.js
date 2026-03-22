@@ -1,1 +1,7 @@
-/** @type {import('next').NextConfig} */\nconst nextConfig = {\n  typescript: { ignoreBuildErrors: true },\n  eslint: { ignoreDuringBuilds: true },\n  experimental: { serverActions: { allowedOrigins: ['*'] } },\n  compress: true,\n  poweredByHeader: false,\n};\n\nmodule.exports = nextConfig;\n
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: true },
+  experimental: { serverActions: { allowedOrigins: ['*'] } },
+};
+module.exports = nextConfig;
