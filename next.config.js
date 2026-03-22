@@ -5,7 +5,6 @@ const nextConfig = {
   experimental: { serverActions: { allowedOrigins: ['*'] } },
   compress: true,
   poweredByHeader: false,
-  optimizePackageImports: ['chart.js'],
 };
 
 module.exports = nextConfig;
