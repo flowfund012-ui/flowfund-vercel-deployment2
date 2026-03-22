@@ -1,7 +1,7 @@
-// Rate limiter - pure in-memory, no external dependencies
+// Rate limiter - pure in-memory, no external deps
 const store = new Map();
 
-function limitFn(key, limit, windowMs) {
+function limitFn(key: string, limit: number, windowMs: number) {
   const now = Date.now();
   const entry = store.get(key);
   if (!entry || entry.reset < now) {
@@ -15,8 +15,8 @@ function limitFn(key, limit, windowMs) {
 
 export const ratelimit = limitFn;
 export const rateLimit = limitFn;
-export const authLimiter = (ip) => limitFn(ip + ':auth', 5, 60000);
-export const apiLimiter = (ip) => limitFn(ip + ':api', 60, 60000);
-export const paymentLimiter = (ip) => limitFn(ip + ':payment', 3, 600000);
-export const webhookLimiter = (ip) => limitFn(ip + ':webhook', 100, 60000);
+export const authLimiter = (ip: string) => limitFn(ip + ':auth', 5, 60000);
+export const apiLimiter = (ip: string) => limitFn(ip + ':api', 60, 60000);
+export const paymentLimiter = (ip: string) => limitFn(ip + ':payment', 3, 600000);
+export const webhookLimiter = (ip: string) => limitFn(ip + ':webhook', 100, 60000);
 export default limitFn;
