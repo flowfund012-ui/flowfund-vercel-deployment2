@@ -1,6 +1,6 @@
 import { createServerClient as _createSSRClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { createClient } from '@supabase/supabase-js';
+import { createClient as _sbCreateClient } from '@supabase/supabase-js';
 
 export function createServerClient() {
   const cookieStore = cookies();
@@ -17,8 +17,13 @@ export function createServerClient() {
   );
 }
 
+// createClient alias - used by API routes
+export function createClient() {
+  return createServerClient();
+}
+
 export function createServiceClient() {
-  return createClient(
+  return _sbCreateClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
