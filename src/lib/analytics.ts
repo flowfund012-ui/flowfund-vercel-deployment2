@@ -1,1 +1,39 @@
-'use client';\n\nconst BATCH_INTERVAL = 1000;\nconst queue: Array<{ event: string; properties?: Record<string, unknown> }> = [];\nlet flushTimer: ReturnType<typeof setTimeout> | null = null;\n\nfunction flush() {\n  if (queue.length === 0) return;\n  const events = queue.splice(0, queue.length);\n  const appUrl = typeof window !== 'undefined' ? window.location.origin : '';\n  fetch(`${appUrl}/api/analytics`, {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ events }),\n  }).catch(() => {});\n}\n\nexport function track(event: string, properties?: Record<string, unknown>) {\n  if (typeof window === 'undefined') return;\n  queue.push({ event, properties });\n  if (flushTimer) clearTimeout(flushTimer);\n  flushTimer = setTimeout(flush, BATCH_INTERVAL);\n}\n\nexport async function trackServerEvent(\n  event: string,\n  properties?: Record<string, unknown>\n): Promise<void> {\n  try {\n    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://flowfund-v3.vercel.app';\n    await fetch(`${baseUrl}/api/analytics`, {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ events: [{ event, properties }] }),\n    });\n  } catch {\n    // Silent fail\n  }\n}\n
+'use client';
+
+const BATCH_INTERVAL = 1000;
+const queue: Array<{ event: string; properties?: Record<string, unknown> }> = [];
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+function flush() {
+  if (queue.length === 0) return;
+  const events = queue.splice(0, queue.length);
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  fetch(`${appUrl}/api/analytics`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ events }),
+  }).catch(() => {});
+}
+
+export function track(event: string, properties?: Record<string, unknown>) {
+  if (typeof window === 'undefined') return;
+  queue.push({ event, properties });
+  if (flushTimer) clearTimeout(flushTimer);
+  flushTimer = setTimeout(flush, BATCH_INTERVAL);
+}
+
+export async function trackServerEvent(
+  event: string,
+  properties?: Record<string, unknown>
+): Promise<void> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://flowfund-v3.vercel.app';
+    await fetch(`${baseUrl}/api/analytics`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ events: [{ event, properties }] }),
+    });
+  } catch {
+    // Silent fail
+  }
+}
