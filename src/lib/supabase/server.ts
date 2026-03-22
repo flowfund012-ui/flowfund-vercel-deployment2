@@ -1,27 +1,33 @@
 import { createServerClient as _createSSRClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { createClient } from '@supabase/supabase-js';
+import { createClient as _createClient } from '@supabase/supabase-js';
 
 export function createServerClient() {
   const cookieStore = cookies();
   return _createSSRClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name) { return cookieStore.get(name)?.value; },
-        set(name, value, options) { try { cookieStore.set({ name, value, ...options }); } catch {} },
-        remove(name, options) { try { cookieStore.set({ name, value: '', ...options }); } catch {} },
+        get(name: string) { return cookieStore.get(name)?.value; },
+        set(name: string, value: string, options: Record<string,unknown>) {
+          try { cookieStore.set({ name, value, ...options } as Parameters<typeof cookieStore.set>[0]); } catch {}
+        },
+        remove(name: string, options: Record<string,unknown>) {
+          try { cookieStore.set({ name, value: '', ...options } as Parameters<typeof cookieStore.set>[0]); } catch {}
+        },
       },
     }
   );
 }
 
 export function createServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
+  return _createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 }
 
+// Legacy aliases - some routes import these names directly
+export const createClient = createServiceClient;
 export const createServerSupabaseClient = createServerClient;
