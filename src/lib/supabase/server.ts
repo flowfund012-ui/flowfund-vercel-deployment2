@@ -11,10 +11,10 @@ export function createServerClient() {
       cookies: {
         get(name: string) { return cookieStore.get(name)?.value; },
         set(name: string, value: string, options: Record<string,unknown>) {
-          try { cookieStore.set({ name, value, ...options } as Parameters<typeof cookieStore.set>[0]); } catch {}
+          try { cookieStore.set({name, value, ...options} as Parameters<typeof cookieStore.set>[0]); } catch {}
         },
         remove(name: string, options: Record<string,unknown>) {
-          try { cookieStore.set({ name, value: '', ...options } as Parameters<typeof cookieStore.set>[0]); } catch {}
+          try { cookieStore.set({name, value: '', ...options} as Parameters<typeof cookieStore.set>[0]); } catch {}
         },
       },
     }
@@ -28,6 +28,5 @@ export function createServiceClient() {
   );
 }
 
-// Legacy aliases - some routes import these names directly
 export const createClient = createServiceClient;
 export const createServerSupabaseClient = createServerClient;
