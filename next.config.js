@@ -1,10 +1,1 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  compress: true,
-  poweredByHeader: false,
-  typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
-  images: { domains: ['lh3.googleusercontent.com'], formats: ['image/avif','image/webp'] },
-};
-module.exports = nextConfig;
+/** @type {import('next').NextConfig} */\nconst nextConfig = {\n  typescript: { ignoreBuildErrors: true },\n  eslint: { ignoreDuringBuilds: true },\n  experimental: { serverActions: { allowedOrigins: ['*'] } },\n  compress: true,\n  poweredByHeader: false,\n  optimizePackageImports: ['chart.js'],\n};\n\nmodule.exports = nextConfig;\n
