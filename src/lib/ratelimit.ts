@@ -1,11 +1,7 @@
-// Rate limiter - in-memory only, no external dependencies
-const store = new Map<string, { count: number; reset: number }>();
+// Rate limiter - pure in-memory, no external dependencies
+const store = new Map();
 
-function limitFn(
-  key: string,
-  limit: number,
-  windowMs: number
-): { success: boolean; remaining: number } {
+function limitFn(key, limit, windowMs) {
   const now = Date.now();
   const entry = store.get(key);
   if (!entry || entry.reset < now) {
@@ -17,12 +13,10 @@ function limitFn(
   return { success: true, remaining: limit - entry.count };
 }
 
-// Named exports to match all import styles used in the codebase
 export const ratelimit = limitFn;
 export const rateLimit = limitFn;
-export const authLimiter = (ip: string) => limitFn(ip + ':auth', 5, 60_000);
-export const apiLimiter = (ip: string) => limitFn(ip + ':api', 60, 60_000);
-export const paymentLimiter = (ip: string) => limitFn(ip + ':payment', 3, 600_000);
-export const webhookLimiter = (ip: string) => limitFn(ip + ':webhook', 100, 60_000);
-
+export const authLimiter = (ip) => limitFn(ip + ':auth', 5, 60000);
+export const apiLimiter = (ip) => limitFn(ip + ':api', 60, 60000);
+export const paymentLimiter = (ip) => limitFn(ip + ':payment', 3, 600000);
+export const webhookLimiter = (ip) => limitFn(ip + ':webhook', 100, 60000);
 export default limitFn;
