@@ -1,3 +1,4 @@
+// Analytics module - supports both named and default exports
 'use client';
 
 const BATCH_INTERVAL = 1000;
@@ -7,8 +8,8 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null;
 function flush() {
   if (queue.length === 0) return;
   const events = queue.splice(0, queue.length);
-  const appUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  fetch(`${appUrl}/api/analytics`, {
+  if (typeof window === 'undefined') return;
+  fetch(window.location.origin + '/api/analytics', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ events }),
@@ -28,12 +29,14 @@ export async function trackServerEvent(
 ): Promise<void> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://flowfund-v3.vercel.app';
-    await fetch(`${baseUrl}/api/analytics`, {
+    await fetch(baseUrl + '/api/analytics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ events: [{ event, properties }] }),
     });
-  } catch {
-    // Silent fail
-  }
+  } catch { /* silent */ }
 }
+
+// Default export for legacy imports: import analytics from '@/lib/analytics'
+const analytics = { track, trackServerEvent };
+export default analytics;
