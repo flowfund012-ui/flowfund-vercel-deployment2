@@ -1,15 +1,1 @@
-'use client';
-export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  return (
-    <html>
-      <body style={{ background: '#000814', color: '#fff', fontFamily: 'Inter,sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', margin: 0 }}>
-        <div style={{ textAlign: 'center', padding: 40 }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>!</div>
-          <h2 style={{ color: '#ff8080', marginBottom: 8 }}>Something went wrong</h2>
-          <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: 24 }}>{error.message}</p>
-          <button onClick={() => reset()} style={{ padding: '10px 24px', borderRadius: 8, background: 'rgba(0,102,255,0.15)', border: '1px solid rgba(0,102,255,0.3)', color: '#0066ff', cursor: 'pointer' }}>Try again</button>
-        </div>
-      </body>
-    </html>
-  );
-}
+'use client';\n\nexport default function GlobalError({\n  error,\n  reset,\n}: {\n  error: Error & { digest?: string };\n  reset: () => void;\n}) {\n  return (\n    <html>\n      <body style={{ background: '#000814', color: '#fff', fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', margin: 0 }}>\n        <div style={{ textAlign: 'center', padding: '2rem' }}>\n          <h2 style={{ color: '#00f2ff', fontSize: '1.5rem', marginBottom: '1rem' }}>Something went wrong</h2>\n          <p style={{ color: '#94a3b8', marginBottom: '1.5rem' }}>{error.message || 'An unexpected error occurred'}</p>\n          <button\n            onClick={reset}\n            style={{ background: 'linear-gradient(135deg, #0066ff, #00f2ff)', color: '#fff', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontSize: '1rem' }}\n          >\n            Try again\n          </button>\n        </div>\n      </body>\n    </html>\n  );\n}\n
