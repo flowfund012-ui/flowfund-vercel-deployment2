@@ -3,6 +3,5 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
-  "regions": ["iad1"],
-  "buildCache": false
+  "regions": ["iad1"]
 }
