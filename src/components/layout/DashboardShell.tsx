@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUIStore } from '@/store/useUIStore';
-import { analytics } from '@/lib/analytics';
+import analytics from '@/lib/analytics';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import type { Profile } from '@/types/database';
 import type { User } from '@supabase/supabase-js';
@@ -51,14 +51,15 @@ const NAV = [
   ]},
 ];
 
-const PLAN_BADGE: Record<string, string> = { free: '🆓 Free', pro: '⚡ Pro', premium: '👑 Premium' };
+const PLAN_BADGE: Record<string, string> = { free: '⚡ Free', pro: '⚡ Pro', premium: '★ Premium' };
 
 interface Props { user: User; profile: Profile | null; children: React.ReactNode; }
 
 export default function DashboardShell({ user, profile, children }: Props) {
   const pathname = usePathname();
   const router   = useRouter();
-  const { setProfile, showToast } = useUIStore();
+  const setProfile = useUIStore((s) => s.setProfile);
+  const showToast  = useUIStore((s) => s.showToast);
 
   useEffect(() => { if (profile) setProfile(profile); }, [profile, setProfile]);
   useEffect(() => { analytics.pageView(pathname); }, [pathname]);
@@ -92,7 +93,7 @@ export default function DashboardShell({ user, profile, children }: Props) {
                     style={locked ? { opacity: .65 } : undefined}>
                     <i className={`fas ${item.icon}`} />
                     {item.label}
-                    {locked && <span style={{ marginLeft: 'auto', fontSize: 9, fontFamily: "'Orbitron',sans-serif", color: '#ffd700', background: 'rgba(255,215,0,.1)', padding: '2px 5px', borderRadius: 3 }}>PRO</span>}
+                    {locked && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#ffd700', background: 'rgba(255,215,0,.1)', padding: '2px 5px', borderRadius: 3 }}>PRO</span>}
                   </Link>
                 );
               })}
@@ -104,12 +105,14 @@ export default function DashboardShell({ user, profile, children }: Props) {
             <div className="sb-avatar">{name.charAt(0).toUpperCase()}</div>
             <div style={{ overflow: 'hidden', flex: 1 }}>
               <div className="sb-uname" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
-              <div className="sb-urole">{PLAN_BADGE[plan] ?? '🆓 Free'}</div>
+              <div className="sb-urole">{PLAN_BADGE[plan] ?? '⚡ Free'}</div>
             </div>
             <button onClick={handleLogout} title="Logout" aria-label="Logout"
               style={{ fontSize: 11, color: 'rgba(255,255,255,.2)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color .2s', padding: 4, flexShrink: 0 }}
               onMouseOver={e => (e.currentTarget.style.color = '#ff8080')}
-              onMouseOut={e  => (e.currentTarget.style.color = 'rgba(255,255,255,.2)')}>↩</button>
+              onMouseOut={e  => (e.currentTarget.style.color = 'rgba(255,255,255,.2)')}>
+              ⏪
+            </button>
           </div>
         </div>
       </aside>
@@ -125,7 +128,7 @@ export default function DashboardShell({ user, profile, children }: Props) {
               </Link>
             )}
             {plan === 'pro' && (
-              <Link href="/dashboard/settings" style={{ padding: '5px 11px', borderRadius: 7, fontSize: 10, background: 'rgba(255,215,0,.08)', border: '1px solid rgba(255,215,0,.2)', color: '#ffd700', fontFamily: "'Orbitron',sans-serif", textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <Link href="/dashboard/settings" style={{ padding: '5px 11px', borderRadius: 7, fontSize: 10, background: 'rgba(255,215,0,.08)', border: '1px solid rgba(255,215,0,.2)', color: '#ffd700', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <i className="fas fa-crown" /> Go Premium
               </Link>
             )}
