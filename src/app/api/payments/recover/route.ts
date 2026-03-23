@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { NextRequest } from 'next/server';
 import { recoverPendingPayments } from '@/lib/payments/utils';
 import { apiOk, apiErr } from '@/lib/logger';
