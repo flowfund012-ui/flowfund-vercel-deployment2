@@ -51,7 +51,7 @@ const NAV = [
   ]},
 ];
 
-const PLAN_BADGE: Record<string, string> = { free: '⚡ Free', pro: '⚡ Pro', premium: '★ Premium' };
+const PLAN_BADGE: Record<string, string> = { free: 'â¡ Free', pro: 'â¡ Pro', premium: 'â Premium' };
 
 interface Props { user: User; profile: Profile | null; children: React.ReactNode; }
 
@@ -62,7 +62,7 @@ export default function DashboardShell({ user, profile, children }: Props) {
   const showToast  = useUIStore((s) => s.showToast);
 
   useEffect(() => { if (profile) setProfile(profile); }, [profile, setProfile]);
-  useEffect(() => { analytics.pageView(pathname); }, [pathname]);
+  useEffect(() => { try { analytics?.pageView?.(pathname); } catch(e) {} }, [pathname]);
 
   const bg    = MODULE_BG[pathname]    ?? MODULE_BG['/dashboard'];
   const title = MODULE_TITLES[pathname] ?? 'Dashboard';
@@ -105,13 +105,13 @@ export default function DashboardShell({ user, profile, children }: Props) {
             <div className="sb-avatar">{name.charAt(0).toUpperCase()}</div>
             <div style={{ overflow: 'hidden', flex: 1 }}>
               <div className="sb-uname" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
-              <div className="sb-urole">{PLAN_BADGE[plan] ?? '⚡ Free'}</div>
+              <div className="sb-urole">{PLAN_BADGE[plan] ?? 'â¡ Free'}</div>
             </div>
             <button onClick={handleLogout} title="Logout" aria-label="Logout"
               style={{ fontSize: 11, color: 'rgba(255,255,255,.2)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color .2s', padding: 4, flexShrink: 0 }}
               onMouseOver={e => (e.currentTarget.style.color = '#ff8080')}
               onMouseOut={e  => (e.currentTarget.style.color = 'rgba(255,255,255,.2)')}>
-              ⏪
+              âª
             </button>
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function DashboardShell({ user, profile, children }: Props) {
         <div className="app-topbar">
           <div className="app-topbar-title">{title}</div>
           <div className="app-topbar-right">
-            <span className="badge badge-green" style={{ fontSize: 9 }}>● LIVE</span>
+            <span className="badge badge-green" style={{ fontSize: 9 }}>â LIVE</span>
             {plan === 'free' && (
               <Link href="/dashboard/settings" className="btn btn-gold btn-sm" style={{ fontSize: 10 }}>
                 <i className="fas fa-crown" /> Upgrade
