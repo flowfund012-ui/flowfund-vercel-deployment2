@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { nowPayments, PLANS, type PlanId } from '@/lib/payments/nowpayments';
