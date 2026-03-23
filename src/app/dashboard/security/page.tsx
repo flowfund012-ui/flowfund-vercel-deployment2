@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { createClient } from '@/lib/supabase/server';
 import SecurityPage from '@/components/security/SecurityPage';
 export const metadata = { title: 'Security Hub | FlowFund OS' };
