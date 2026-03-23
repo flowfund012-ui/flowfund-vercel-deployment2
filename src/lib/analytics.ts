@@ -25,3 +25,8 @@ export default analytics;
 export { analytics };
 export const track = analytics.track.bind(analytics);
 export const trackServerEvent = analytics.trackServer.bind(analytics);
+
+// Ensure pageView is always available
+if (typeof analytics !== 'undefined' && analytics && !analytics.pageView) {
+  (analytics as any).pageView = (path: string) => {};
+}
