@@ -1,15 +1,22 @@
+'use client';
+
 export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
 
-import { createClient } from '@/lib/supabase/server';
-import { AcademyPageComponent } from '@/components/academy/AcademyPage';
-
-export const metadata = { title: 'Personal Academy | FlowFund OS' };
-
-export default async function PersonalAcademyPage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: progress } = await supabase.from('academy_progress').select('*').eq('user_id', user!.id).single();
-  const { data: profile } = await supabase.from('profiles').select('plan').eq('id', user!.id).single();
-  return <AcademyPageComponent initialProgress={progress ?? null} plan={profile?.plan ?? 'free'} userId={user!.id} />;
+export default function AcademyPage() {
+  return (
+    <div style={{ padding: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg,#8b5cf6,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎓</div>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#e8e8f4' }}>Academy</h1>
+          <p style={{ margin: 0, fontSize: 13, color: '#9b9bba', marginTop: 3 }}>Learn personal finance skills and earn XP</p>
+        </div>
+      </div>
+      <div style={{ background: '#0d0e1a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 32, textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🎓</div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#e8e8f4', marginBottom: 8 }}>Academy Module</div>
+        <div style={{ fontSize: 13, color: '#5c5c7a', lineHeight: 1.6 }}>Learn personal finance skills and earn XP<br/>Connect your Supabase account to see live data.</div>
+      </div>
+    </div>
+  );
 }
