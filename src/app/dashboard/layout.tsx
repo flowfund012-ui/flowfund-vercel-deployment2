@@ -1,10 +1,13 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase/server';
 import DashboardShell from '@/components/layout/DashboardShell';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
+  const supabase = createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/');
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
