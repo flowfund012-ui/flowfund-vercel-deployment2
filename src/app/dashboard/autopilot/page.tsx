@@ -1,29 +1,22 @@
+'use client';
+
 export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
 
-import { createClient } from '@/lib/supabase/server';
-import AutopilotPage from '@/components/autopilot/AutopilotPage';
-
-export const metadata = { title: 'AutoPilot | FlowFund OS' };
-export const revalidate = 0;
-
-export default async function AutoPilotPage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const [settingsResult, goalsResult, txResult] = await Promise.all([
-    supabase.from('autopilot_settings').select('*').eq('user_id', user!.id).single(),
-    supabase.from('savings_goals').select('*').eq('user_id', user!.id).eq('completed', false).order('created_at', { ascending: false }),
-    supabase.from('transactions').select('amount,type').eq('user_id', user!.id),
-  ]);
-
+export default function AutoPilotPage() {
   return (
-    <AutopilotPage
-      initialSettings={settingsResult.data ?? null}
-      initialGoals={goalsResult.data ?? []}
-      totalIncome={(txResult.data ?? []).filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0)}
-      totalExpenses={(txResult.data ?? []).filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0)}
-      userId={user!.id}
-    />
+    <div style={{ padding: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg,#6366f1,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🤖</div>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#e8e8f4' }}>AutoPilot</h1>
+          <p style={{ margin: 0, fontSize: 13, color: '#9b9bba', marginTop: 3 }}>Automated savings and spending rules</p>
+        </div>
+      </div>
+      <div style={{ background: '#0d0e1a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 32, textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🤖</div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#e8e8f4', marginBottom: 8 }}>AutoPilot Module</div>
+        <div style={{ fontSize: 13, color: '#5c5c7a', lineHeight: 1.6 }}>Automated savings and spending rules<br/>Connect your Supabase account to see live data.</div>
+      </div>
+    </div>
   );
 }
