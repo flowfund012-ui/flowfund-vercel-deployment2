@@ -14,8 +14,8 @@ export default function VaultPage() {
       </div>
       <div style={{ background: '#0d0e1a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 32, textAlign: 'center' }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
-        <div style={{ fontSize: 16, fontWeight: 600, color: '#e8e8f4', marginBottom: 8 }}>Vault Module</div>
-        <div style={{ fontSize: 13, color: '#5c5c7a', lineHeight: 1.6 }}>Premium resources and downloads<br/>Connect your Supabase account to see live data.</div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#e8e8f4', marginBottom: 8 }}>Vault</div>
+        <div style={{ fontSize: 13, color: '#5c5c7a', lineHeight: 1.6 }}>Premium resources and downloads</div>
       </div>
     </div>
   );
