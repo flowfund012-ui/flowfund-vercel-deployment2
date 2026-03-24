@@ -1,22 +1,22 @@
+'use client';
+
 export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
 
-import { createClient } from '@/lib/supabase/server';
-import MissionPage from '@/components/mission/MissionPage';
-
-export const metadata = { title: 'Mission Tracker | FlowFund OS' };
-export const revalidate = 0;
-
-export default async function MissionTrackerPage() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const { data: transactions } = await supabase
-    .from('transactions')
-    .select('*')
-    .eq('user_id', user!.id)
-    .order('date', { ascending: false })
-    .order('created_at', { ascending: false });
-
-  return <MissionPage initialTransactions={transactions ?? []} userId={user!.id} />;
+export default function MissionPage() {
+  return (
+    <div style={{ padding: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg,#10b981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🎯</div>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#e8e8f4' }}>Mission</h1>
+          <p style={{ margin: 0, fontSize: 13, color: '#9b9bba', marginTop: 3 }}>Track your financial goals and transactions</p>
+        </div>
+      </div>
+      <div style={{ background: '#0d0e1a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 32, textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🎯</div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#e8e8f4', marginBottom: 8 }}>Mission Module</div>
+        <div style={{ fontSize: 13, color: '#5c5c7a', lineHeight: 1.6 }}>Track your financial goals and transactions<br/>Connect your Supabase account to see live data.</div>
+      </div>
+    </div>
+  );
 }
