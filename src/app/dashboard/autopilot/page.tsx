@@ -1,3 +1,44 @@
 'use client';
-export const dynamic = 'force-dynamic';
-export { default } from '@/components/autopilot/AutopilotPage';
+export const dynamic='force-dynamic';
+import{useEffect,useRef,useState}from'react';
+import{createClient}from'@supabase/supabase-js';
+const sb=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
+const fm=(n:number)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fd=(s:string)=>new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+export default function AutopilotPage(){
+  const[settings,setSettings]=useState({smart_save:true,smart_save_pct:20,auto_invest:false,auto_invest_pct:10});
+  const[goals,setGoals]=useState<any[]>([]);
+  const[income,setIncome]=useState(0);
+  const[expenses,setExpenses]=useState(0);
+  const[loading,setLoading]=useState(true);
+  const[modal,setModal]=useState(false);
+  const[gName,setGName]=useState('');
+  const[gTarget,setGTarget]=useState('');
+  const[gCat,setGCat]=useState('Emergency Fund');
+  const[saving,setSaving]=useState(false);
+  useEffect(()=>{sb.auth.getSession().then(async({data:{session}})=>{if(!session){setLoading(false);return;}const uid=session.user.id;const[{data:ap},{data:g},{data:txns}]=await Promise.all([sb.from('autopilot_settings').select('*').eq('user_id',uid).single(),sb.from('savings_goals').select('*').eq('user_id',uid).order('created_at',{ascending:false}),sb.from('transactions').select('type,amount').eq('user_id',uid)]);if(ap)setSettings(ap);setGoals(g??[]);const inc=(txns??[]).filter((t:any)=>t.type==='income').reduce((s:number,t:any)=>s+Number(t.amount),0);const exp=(txns??[]).filter((t:any)=>t.type==='expense').reduce((s:number,t:any)=>s+Number(t.amount),0);setIncome(inc);setExpenses(exp);setLoading(false);});},[]);
+  const saved=settings.smart_save?income*(settings.smart_save_pct/100):0;
+  const invested=settings.auto_invest?income*(settings.auto_invest_pct/100):0;
+  const free=Math.max(0,income-saved-invested-expenses);
+  const toggle=async(key:'smart_save'|'auto_invest')=>{const next={...settings,[key]:!settings[key]};setSettings(next);const{data:{session}}=await sb.auth.getSession();if(!session)return;await sb.from('autopilot_settings').upsert({...next,user_id:session.user.id},{onConflict:'user_id'});};
+  const slide=async(key:'smart_save_pct'|'auto_invest_pct',val:number)=>{const next={...settings,[key]:val};setSettings(next);const{data:{session}}=await sb.auth.getSession();if(!session)return;await sb.from('autopilot_settings').upsert({...next,user_id:session.user.id},{onConflict:'user_id'});};
+  const addGoal=async()=>{if(!gName.trim()||!gTarget)return;setSaving(true);const{data:{session}}=await sb.auth.getSession();if(!session){setSaving(false);return;}const{data}=await sb.from('savings_goals').insert({user_id:session.user.id,name:gName.trim(),category:gCat,target_amount:parseFloat(gTarget),current_amount:0}).select().single();if(data)setGoals(p=>[data,...p]);setModal(false);setGName('');setGTarget('');setSaving(false);};
+  const delGoal=async(id:string)=>{setGoals(p=>p.filter((g:any)=>g.id!==id));await sb.from('savings_goals').delete().eq('id',id);};
+  if(loading)return<div style={{padding:40,textAlign:'center',color:'rgba(255,255,255,.4)'}}>Loading AutoPilot...</div>;
+  return(<div style={{padding:'0 0 40px'}}>
+    <h1 style={{fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:700,color:'#a78bfa',marginBottom:5,filter:'drop-shadow(0 0 8px rgba(167,139,250,.7))'}}>AutoPilot Engine</h1>
+    <p style={{fontSize:12,color:'rgba(245,243,255,.38)',marginBottom:20}}>Your Financial AI Navigator. Set rules. Let money work.</p>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14,marginBottom:24}}>
+      {[{l:'Auto-Saved',v:fm(saved),c:'#a78bfa'},{l:'Auto-Invested',v:fm(invested),c:'#34d399'},{l:'Free Cash',v:fm(free),c:'#00f2ff'},{l:'Rules Active',v:String((settings.smart_save?1:0)+(settings.auto_invest?1:0)),c:'#f59e0b'}].map(s=>(<div key={s.l} style={{background:'rgba(124,58,237,.08)',border:'1px solid rgba(124,58,237,.2)',borderRadius:12,padding:'14px 16px'}}><div style={{fontSize:11,color:'rgba(255,255,255,.4)',marginBottom:5}}>{s.l}</div><div style={{fontFamily:"'Roboto Mono',monospace",fontSize:20,fontWeight:600,color:s.c}}>{s.v}</div></div>))}
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:24}}>
+      {([{key:'smart_save' as const,label:'🏦 Smart Save',sub:'Auto-save % of every income',pkey:'smart_save_pct' as const,min:5,max:50,col:'#a78bfa'},{key:'auto_invest' as const,label:'📈 Auto Invest',sub:'Invest spare change',pkey:'auto_invest_pct' as const,min:1,max:30,col:'#34d399'}]).map(item=>(<div key={item.key} style={{background:'rgba(15,23,42,.72)',border:'1px solid rgba(124,58,237,.28)',borderRadius:16,padding:24}}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}><div><div style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,color:item.col,marginBottom:4}}>{item.label}</div><div style={{fontSize:11,color:'rgba(245,243,255,.38)'}}>{item.sub}</div></div><div onClick={()=>toggle(item.key)} style={{width:44,height:24,borderRadius:12,background:settings[item.key]?item.col:'rgba(255,255,255,.1)',cursor:'pointer',position:'relative',transition:'background .2s'}}><div style={{position:'absolute',top:2,left:settings[item.key]?'calc(100% - 22px)':2,width:20,height:20,borderRadius:'50%',background:'white',transition:'left .2s'}}/></div></div><div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:6}}><span style={{color:'rgba(245,243,255,.4)'}}>Rate</span><span style={{color:item.col,fontWeight:700}}>{settings[item.pkey]}%</span></div><input type="range" min={item.min} max={item.max} value={settings[item.pkey]} onChange={e=>slide(item.pkey,parseInt(e.target.value))} style={{width:'100%',accentColor:item.col}}/></div>))}
+    </div>
+    <div style={{background:'rgba(15,23,42,.72)',border:'1px solid rgba(124,58,237,.28)',borderRadius:16,padding:24,marginBottom:16}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}><span style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,color:'#a78bfa'}}>🎯 Goals Progress</span><button className="btn btn-cyan btn-sm" onClick={()=>setModal(true)}>+ Add Goal</button></div>
+      {goals.length===0&&<div style={{textAlign:'center',padding:20,color:'rgba(255,255,255,.3)'}}>No goals yet - add your first goal!</div>}
+      {goals.map((g:any)=>{const pct=Math.min(100,Math.round((Number(g.current_amount)/Number(g.target_amount))*100));return(<div key={g.id} style={{marginBottom:14}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}><span style={{fontSize:13,color:'#f5f3ff'}}>{g.name} <span style={{fontSize:11,color:'rgba(245,243,255,.4)'}}>{g.category}</span></span><div style={{display:'flex',gap:8,alignItems:'center'}}><span style={{fontSize:11,color:'rgba(245,243,255,.5)'}}>{fm(Number(g.current_amount))} / {fm(Number(g.target_amount))}</span><button onClick={()=>delGoal(g.id)} style={{background:'none',border:'none',color:'rgba(255,82,82,.4)',cursor:'pointer'}}>✕</button></div></div><div style={{background:'rgba(255,255,255,.08)',borderRadius:4,height:6}}><div style={{background:'#a78bfa',borderRadius:4,height:6,width:pct+'%',transition:'width .5s'}}/></div><div style={{fontSize:10,color:'rgba(245,243,255,.3)',marginTop:4}}>{pct}% complete</div></div>);})}
+    </div>
+    {modal&&(<div className="ff-modal-overlay" onClick={e=>{if(e.target===e.currentTarget)setModal(false)}}><div className="ff-modal"><div className="ff-modal-hdr"><span className="ff-modal-title">New Financial Goal</span><button className="ff-modal-x" onClick={()=>setModal(false)}>✕</button></div><div className="ff-group"><label className="ff-label">Goal Name</label><input className="ff-input" value={gName} onChange={e=>setGName(e.target.value)} placeholder="e.g. Emergency Fund"/></div><div className="ff-row"><div className="ff-group"><label className="ff-label">Target ($)</label><input className="ff-input" type="number" value={gTarget} onChange={e=>setGTarget(e.target.value)} placeholder="5000"/></div><div className="ff-group"><label className="ff-label">Category</label><select className="ff-input" value={gCat} onChange={e=>setGCat(e.target.value)}>{['Emergency Fund','Housing','Tech','Travel','Investment','Education','Custom'].map(c=><option key={c}>{c}</option>)}</select></div></div><button className="btn btn-primary btn-block" onClick={addGoal} disabled={saving}>{saving?'Saving...':'Create Goal'}</button></div></div>)}
+  </div>);
+}
