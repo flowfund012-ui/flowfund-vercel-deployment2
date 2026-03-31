@@ -8,7 +8,7 @@ export default function AcademyPage(){
     const go=()=>w.__ffRender&&ref.current&&w.__ffRender('academy',ref.current);
     if(w.__ffLoaded)return void setTimeout(go,10);
     const s=document.createElement('script');
-    s.src='https://ammymxsyerlkdezsxuip.supabase.co/storage/v1/object/public/app/runner.js';
+    s.src='/api/runner';
     s.onload=()=>{w.__ffLoaded=true;go();};
     document.head.appendChild(s);
     return()=>{try{if((window as any).activeChart){(window as any).activeChart.destroy();(window as any).activeChart=null;}}catch(e){}};
