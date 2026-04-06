@@ -1,30 +1,14 @@
 import Link from 'next/link';
-
 export default function NotFound() {
   return (
-    <div style={{ backgroundColor: '#000814', color: '#F5F9FF', fontFamily: 'Roboto, sans-serif', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ textAlign: 'center', maxWidth: 480 }}>
-        <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 80, fontWeight: 700, color: '#1a6bff', textShadow: '0 0 30px rgba(26,107,255,.5)', marginBottom: 8 }}>404</div>
-        <h1 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 22, color: '#e2e8f0', marginBottom: 12 }}>
-          Coordinates Not Found
-        </h1>
-        <p style={{ color: 'rgba(255,255,255,.45)', fontSize: 14, lineHeight: 1.7, marginBottom: 28 }}>
-          The mission sector you're looking for doesn't exist or has been relocated.
-        </p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          <Link
-            href="/dashboard"
-            style={{ padding: '10px 24px', borderRadius: 9, background: 'linear-gradient(135deg,#1a6bff,#7c00ff)', color: '#fff', border: 'none', fontFamily: "'Orbitron', sans-serif", fontSize: 12, cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
-            <i className="fas fa-th-large" />Dashboard
-          </Link>
-          <Link
-            href="/"
-            style={{ padding: '10px 24px', borderRadius: 9, background: 'transparent', color: '#60a5fa', border: '1px solid rgba(96,165,250,.3)', fontFamily: "'Orbitron', sans-serif", fontSize: 12, cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
-            <i className="fas fa-home" />Home
-          </Link>
-        </div>
+    <div style={{ minHeight:'100vh',background:'#070810',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:0,fontFamily:"'Inter',sans-serif",textAlign:'center',padding:20 }}>
+      <div style={{ position:'absolute',inset:0,background:'radial-gradient(ellipse at 50% 40%,rgba(239,68,68,.07),transparent 60%)',pointerEvents:'none' }}/>
+      <div style={{ fontFamily:"'Orbitron',monospace",fontSize:'clamp(80px,15vw,160px)',fontWeight:900,lineHeight:1,background:'linear-gradient(135deg,rgba(239,68,68,.6),rgba(124,0,255,.4))',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginBottom:8 }}>404</div>
+      <h1 style={{ fontFamily:"'Orbitron',monospace",fontSize:'clamp(16px,3vw,24px)',fontWeight:700,color:'rgba(255,255,255,.7)',marginBottom:12 }}>Mission Not Found</h1>
+      <p style={{ fontSize:14,color:'rgba(255,255,255,.35)',marginBottom:32,maxWidth:360 }}>This page does not exist in the FlowFund OS. You may have followed a broken link or mistyped the address.</p>
+      <div style={{ display:'flex',gap:12,flexWrap:'wrap',justifyContent:'center' }}>
+        <Link href="/dashboard" style={{ padding:'11px 24px',borderRadius:10,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',textDecoration:'none',fontSize:13,fontWeight:700,boxShadow:'0 4px 20px rgba(26,107,255,.3)' }}>Go to Dashboard</Link>
+        <Link href="/" style={{ padding:'11px 24px',borderRadius:10,background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',color:'rgba(255,255,255,.6)',textDecoration:'none',fontSize:13,fontWeight:600 }}>Home</Link>
       </div>
     </div>
   );
