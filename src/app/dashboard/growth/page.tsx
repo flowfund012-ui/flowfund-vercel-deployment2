@@ -2,155 +2,135 @@
 export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-
-const sb = createClient(
-  'https://ammymxsyerlkdezsxuip.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E'
-);
-
-const f = (n: number) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fd = (s: string) => new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
+const sb = createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
+const f = (n:number) => '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fp = (n:number) => (n>=0?'+':'')+n.toFixed(1)+'%';
+const TYPES=['SaaS','Consulting','Freelance','Product','Agency','Other'];
 export default function GrowthPage() {
-  const [revs, setRevs] = useState<any[]>([]);
-  const [exp, setExp] = useState(0);
+  const [entries, setEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(false);
-  const [src, setSrc] = useState('');
-  const [amt, setAmt] = useState('');
-  const [type, setType] = useState('Recurring');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showAdd, setShowAdd] = useState(false);
+  const [clients, setClients] = useState('1');
+  const [arpu, setArpu] = useState('29');
+  const [churn, setChurn] = useState('5');
   const [saving, setSaving] = useState(false);
-  const [price, setPrice] = useState(49);
-  const [cust, setCust] = useState(100);
-
+  const [desc, setDesc] = useState('');
+  const [amt, setAmt] = useState('');
+  const [type, setType] = useState('SaaS');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isRecurring, setIsRecurring] = useState(true);
   useEffect(() => {
-    sb.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) { setLoading(false); return; }
-      const uid = session.user.id;
-      const [{ data: r }, { data: t }] = await Promise.all([
-        sb.from('revenue_entries').select('*').eq('user_id', uid).order('date', { ascending: false }),
-        sb.from('transactions').select('type,amount').eq('user_id', uid),
-      ]);
-      setRevs(r ?? []);
-      setExp((t ?? []).filter((x: any) => x.type === 'expense').reduce((s: number, x: any) => s + Number(x.amount), 0));
-      setLoading(false);
+    sb.auth.getSession().then(async ({data:{session}}) => {
+      if(!session){setLoading(false);return;}
+      const{data}=await sb.from('revenue_entries').select('*').eq('user_id',session.user.id).order('date',{ascending:false});
+      setEntries(data??[]); setLoading(false);
     });
-  }, []);
-
-  const total = revs.reduce((s, r) => s + Number(r.amount), 0);
-  const mrr = revs.filter(r => r.type === 'Recurring').reduce((s, r) => s + Number(r.amount), 0);
-  const profit = total - exp;
-  const simMRR = price * cust;
-
-  const add = async () => {
-    if (!src.trim() || !amt) return;
-    setSaving(true);
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) { setSaving(false); return; }
-    const { data } = await sb.from('revenue_entries').insert({ user_id: session.user.id, source: src.trim(), amount: parseFloat(amt), type, date }).select().single();
-    if (data) setRevs(p => [data, ...p]);
-    setModal(false); setSrc(''); setAmt(''); setSaving(false);
+  },[]);
+  const addEntry = async () => {
+    if(!desc.trim()||!amt)return; setSaving(true);
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session){setSaving(false);return;}
+    const{data}=await sb.from('revenue_entries').insert({user_id:session.user.id,description:desc.trim(),amount:parseFloat(amt),revenue_type:type,date,is_recurring:isRecurring}).select().single();
+    if(data)setEntries(p=>[data,...p]);
+    setShowAdd(false);setDesc('');setAmt('');setSaving(false);
   };
-
-  const del = async (id: string) => {
-    setRevs(p => p.filter(r => r.id !== id));
-    await sb.from('revenue_entries').delete().eq('id', id);
-  };
-
-  const inp: React.CSSProperties = { width: '100%', background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 8, padding: '9px 12px', color: '#fff', fontSize: 13, boxSizing: 'border-box', outline: 'none' };
-
-  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,.4)' }}>Loading...</div>;
-
+  const now = new Date();
+  const thisMonth = entries.filter(e=>{const d=new Date(e.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  const lastMonth = entries.filter(e=>{const d=new Date(e.date);const l=new Date(now.getFullYear(),now.getMonth()-1,1);return d.getMonth()===l.getMonth()&&d.getFullYear()===l.getFullYear();});
+  const mrr = thisMonth.filter(e=>e.is_recurring).reduce((s:number,e:any)=>s+Number(e.amount),0);
+  const oneTime = thisMonth.filter(e=>!e.is_recurring).reduce((s:number,e:any)=>s+Number(e.amount),0);
+  const totalRev = mrr+oneTime;
+  const lastTotal = lastMonth.reduce((s:number,e:any)=>s+Number(e.amount),0);
+  const revChange = lastTotal>0?((totalRev-lastTotal)/lastTotal)*100:0;
+  const simMrr = Number(clients)*Number(arpu);
+  const simChurnLost = simMrr*(Number(churn)/100);
+  const simNet = simMrr - simChurnLost;
+  const simArr = simNet*12;
+  const inp:React.CSSProperties={width:'100%',background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:8,padding:'9px 12px',color:'#fff',fontSize:13,boxSizing:'border-box',outline:'none'};
+  if(loading)return <div style={{padding:40,textAlign:'center',color:'rgba(255,255,255,.4)'}}>Loading Growth Engine...</div>;
   return (
-    <div style={{ padding: '0 0 40px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+    <div style={{padding:'0 0 48px'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}}>
         <div>
-          <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 22, fontWeight: 700, color: '#2dd4bf', marginBottom: 4 }}>Growth Engine</h1>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,.35)' }}>Business intelligence & revenue tracking.</p>
+          <h1 style={{fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:700,color:'#2dd4bf',marginBottom:4}}>Growth Engine</h1>
+          <p style={{fontSize:12,color:'rgba(255,255,255,.35)'}}>Revenue tracking and MRR simulation for your business.</p>
         </div>
-        <button onClick={() => setModal(true)} style={{ padding: '9px 18px', borderRadius: 8, background: 'linear-gradient(135deg,#1a6bff,#7c00ff)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
-          + Log Revenue
-        </button>
+        <button onClick={()=>setShowAdd(true)} style={{padding:'9px 18px',borderRadius:10,background:'linear-gradient(135deg,#2dd4bf,#1a6bff)',color:'#fff',border:'none',cursor:'pointer',fontSize:13,fontWeight:700}}>+ Revenue</button>
       </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 24 }}>
-        {[['Total Revenue', f(total), '#2dd4bf'], ['MRR', f(mrr), '#34d399'], ['Net Profit', f(profit), profit >= 0 ? '#10b981' : '#ff5252'], ['Entries', String(revs.length), '#f59e0b']].map(([l, v, c]) => (
-          <div key={l} style={{ background: 'rgba(10,26,53,.8)', border: '1px solid rgba(45,212,191,.25)', borderRadius: 12, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', marginBottom: 6 }}>{l}</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: c, fontFamily: "'Roboto Mono',monospace" }}>{v}</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14,marginBottom:24}}>
+        {[
+          {l:'Total Revenue',v:f(totalRev),change:revChange,c:'#2dd4bf',bg:'rgba(45,212,191,.06)',border:'rgba(45,212,191,.2)'},
+          {l:'MRR',v:f(mrr),change:null,c:'#10b981',bg:'rgba(16,185,129,.06)',border:'rgba(16,185,129,.2)'},
+          {l:'One-Time',v:f(oneTime),change:null,c:'#60a5fa',bg:'rgba(96,165,250,.06)',border:'rgba(96,165,250,.2)'},
+          {l:'ARR (Projected)',v:f(mrr*12),change:null,c:'#a78bfa',bg:'rgba(167,139,250,.06)',border:'rgba(167,139,250,.2)'},
+        ].map(c=>(
+          <div key={c.l} style={{background:c.bg,border:`1px solid ${c.border}`,borderRadius:14,padding:'16px 18px',transition:'transform .2s'}}>
+            <div style={{fontSize:11,color:'rgba(255,255,255,.38)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.05em'}}>{c.l}</div>
+            <div style={{fontSize:22,fontWeight:700,color:c.c,fontFamily:"'Roboto Mono',monospace",marginBottom:4}}>{c.v}</div>
+            {c.change!==null&&lastTotal>0&&<div style={{fontSize:11,color:c.change>=0?'#10b981':'#ef4444'}}>{fp(c.change)} vs last month</div>}
+            {c.change===null&&<div style={{fontSize:11,color:'rgba(255,255,255,.25)'}}>This month</div>}
           </div>
         ))}
       </div>
-
-      <div style={{ background: 'rgba(10,26,53,.8)', border: '1px solid rgba(45,212,191,.25)', borderRadius: 14, padding: 24, marginBottom: 20 }}>
-        <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 13, color: '#2dd4bf', marginBottom: 18 }}>Revenue Simulator</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-          <div>
-            <label style={{ fontSize: 12, color: 'rgba(255,255,255,.45)', display: 'block', marginBottom: 8 }}>Price per unit: {f(price)}</label>
-            <input type="range" min={1} max={999} value={price} onChange={e => setPrice(+e.target.value)} style={{ width: '100%', accentColor: '#2dd4bf' }} />
-          </div>
-          <div>
-            <label style={{ fontSize: 12, color: 'rgba(255,255,255,.45)', display: 'block', marginBottom: 8 }}>Monthly customers: {cust}</label>
-            <input type="range" min={1} max={1000} value={cust} onChange={e => setCust(+e.target.value)} style={{ width: '100%', accentColor: '#2dd4bf' }} />
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:20}}>
+        <div style={{background:'rgba(15,20,35,.7)',border:'1px solid rgba(45,212,191,.15)',borderRadius:14,padding:22}}>
+          <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:12,color:'#2dd4bf',marginBottom:16}}>MRR Simulator</div>
+          {[{l:'Active Clients',v:clients,s:setClients,min:1,max:10000},{l:'ARPU ($/month)',v:arpu,s:setArpu,min:1,max:9999},{l:'Churn Rate (%)',v:churn,s:setChurn,min:0,max:100}].map(f=>(
+            <div key={f.l} style={{marginBottom:14}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
+                <label style={{fontSize:12,color:'rgba(255,255,255,.4)'}}>{f.l}</label>
+                <span style={{fontSize:12,color:'#2dd4bf',fontFamily:"'Roboto Mono',monospace"}}>{f.v}</span>
+              </div>
+              <input type="range" min={f.min} max={f.max} value={f.v} onChange={e=>f.s(e.target.value)} style={{width:'100%',accentColor:'#2dd4bf'}}/>
+            </div>
+          ))}
+          <div style={{borderTop:'1px solid rgba(255,255,255,.07)',marginTop:16,paddingTop:16,display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+            {[{l:'Gross MRR',v:f(simMrr),c:'#2dd4bf'},{l:'Churn Lost',v:f(simChurnLost),c:'#ef4444'},{l:'Net MRR',v:f(simNet),c:'#10b981'},{l:'ARR',v:f(simArr),c:'#a78bfa'}].map(s=>(
+              <div key={s.l} style={{background:'rgba(255,255,255,.04)',borderRadius:8,padding:'8px 12px'}}>
+                <div style={{fontSize:10,color:'rgba(255,255,255,.35)',marginBottom:3}}>{s.l}</div>
+                <div style={{fontSize:15,fontWeight:700,color:s.c,fontFamily:"'Roboto Mono',monospace"}}>{s.v}</div>
+              </div>
+            ))}
           </div>
         </div>
-        <div style={{ marginTop: 18, padding: 18, background: 'rgba(45,212,191,.08)', borderRadius: 10, textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: 'rgba(45,212,191,.6)', marginBottom: 4, letterSpacing: '.06em' }}>PROJECTED MRR</div>
-          <div style={{ fontSize: 34, fontWeight: 700, color: '#2dd4bf', fontFamily: "'Orbitron',sans-serif" }}>{f(simMRR)}</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,.35)', marginTop: 6 }}>ARR: {f(simMRR * 12)}</div>
+        <div style={{background:'rgba(15,20,35,.7)',border:'1px solid rgba(255,255,255,.07)',borderRadius:14,padding:22}}>
+          <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:12,color:'#2dd4bf',marginBottom:14}}>Revenue Breakdown</div>
+          {entries.length===0?<div style={{textAlign:'center',padding:'32px 0',color:'rgba(255,255,255,.3)',fontSize:13}}>No revenue entries yet. Start tracking your income.</div>:
+          entries.slice(0,8).map((e:any)=>(
+            <div key={e.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'9px 0',borderBottom:'1px solid rgba(255,255,255,.04)'}}>
+              <div>
+                <div style={{fontSize:13,color:'#e2e8f0',marginBottom:1}}>{e.description}</div>
+                <div style={{display:'flex',alignItems:'center',gap:6}}>
+                  <span style={{fontSize:10,padding:'1px 7px',borderRadius:100,background:'rgba(45,212,191,.1)',color:'#2dd4bf'}}>{e.revenue_type}</span>
+                  {e.is_recurring&&<span style={{fontSize:10,padding:'1px 7px',borderRadius:100,background:'rgba(167,139,250,.1)',color:'#a78bfa'}}>recurring</span>}
+                  <span style={{fontSize:10,color:'rgba(255,255,255,.25)'}}>{new Date(e.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
+                </div>
+              </div>
+              <span style={{fontSize:14,fontWeight:700,color:'#10b981',fontFamily:"'Roboto Mono',monospace"}}>+{f(Number(e.amount))}</span>
+            </div>
+          ))}
         </div>
       </div>
-
-      <div style={{ background: 'rgba(10,26,53,.8)', border: '1px solid rgba(45,212,191,.25)', borderRadius: 14, padding: 24 }}>
-        <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 13, color: '#2dd4bf', marginBottom: 16 }}>Revenue Log</div>
-        {revs.length === 0 && <div style={{ textAlign: 'center', padding: 24, color: 'rgba(255,255,255,.3)', fontSize: 13 }}>No revenue logged yet — add your first entry!</div>}
-        {revs.map(r => (
-          <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid rgba(45,212,191,.08)' }}>
-            <div>
-              <div style={{ fontSize: 13, color: '#e0f2fe', marginBottom: 2 }}>{r.source}</div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,.3)' }}>{r.type} · {fd(r.date)}</div>
+      {showAdd&&(
+        <div onClick={e=>{if(e.target===e.currentTarget)setShowAdd(false)}} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.75)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:20}}>
+          <div style={{background:'#0d1117',border:'1px solid rgba(45,212,191,.25)',borderRadius:16,padding:28,width:'100%',maxWidth:420}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+              <span style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,color:'#2dd4bf'}}>Log Revenue</span>
+              <button onClick={()=>setShowAdd(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.4)',cursor:'pointer',fontSize:20}}>x</button>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 14, color: '#2dd4bf', fontFamily: "'Roboto Mono',monospace" }}>{f(Number(r.amount))}</span>
-              <button onClick={() => del(r.id)} style={{ background: 'none', border: 'none', color: 'rgba(255,82,82,.5)', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
+            <div style={{marginBottom:10}}><input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Description (e.g. Client subscription)" style={inp}/></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+              <input type="number" value={amt} onChange={e=>setAmt(e.target.value)} placeholder="Amount ($)" style={inp}/>
+              <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={inp}/>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {modal && (
-        <div onClick={e => { if (e.target === e.currentTarget) setModal(false); }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
-          <div style={{ background: '#0d1117', border: '1px solid rgba(45,212,191,.3)', borderRadius: 16, padding: 28, width: '100%', maxWidth: 440 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
-              <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 14, color: '#2dd4bf' }}>Log Revenue</span>
-              <button onClick={() => setModal(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: 22, lineHeight: 1 }}>×</button>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-              <div>
-                <label style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', display: 'block', marginBottom: 5 }}>Source</label>
-                <input value={src} onChange={e => setSrc(e.target.value)} placeholder="e.g. Client Project" style={inp} />
-              </div>
-              <div>
-                <label style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', display: 'block', marginBottom: 5 }}>Amount ($)</label>
-                <input type="number" value={amt} onChange={e => setAmt(e.target.value)} placeholder="0.00" style={inp} />
+            <div style={{marginBottom:10}}><select value={type} onChange={e=>setType(e.target.value)} style={{...inp}}>{TYPES.map(t=><option key={t} style={{background:'#0d1117'}}>{t}</option>)}</select></div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(255,255,255,.04)',borderRadius:8,padding:'10px 14px',marginBottom:18}}>
+              <span style={{fontSize:13,color:'#e2e8f0'}}>Recurring revenue</span>
+              <div onClick={()=>setIsRecurring(!isRecurring)} style={{width:40,height:22,borderRadius:100,background:isRecurring?'#2dd4bf':'rgba(255,255,255,.15)',cursor:'pointer',position:'relative',transition:'background .2s'}}>
+                <div style={{position:'absolute',top:2,left:isRecurring?20:2,width:18,height:18,borderRadius:'50%',background:'white',transition:'left .2s'}}/>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
-              <div>
-                <label style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', display: 'block', marginBottom: 5 }}>Type</label>
-                <select value={type} onChange={e => setType(e.target.value)} style={{ ...inp }}>
-                  {['Recurring', 'One-time', 'Passive', 'Other'].map(t => <option key={t} style={{ background: '#0d1117' }}>{t}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', display: 'block', marginBottom: 5 }}>Date</label>
-                <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inp} />
-              </div>
-            </div>
-            <button onClick={add} disabled={saving} style={{ width: '100%', padding: '11px', borderRadius: 8, background: 'linear-gradient(135deg,#1a6bff,#7c00ff)', color: '#fff', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600, opacity: saving ? .7 : 1 }}>
-              {saving ? 'Saving...' : 'Log Revenue'}
-            </button>
+            <button onClick={addEntry} disabled={!desc.trim()||!amt||saving} style={{width:'100%',padding:'11px',borderRadius:8,background:'linear-gradient(135deg,#2dd4bf,#1a6bff)',color:'#fff',border:'none',cursor:'pointer',fontSize:14,fontWeight:700,opacity:saving?.7:1}}>{saving?'Saving...':'Log Revenue'}</button>
           </div>
         </div>
       )}
