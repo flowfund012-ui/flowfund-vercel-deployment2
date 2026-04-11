@@ -165,7 +165,7 @@ export default function DashboardPage(){
           <div>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
               <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:score!==null?scoreColor(score):'#00f2ff',letterSpacing:'.08em'}}>
-                {score!==null?'AI FINANCIAL ANALYSIS — POWERED BY NVIDIA':'AI FINANCIAL ADVISOR — POWERED BY NVIDIA'}
+                {score!==null?'AI FINANCIAL ANALYSIS':'AI FINANCIAL ADVISOR'}
               </div>
               <button onClick={runAI} disabled={aiLoading} style={{padding:'8px 16px',borderRadius:8,background:aiLoading?'rgba(255,255,255,.05)':'linear-gradient(135deg,#1a6bff,#7c00ff)',color:aiLoading?'rgba(255,255,255,.3)':'#fff',border:'none',cursor:aiLoading?'not-allowed':'pointer',fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif",whiteSpace:'nowrap',flexShrink:0,marginLeft:16,boxShadow:aiLoading?'none':'0 4px 14px rgba(26,107,255,.3)',transition:'all .2s'}}>
                 {aiLoading?'Analyzing...':'Run Analysis'}
