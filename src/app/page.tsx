@@ -46,7 +46,7 @@ export default function LandingPage() {
     <div style={{ background: '#000814', color: '#F5F9FF', fontFamily: "'Inter',sans-serif", overflowX: 'hidden' }}>
 
       {/* NAV */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: 'rgba(0,0,0,.85)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,.07)', height: 64, display: 'flex', alignItems: 'center', padding: '0 32px', justifyContent: 'space-between' }}>
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: '#000814', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,.07)', height: 64, display: 'flex', alignItems: 'center', padding: '0 32px', justifyContent: 'space-between' }}>
         <NavLogo/>
         <div style={{ display: 'flex', gap: 4 }}>
           {[['#lp-features','Features'],['#lp-pricing','Pricing'],['#lp-about','About'],['#lp-faq','FAQ']].map(([href,label]) => (
@@ -247,7 +247,7 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ background: 'rgba(0,0,0,.85)', borderTop: '1px solid rgba(255,255,255,.06)', padding: '36px 24px 24px', textAlign: 'center' }}>
+      <footer style={{ background: '#000814', borderTop: '1px solid rgba(255,255,255,.06)', padding: '36px 24px 24px', textAlign: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 14 }}>
           <LogoMark size={28}/>
           <span style={{ fontFamily: "'Orbitron',monospace", fontSize: 15, fontWeight: 700 }}>FlowFund OS</span>
