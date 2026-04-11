@@ -385,7 +385,7 @@ export default function DashboardPage(){
                 </div>
               )}
             </div>
-            <div style={{padding:14,borderTop:'1px solid rgba(255,255,255,.07)',display:'flex',gap:8'}}>
+            <div style={{padding:14,borderTop:'1px solid rgba(255,255,255,.07)',display:'flex',gap:8}}>
               <input value={chatMsg} onChange={e=>setChatMsg(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}} placeholder="Ask about your finances..." style={{...inp,flex:1}}/>
               <button onClick={sendChat} disabled={!chatMsg.trim()||chatLoading} style={{padding:'10px 16px',borderRadius:8,background:!chatMsg.trim()||chatLoading?'rgba(255,255,255,.05)':'linear-gradient(135deg,#1a6bff,#7c00ff)',color:!chatMsg.trim()||chatLoading?'rgba(255,255,255,.3)':'#fff',border:'none',cursor:!chatMsg.trim()||chatLoading?'not-allowed':'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",transition:'all .2s',flexShrink:0}}>Send</button>
             </div>
