@@ -359,7 +359,7 @@ export default function DashboardPage(){
             <div style={{padding:'20px 20px 16px',borderBottom:'1px solid rgba(255,255,255,.07)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
               <div>
                 <div style={{fontFamily:"'Orbitron',monospace",fontSize:12,color:'#00f2ff',marginBottom:3}}>AI Financial Advisor</div>
-                <div style={{fontSize:11,color:'rgba(255,255,255,.28)'}}>Powered by NVIDIA · Llama 3.3 70B</div>
+                <div style={{fontSize:11,color:'rgba(255,255,255,.28)'}}>Your personal financial advisor</div>
               </div>
               <button onClick={()=>setChatOpen(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.4)',cursor:'pointer',fontSize:22,padding:0}}>×</button>
             </div>
