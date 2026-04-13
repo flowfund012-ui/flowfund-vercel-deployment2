@@ -1,9 +1,8 @@
 /** @type {import('next').NextConfig} */
-// Build: v3.1 - WaveFlow logo, Academy, Vault, Language, BankSync
+// Build: 2026-04-13T20:00:00Z — force fresh Vercel build
 const nextConfig = {
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   experimental: { serverActions: { allowedOrigins: ['*'] } },
-  generateBuildId: async () => 'ff-v3-1-waveflow',
 };
 module.exports = nextConfig;
