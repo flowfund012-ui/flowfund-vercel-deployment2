@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-// Build: 2026-04-13T20:00:00Z — force fresh Vercel build
+// Build timestamp: 2026-04-14T08:00:00Z
 const nextConfig = {
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
