@@ -3,17 +3,10 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { t, getLangFromStorage } from '@/lib/i18n';
 const sb = createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
 const f=(n:number)=>'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fp=(n:number)=>(n>=0?'+':'')+n.toFixed(1)+'%';
-const MODULES=[
-  {href:'/dashboard/mission',label:'Mission Tracker',desc:'Income & expenses',color:'#00f2ff',icon:'T'},
-  {href:'/dashboard/autopilot',label:'AutoPilot',desc:'Savings goals',color:'#a78bfa',icon:'A'},
-  {href:'/dashboard/growth',label:'Growth Engine',desc:'Business revenue',color:'#2dd4bf',icon:'G'},
-  {href:'/dashboard/debts',label:'Debt Planner',desc:'AI payoff strategy',color:'#ef4444',icon:'X'},
-  {href:'/dashboard/academy',label:'Academy',desc:'Financial education',color:'#f59e0b',icon:'E'},
-  {href:'/dashboard/vault',label:'Vault',desc:'Premium resources',color:'#00f0ff',icon:'V'},
-];
 interface AIInsight{financial_score:number;score_explanation:string;top_actions:any[];spending_alerts:any[];savings_opportunity:number;cashflow_forecast:any;weekly_verdict:string;goal_recommendations:any[];}
 export default function DashboardPage(){
   const [loading,setLoading]=useState(true);
@@ -33,34 +26,44 @@ export default function DashboardPage(){
   const [chatMsg,setChatMsg]=useState('');
   const [chatHistory,setChatHistory]=useState<{role:string;content:string}[]>([]);
   const [chatLoading,setChatLoading]=useState(false);
+  const [lang,setLang]=useState('en');
   const chatRef=useRef<HTMLDivElement>(null);
   useEffect(()=>{
+    setLang(getLangFromStorage());
     sb.auth.getSession().then(async({data:{session}})=>{
       if(!session)return;
       const uid=session.user.id;
-      const [{data:p},{data:t},{data:g},{data:b},{data:ai}]=await Promise.all([
+      const [{data:p},{data:tx},{data:g},{data:b},{data:ai}]=await Promise.all([
         sb.from('profiles').select('*').eq('id',uid).single(),
         sb.from('transactions').select('*').eq('user_id',uid).order('date',{ascending:false}).limit(200),
         sb.from('savings_goals').select('*').eq('user_id',uid).eq('completed',false),
         sb.from('budgets').select('*').eq('user_id',uid).eq('month',new Date().getMonth()+1).eq('year',new Date().getFullYear()),
         sb.from('ai_insights').select('*').eq('user_id',uid).order('week_start',{ascending:false}).limit(1).single(),
       ]);
-      setProfile(p);setTxns(t??[]);setGoals(g??[]);setBudgets(b??[]);
+      setProfile(p);setTxns(tx??[]);setGoals(g??[]);setBudgets(b??[]);
       if(ai)setAiInsight(ai as any);
       setLoading(false);
     });
   },[]);
   const now=new Date();
-  const tm=txns.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
-  const lm=txns.filter(t=>{const d=new Date(t.date);const l=new Date(now.getFullYear(),now.getMonth()-1,1);return d.getMonth()===l.getMonth()&&d.getFullYear()===l.getFullYear();});
-  const income=tm.filter(t=>t.type==='income').reduce((s:number,t:any)=>s+Number(t.amount),0);
-  const expenses=tm.filter(t=>t.type==='expense').reduce((s:number,t:any)=>s+Number(t.amount),0);
+  const tm=txns.filter(tx=>{const d=new Date(tx.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  const lm=txns.filter(tx=>{const d=new Date(tx.date);const l=new Date(now.getFullYear(),now.getMonth()-1,1);return d.getMonth()===l.getMonth()&&d.getFullYear()===l.getFullYear();});
+  const income=tm.filter(tx=>tx.type==='income').reduce((s:number,tx:any)=>s+Number(tx.amount),0);
+  const expenses=tm.filter(tx=>tx.type==='expense').reduce((s:number,tx:any)=>s+Number(tx.amount),0);
   const net=income-expenses;const sr=income>0?Math.round((net/income)*100):0;
-  const li=lm.filter(t=>t.type==='income').reduce((s:number,t:any)=>s+Number(t.amount),0);
-  const le=lm.filter(t=>t.type==='expense').reduce((s:number,t:any)=>s+Number(t.amount),0);
+  const li=lm.filter(tx=>tx.type==='income').reduce((s:number,tx:any)=>s+Number(tx.amount),0);
+  const le=lm.filter(tx=>tx.type==='expense').reduce((s:number,tx:any)=>s+Number(tx.amount),0);
   const ic=li>0?((income-li)/li)*100:0;const ec=le>0?((expenses-le)/le)*100:0;
   const cs:Record<string,number>={};
-  tm.filter(t=>t.type==='expense').forEach((t:any)=>{cs[t.category]=(cs[t.category]||0)+Number(t.amount);});
+  tm.filter(tx=>tx.type==='expense').forEach((tx:any)=>{cs[tx.category]=(cs[tx.category]||0)+Number(tx.amount);});
+  const MODULES=[
+    {href:'/dashboard/mission',label:t(lang,'mission'),desc:t(lang,'mission_desc'),color:'#00f2ff',icon:'T'},
+    {href:'/dashboard/autopilot',label:t(lang,'autopilot'),desc:t(lang,'autopilot_desc'),color:'#a78bfa',icon:'A'},
+    {href:'/dashboard/growth',label:t(lang,'growth'),desc:t(lang,'growth_desc'),color:'#2dd4bf',icon:'G'},
+    {href:'/dashboard/debts',label:t(lang,'debts'),desc:t(lang,'debts_desc'),color:'#ef4444',icon:'X'},
+    {href:'/dashboard/academy',label:t(lang,'academy'),desc:t(lang,'academy_desc'),color:'#f59e0b',icon:'E'},
+    {href:'/dashboard/vault',label:t(lang,'vault'),desc:t(lang,'vault_desc'),color:'#00f0ff',icon:'V'},
+  ];
   const callAI=async(prompt:string,maxTokens=1200):Promise<string>=>{
     const{data:{session}}=await sb.auth.getSession();
     if(!session)throw new Error('Not authenticated');
@@ -82,7 +85,7 @@ export default function DashboardPage(){
         goals:goals.map(g=>({name:g.name,target:Number(g.target_amount),current:Number(g.current_amount),pct:Math.round((Number(g.current_amount)/Number(g.target_amount))*100)})),
         budgets:budgets.map(b=>({category:b.category,budget:Number(b.amount),spent:cs[b.category]||0,over:(cs[b.category]||0)>Number(b.amount)})),
       };
-      const prompt=`You are a personal financial advisor AI. Analyze this financial data and return ONLY a valid JSON object, no markdown, no explanation.\n\nDATA: ${JSON.stringify(context)}\n\nReturn exactly this JSON structure:\n{"financial_score":<integer 0-100>,"score_explanation":"<one sentence>","top_actions":[{"priority":1,"action":"<specific action with dollar amount>","impact":"<measurable outcome>","urgency":"this_week"},{"priority":2,"action":"<specific>","impact":"<measurable>","urgency":"this_month"}],"spending_alerts":[{"category":"<name>","message":"<specific alert>","severity":"warning"}],"savings_opportunity":<number>,"cashflow_forecast":{"30_days":<number>,"60_days":<number>,"confidence":"medium"},"weekly_verdict":"<2-3 sentences, brutally honest, specific numbers>","goal_recommendations":[{"goal_name":"<name>","months_at_current_rate":<n>,"months_if_following_advice":<n>}]}`;
+      const prompt=`You are a personal financial advisor AI. Analyze this financial data and return ONLY a valid JSON object, no markdown, no explanation.\n\nDATA: ${JSON.stringify(context)}\n\nReturn exactly this JSON structure:\n{"financial_score":<integer 0-100>,"score_explanation":"<one sentence>","top_actions":[{"priority":1,"action":"<specific action with dollar amount>","impact":"<measurable outcome>","urgency":"this_week"},{"priority":2,"action":"<specific>","impact":"<measurable>","urgency":"this_month"}],"spending_alerts":[{"category":"<n>","message":"<specific alert>","severity":"warning"}],"savings_opportunity":<number>,"cashflow_forecast":{"30_days":<number>,"60_days":<number>,"confidence":"medium"},"weekly_verdict":"<2-3 sentences, brutally honest, specific numbers>","goal_recommendations":[{"goal_name":"<n>","months_at_current_rate":<n>,"months_if_following_advice":<n>}]}`;
       const raw=await callAI(prompt,1200);
       const clean=raw.replace(/```json|```/g,'').trim();
       const start=clean.indexOf('{');const end=clean.lastIndexOf('}');
@@ -126,23 +129,24 @@ export default function DashboardPage(){
   const scoreColor=(s:number)=>s>=70?'#10b981':s>=40?'#f59e0b':'#ef4444';
   const inp:React.CSSProperties={width:'100%',background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,boxSizing:'border-box',outline:'none',fontFamily:"'Inter',sans-serif",transition:'border-color .2s'};
   if(loading)return <div style={{padding:60,textAlign:'center',color:'rgba(255,255,255,.4)',fontFamily:"'Orbitron',monospace",fontSize:11,letterSpacing:'.15em'}}>INITIALIZING AI COMMAND CENTER...</div>;
-  const hr=new Date().getHours();const gr=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
-  const fn=profile?.full_name?.split(' ')[0]||'Commander';
+  const hr=new Date().getHours();
+  const greetKey=hr<12?'good_morning':hr<18?'good_afternoon':'good_evening';
+  const fn=profile?.full_name?.split(' ')[0]||t(lang,'commander');
   const score=aiInsight?.financial_score??profile?.financial_score??null;
   return(
     <div style={{paddingBottom:48}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:28}}>
         <div>
-          <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:22,fontWeight:700,color:'#fff',marginBottom:4}}>{gr}, {fn}</h1>
+          <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:22,fontWeight:700,color:'#fff',marginBottom:4}}>{t(lang,greetKey)}, {fn}</h1>
           <p style={{fontSize:13,color:'rgba(255,255,255,.35)'}}>{now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</p>
         </div>
         <div style={{display:'flex',gap:8}}>
-          <button onClick={()=>setChatOpen(true)} style={{padding:'9px 16px',borderRadius:10,background:'rgba(0,242,255,.08)',border:'1px solid rgba(0,242,255,.22)',color:'#00f2ff',cursor:'pointer',fontSize:12,fontWeight:600,fontFamily:"'Inter',sans-serif"}}>AI Chat</button>
-          <button onClick={()=>setShowAdd(true)} style={{padding:'9px 18px',borderRadius:10,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",boxShadow:'0 4px 16px rgba(26,107,255,.3)'}}>+ Add Transaction</button>
+          <button onClick={()=>setChatOpen(true)} style={{padding:'9px 16px',borderRadius:10,background:'rgba(0,242,255,.08)',border:'1px solid rgba(0,242,255,.22)',color:'#00f2ff',cursor:'pointer',fontSize:12,fontWeight:600,fontFamily:"'Inter',sans-serif"}}>{t(lang,'ai_chat')}</button>
+          <button onClick={()=>setShowAdd(true)} style={{padding:'9px 18px',borderRadius:10,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",boxShadow:'0 4px 16px rgba(26,107,255,.3)'}}>+ {t(lang,'add_transaction')}</button>
         </div>
       </div>
 
-      {/* AI ADVISOR — hero card */}
+      {/* AI ADVISOR */}
       <div style={{background:'rgba(13,17,23,.92)',border:'1px solid rgba(255,255,255,.09)',borderRadius:18,padding:24,marginBottom:20,backdropFilter:'blur(16px)'}}>
         <div style={{display:'grid',gridTemplateColumns:score!==null?'120px 1fr':'1fr',gap:24,alignItems:'center'}}>
           {score!==null&&(
@@ -156,7 +160,7 @@ export default function DashboardPage(){
                 </svg>
                 <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
                   <div style={{fontFamily:"'Orbitron',monospace",fontSize:24,fontWeight:900,color:scoreColor(score),lineHeight:1}}>{score}</div>
-                  <div style={{fontSize:9,color:'rgba(255,255,255,.3)',letterSpacing:'.1em',marginTop:2}}>SCORE</div>
+                  <div style={{fontSize:9,color:'rgba(255,255,255,.3)',letterSpacing:'.1em',marginTop:2}}>{t(lang,'financial_score').toUpperCase()}</div>
                 </div>
               </div>
               {aiInsight?.score_explanation&&<div style={{fontSize:10,color:'rgba(255,255,255,.35)',marginTop:8,lineHeight:1.4}}>{aiInsight.score_explanation}</div>}
@@ -165,15 +169,15 @@ export default function DashboardPage(){
           <div>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
               <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:score!==null?scoreColor(score):'#00f2ff',letterSpacing:'.08em'}}>
-                {score!==null?'AI FINANCIAL ANALYSIS':'AI FINANCIAL ADVISOR'}
+                {score!==null?t(lang,'ai_analysis'):t(lang,'ai_advisor')}
               </div>
               <button onClick={runAI} disabled={aiLoading} style={{padding:'8px 16px',borderRadius:8,background:aiLoading?'rgba(255,255,255,.05)':'linear-gradient(135deg,#1a6bff,#7c00ff)',color:aiLoading?'rgba(255,255,255,.3)':'#fff',border:'none',cursor:aiLoading?'not-allowed':'pointer',fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif",whiteSpace:'nowrap',flexShrink:0,marginLeft:16,boxShadow:aiLoading?'none':'0 4px 14px rgba(26,107,255,.3)',transition:'all .2s'}}>
-                {aiLoading?'Analyzing...':'Run Analysis'}
+                {aiLoading?t(lang,'analyzing'):t(lang,'run_analysis')}
               </button>
             </div>
             {aiError&&<div style={{fontSize:12,color:'#ef4444',marginBottom:8,padding:'6px 10px',background:'rgba(239,68,68,.08)',borderRadius:6,border:'1px solid rgba(239,68,68,.2)'}}>{aiError}</div>}
             {aiInsight?.weekly_verdict?<p style={{fontSize:13,color:'rgba(255,255,255,.72)',lineHeight:1.65,marginBottom:aiInsight.top_actions?.length>0?12:0}}>{aiInsight.weekly_verdict}</p>
-            :<p style={{fontSize:13,color:'rgba(255,255,255,.4)',lineHeight:1.6}}>{txns.length===0?'Add your first transaction to activate AI analysis.':'Click "Run Analysis" to get your AI financial score, spending alerts, and a personalized action plan.'}</p>}
+            :<p style={{fontSize:13,color:'rgba(255,255,255,.4)',lineHeight:1.6}}>{txns.length===0?t(lang,'add_first_tx'):t(lang,'click_analyze')}</p>}
             {aiInsight?.top_actions?.length>0&&(
               <div style={{display:'flex',flexDirection:'column',gap:6}}>
                 {aiInsight.top_actions.slice(0,2).map((a:any,i:number)=>(
@@ -204,15 +208,15 @@ export default function DashboardPage(){
       {/* KPI Grid */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14,marginBottom:20}}>
         {[
-          {l:'Income',v:f(income),ch:ic,c:'#10b981',bg:'rgba(16,185,129,.07)',b:'rgba(16,185,129,.18)',inv:false},
-          {l:'Expenses',v:f(expenses),ch:ec,c:'#ef4444',bg:'rgba(239,68,68,.07)',b:'rgba(239,68,68,.18)',inv:true},
-          {l:'Net Cash Flow',v:f(net),ch:null,c:net>=0?'#10b981':'#ef4444',bg:net>=0?'rgba(16,185,129,.07)':'rgba(239,68,68,.07)',b:net>=0?'rgba(16,185,129,.18)':'rgba(239,68,68,.18)'},
-          {l:'Savings Rate',v:sr+'%',ch:null,c:sr>=20?'#a78bfa':'#f59e0b',bg:'rgba(124,58,237,.07)',b:'rgba(124,58,237,.18)'},
+          {l:t(lang,'total_income'),v:f(income),ch:ic,c:'#10b981',bg:'rgba(16,185,129,.07)',b:'rgba(16,185,129,.18)',inv:false},
+          {l:t(lang,'total_expenses'),v:f(expenses),ch:ec,c:'#ef4444',bg:'rgba(239,68,68,.07)',b:'rgba(239,68,68,.18)',inv:true},
+          {l:t(lang,'net_flow'),v:f(net),ch:null,c:net>=0?'#10b981':'#ef4444',bg:net>=0?'rgba(16,185,129,.07)':'rgba(239,68,68,.07)',b:net>=0?'rgba(16,185,129,.18)':'rgba(239,68,68,.18)'},
+          {l:t(lang,'savings_rate'),v:sr+'%',ch:null,c:sr>=20?'#a78bfa':'#f59e0b',bg:'rgba(124,58,237,.07)',b:'rgba(124,58,237,.18)'},
         ].map(c=>(
           <div key={c.l} style={{background:c.bg,border:`1px solid ${c.b}`,borderRadius:14,padding:'18px 20px',transition:'transform .18s'}} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='translateY(-2px)'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='translateY(0)'}}>
             <div style={{fontSize:10,color:'rgba(255,255,255,.33)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.09em'}}>{c.l}</div>
             <div style={{fontSize:23,fontWeight:700,color:c.c,fontFamily:"'Roboto Mono',monospace",marginBottom:5}}>{c.v}</div>
-            {c.ch!==null&&li>0?<div style={{fontSize:11,color:(c.inv?c.ch<0:c.ch>=0)?'#10b981':'#ef4444'}}>{fp(c.ch)} vs last month</div>:<div style={{fontSize:11,color:'rgba(255,255,255,.2)'}}>This month</div>}
+            {c.ch!==null&&li>0?<div style={{fontSize:11,color:(c.inv?c.ch<0:c.ch>=0)?'#10b981':'#ef4444'}}>{fp(c.ch)} {t(lang,'vs_last_month')}</div>:<div style={{fontSize:11,color:'rgba(255,255,255,.2)'}}>{t(lang,'this_month')}</div>}
           </div>
         ))}
       </div>
@@ -220,16 +224,16 @@ export default function DashboardPage(){
       {/* Cashflow Forecast */}
       {aiInsight?.cashflow_forecast&&(
         <div style={{background:'rgba(13,17,23,.85)',border:'1px solid rgba(255,255,255,.07)',borderRadius:14,padding:20,marginBottom:20}}>
-          <div style={{fontSize:10,color:'rgba(255,255,255,.28)',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:14,fontFamily:"'Orbitron',monospace"}}>AI Cashflow Forecast</div>
+          <div style={{fontSize:10,color:'rgba(255,255,255,.28)',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:14,fontFamily:"'Orbitron',monospace"}}>{t(lang,'cashflow_forecast')}</div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
-            {[['30 Days',aiInsight.cashflow_forecast['30_days']],['60 Days',aiInsight.cashflow_forecast['60_days']],['90 Days',aiInsight.cashflow_forecast['90_days']]].map(([l,v]:any)=>(
+            {[['30 '+t(lang,'days'),aiInsight.cashflow_forecast['30_days']],['60 '+t(lang,'days'),aiInsight.cashflow_forecast['60_days']],['90 '+t(lang,'days'),aiInsight.cashflow_forecast['90_days']]].map(([l,v]:any)=>(
               <div key={l} style={{background:'rgba(255,255,255,.04)',borderRadius:10,padding:'12px 16px',textAlign:'center'}}>
                 <div style={{fontSize:11,color:'rgba(255,255,255,.33)',marginBottom:6}}>{l}</div>
                 <div style={{fontSize:18,fontWeight:700,color:v>=0?'#10b981':'#ef4444',fontFamily:"'Roboto Mono',monospace"}}>{f(v)}</div>
               </div>
             ))}
           </div>
-          <div style={{fontSize:10,color:'rgba(255,255,255,.18)',marginTop:10}}>Confidence: {aiInsight.cashflow_forecast.confidence} · Based on last 30 days</div>
+          <div style={{fontSize:10,color:'rgba(255,255,255,.18)',marginTop:10}}>{t(lang,'confidence')}: {aiInsight.cashflow_forecast.confidence}</div>
         </div>
       )}
 
@@ -239,8 +243,8 @@ export default function DashboardPage(){
           {budgets.length>0&&(
             <div style={{background:'rgba(13,17,23,.85)',border:'1px solid rgba(255,255,255,.07)',borderRadius:14,padding:20}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-                <span style={{fontSize:10,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',fontFamily:"'Orbitron',monospace"}}>Budgets</span>
-                <Link href="/dashboard/mission" style={{fontSize:11,color:'#60a5fa',textDecoration:'none'}}>View all</Link>
+                <span style={{fontSize:10,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',fontFamily:"'Orbitron',monospace"}}>{t(lang,'budgets')}</span>
+                <Link href="/dashboard/mission" style={{fontSize:11,color:'#60a5fa',textDecoration:'none'}}>{t(lang,'view_all')}</Link>
               </div>
               {budgets.slice(0,4).map((b:any)=>{const sp=cs[b.category]||0;const pct=Math.min(100,Math.round((sp/Number(b.amount))*100));const ov=pct>=100;return(
                 <div key={b.id} style={{marginBottom:10}}>
@@ -253,8 +257,8 @@ export default function DashboardPage(){
           {goals.length>0&&(
             <div style={{background:'rgba(13,17,23,.85)',border:'1px solid rgba(255,255,255,.07)',borderRadius:14,padding:20}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-                <span style={{fontSize:10,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',fontFamily:"'Orbitron',monospace"}}>Savings Goals</span>
-                <Link href="/dashboard/autopilot" style={{fontSize:11,color:'#60a5fa',textDecoration:'none'}}>Manage</Link>
+                <span style={{fontSize:10,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',fontFamily:"'Orbitron',monospace"}}>{t(lang,'savings_goals')}</span>
+                <Link href="/dashboard/autopilot" style={{fontSize:11,color:'#60a5fa',textDecoration:'none'}}>{t(lang,'manage')}</Link>
               </div>
               {goals.slice(0,3).map((g:any)=>{
                 const p=Math.min(100,Math.round((Number(g.current_amount)/Number(g.target_amount))*100));
@@ -263,7 +267,7 @@ export default function DashboardPage(){
                   <div key={g.id} style={{marginBottom:12}}>
                     <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}><span style={{fontSize:13,color:'rgba(255,255,255,.68)'}}>{g.name}</span><span style={{fontSize:12,color:'#a78bfa'}}>{p}%</span></div>
                     <div style={{background:'rgba(255,255,255,.07)',borderRadius:100,height:6}}><div style={{background:'linear-gradient(90deg,#7c00ff,#a78bfa)',borderRadius:100,height:6,width:p+'%',transition:'width .6s',boxShadow:p>50?'0 0 8px rgba(167,139,250,.35)':'none'}}/></div>
-                    {rec&&<div style={{fontSize:10,color:'rgba(0,242,255,.55)',marginTop:3}}>AI: {rec.months_at_current_rate}mo now → {rec.months_if_following_advice}mo with advice</div>}
+                    {rec&&<div style={{fontSize:10,color:'rgba(0,242,255,.55)',marginTop:3}}>AI: {rec.months_at_current_rate}mo → {rec.months_if_following_advice}mo</div>}
                   </div>
                 );
               })}
@@ -273,7 +277,7 @@ export default function DashboardPage(){
       )}
 
       {/* Modules */}
-      <div style={{fontSize:10,color:'rgba(255,255,255,.25)',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:12,fontFamily:"'Orbitron',monospace"}}>Control Modules</div>
+      <div style={{fontSize:10,color:'rgba(255,255,255,.25)',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:12,fontFamily:"'Orbitron',monospace"}}>{t(lang,'control_modules')}</div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:24}}>
         {MODULES.map(m=>(
           <Link key={m.href} href={m.href} style={{textDecoration:'none'}}>
@@ -282,7 +286,7 @@ export default function DashboardPage(){
               onMouseLeave={e=>{const el=e.currentTarget as HTMLElement;el.style.borderColor='rgba(255,255,255,.07)';el.style.transform='translateY(0)';el.style.background='rgba(13,17,23,.8)';}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
                 <div style={{width:34,height:34,borderRadius:9,background:m.color+'14',border:`1px solid ${m.color}22`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Orbitron',monospace",fontSize:12,fontWeight:700,color:m.color}}>{m.icon}</div>
-                <span style={{fontSize:9,color:m.color+'cc',fontFamily:"'Orbitron',monospace",letterSpacing:'.08em'}}>ACTIVE</span>
+                <span style={{fontSize:9,color:m.color+'cc',fontFamily:"'Orbitron',monospace",letterSpacing:'.08em'}}>{t(lang,'active')}</span>
               </div>
               <div style={{fontSize:13,fontWeight:600,color:'#e2e8f0',marginBottom:2}}>{m.label}</div>
               <div style={{fontSize:11,color:m.color+'88'}}>{m.desc}</div>
@@ -295,28 +299,28 @@ export default function DashboardPage(){
       {txns.length>0?(
         <div style={{background:'rgba(13,17,23,.85)',border:'1px solid rgba(255,255,255,.07)',borderRadius:14,padding:20}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-            <span style={{fontSize:10,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',fontFamily:"'Orbitron',monospace"}}>Recent Transactions</span>
-            <Link href="/dashboard/mission" style={{fontSize:11,color:'#60a5fa',textDecoration:'none'}}>View all</Link>
+            <span style={{fontSize:10,color:'rgba(255,255,255,.45)',textTransform:'uppercase',letterSpacing:'.08em',fontFamily:"'Orbitron',monospace"}}>{t(lang,'recent_transactions')}</span>
+            <Link href="/dashboard/mission" style={{fontSize:11,color:'#60a5fa',textDecoration:'none'}}>{t(lang,'view_all')}</Link>
           </div>
-          {txns.slice(0,6).map((t:any)=>(
-            <div key={t.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,.04)'}}>
+          {txns.slice(0,6).map((tx:any)=>(
+            <div key={tx.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid rgba(255,255,255,.04)'}}>
               <div style={{display:'flex',alignItems:'center',gap:12}}>
-                <div style={{width:36,height:36,borderRadius:10,background:t.type==='income'?'rgba(16,185,129,.1)':'rgba(239,68,68,.09)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,color:t.type==='income'?'#10b981':'#ef4444',fontFamily:"'Roboto Mono',monospace"}}>{t.type==='income'?'+':'-'}</div>
+                <div style={{width:36,height:36,borderRadius:10,background:tx.type==='income'?'rgba(16,185,129,.1)':'rgba(239,68,68,.09)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,color:tx.type==='income'?'#10b981':'#ef4444',fontFamily:"'Roboto Mono',monospace"}}>{tx.type==='income'?'+':'-'}</div>
                 <div>
-                  <div style={{fontSize:13,color:'#e2e8f0',marginBottom:1}}>{t.description}</div>
-                  <div style={{fontSize:11,color:'rgba(255,255,255,.26)'}}>{t.category} — {new Date(t.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                  <div style={{fontSize:13,color:'#e2e8f0',marginBottom:1}}>{tx.description}</div>
+                  <div style={{fontSize:11,color:'rgba(255,255,255,.26)'}}>{tx.category} — {new Date(tx.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
                 </div>
               </div>
-              <span style={{fontSize:14,fontWeight:700,color:t.type==='income'?'#10b981':'#ef4444',fontFamily:"'Roboto Mono',monospace"}}>{t.type==='income'?'+':'-'}{f(Number(t.amount))}</span>
+              <span style={{fontSize:14,fontWeight:700,color:tx.type==='income'?'#10b981':'#ef4444',fontFamily:"'Roboto Mono',monospace"}}>{tx.type==='income'?'+':'-'}{f(Number(tx.amount))}</span>
             </div>
           ))}
         </div>
       ):(
         <div style={{background:'rgba(13,17,23,.85)',border:'1px solid rgba(255,255,255,.07)',borderRadius:14,padding:'44px 24px',textAlign:'center'}}>
           <div style={{fontFamily:"'Orbitron',monospace",fontSize:32,fontWeight:900,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginBottom:10}}>FF</div>
-          <h3 style={{fontFamily:"'Orbitron',monospace",fontSize:14,color:'rgba(255,255,255,.5)',marginBottom:8}}>Mission Control Ready</h3>
-          <p style={{fontSize:13,color:'rgba(255,255,255,.28)',marginBottom:22}}>Log your first transaction to activate AI analysis and your financial score.</p>
-          <button onClick={()=>setShowAdd(true)} style={{padding:'11px 28px',borderRadius:10,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",boxShadow:'0 4px 20px rgba(26,107,255,.3)'}}>+ Log First Transaction</button>
+          <h3 style={{fontFamily:"'Orbitron',monospace",fontSize:14,color:'rgba(255,255,255,.5)',marginBottom:8}}>{t(lang,'mission_ready')}</h3>
+          <p style={{fontSize:13,color:'rgba(255,255,255,.28)',marginBottom:22}}>{t(lang,'log_first_tx')}</p>
+          <button onClick={()=>setShowAdd(true)} style={{padding:'11px 28px',borderRadius:10,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",boxShadow:'0 4px 20px rgba(26,107,255,.3)'}}>+ {t(lang,'add_transaction')}</button>
         </div>
       )}
 
@@ -325,19 +329,19 @@ export default function DashboardPage(){
         <div onClick={e=>{if(e.target===e.currentTarget)setShowAdd(false)}} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.78)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:20,backdropFilter:'blur(5px)'}}>
           <div style={{background:'#0d1117',border:'1px solid rgba(255,255,255,.1)',borderRadius:18,padding:28,width:'100%',maxWidth:420}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}}>
-              <span style={{fontFamily:"'Orbitron',monospace",fontSize:13,color:'#00f2ff'}}>Quick Add Transaction</span>
+              <span style={{fontFamily:"'Orbitron',monospace",fontSize:13,color:'#00f2ff'}}>{t(lang,'add_transaction')}</span>
               <button onClick={()=>setShowAdd(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.4)',cursor:'pointer',fontSize:22,lineHeight:1,padding:0}}>×</button>
             </div>
             <div style={{display:'flex',gap:8,marginBottom:14}}>
-              {(['income','expense'] as const).map(t=>(
-                <button key={t} onClick={()=>setTxType(t)} style={{flex:1,padding:'10px',borderRadius:9,border:'1px solid',borderColor:txType===t?(t==='income'?'#10b981':'#ef4444'):'rgba(255,255,255,.1)',background:txType===t?(t==='income'?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)'):'transparent',color:txType===t?(t==='income'?'#10b981':'#ef4444'):'rgba(255,255,255,.4)',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",transition:'all .15s'}}>
-                  {t==='income'?'+ Income':'− Expense'}
+              {(['income','expense'] as const).map(txT=>(
+                <button key={txT} onClick={()=>setTxType(txT)} style={{flex:1,padding:'10px',borderRadius:9,border:'1px solid',borderColor:txType===txT?(txT==='income'?'#10b981':'#ef4444'):'rgba(255,255,255,.1)',background:txType===txT?(txT==='income'?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)'):'transparent',color:txType===txT?(txT==='income'?'#10b981':'#ef4444'):'rgba(255,255,255,.4)',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",transition:'all .15s'}}>
+                  {txT==='income'?t(lang,'income_btn'):t(lang,'expense_btn')}
                 </button>
               ))}
             </div>
-            <div style={{marginBottom:10}}><input value={txDesc} onChange={e=>setTxDesc(e.target.value)} placeholder="Description" style={inp} onFocus={e=>e.target.style.borderColor='rgba(0,212,255,.4)'} onBlur={e=>e.target.style.borderColor='rgba(255,255,255,.1)'}/></div>
+            <div style={{marginBottom:10}}><input value={txDesc} onChange={e=>setTxDesc(e.target.value)} placeholder={t(lang,'description')} style={inp} onFocus={e=>e.target.style.borderColor='rgba(0,212,255,.4)'} onBlur={e=>e.target.style.borderColor='rgba(255,255,255,.1)'}/></div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
-              <input type="number" value={txAmt} onChange={e=>setTxAmt(e.target.value)} placeholder="Amount ($)" style={inp} onFocus={e=>e.target.style.borderColor='rgba(0,212,255,.4)'} onBlur={e=>e.target.style.borderColor='rgba(255,255,255,.1)'}/>
+              <input type="number" value={txAmt} onChange={e=>setTxAmt(e.target.value)} placeholder={t(lang,'amount')} style={inp} onFocus={e=>e.target.style.borderColor='rgba(0,212,255,.4)'} onBlur={e=>e.target.style.borderColor='rgba(255,255,255,.1)'}/>
               <input type="date" value={txDate} onChange={e=>setTxDate(e.target.value)} style={inp} onFocus={e=>e.target.style.borderColor='rgba(0,212,255,.4)'} onBlur={e=>e.target.style.borderColor='rgba(255,255,255,.1)'}/>
             </div>
             <div style={{marginBottom:20}}>
@@ -346,7 +350,7 @@ export default function DashboardPage(){
               </select>
             </div>
             <button onClick={addTx} disabled={!txDesc.trim()||!txAmt||txSaving} style={{width:'100%',padding:'12px',borderRadius:10,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:(!txDesc.trim()||!txAmt||txSaving)?'not-allowed':'pointer',fontSize:14,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:txSaving?.6:1,boxShadow:'0 4px 20px rgba(26,107,255,.3)',transition:'opacity .2s'}}>
-              {txSaving?'Saving...':'Add Transaction'}
+              {txSaving?t(lang,'saving'):t(lang,'add_transaction')}
             </button>
           </div>
         </div>
@@ -358,16 +362,16 @@ export default function DashboardPage(){
           <div style={{position:'absolute',right:0,top:0,bottom:0,width:'min(420px,100vw)',background:'#0a0e1a',borderLeft:'1px solid rgba(255,255,255,.09)',display:'flex',flexDirection:'column'}} onClick={e=>e.stopPropagation()}>
             <div style={{padding:'20px 20px 16px',borderBottom:'1px solid rgba(255,255,255,.07)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
               <div>
-                <div style={{fontFamily:"'Orbitron',monospace",fontSize:12,color:'#00f2ff',marginBottom:3}}>AI Financial Advisor</div>
-                <div style={{fontSize:11,color:'rgba(255,255,255,.28)'}}>Your personal financial advisor</div>
+                <div style={{fontFamily:"'Orbitron',monospace",fontSize:12,color:'#00f2ff',marginBottom:3}}>{t(lang,'ai_advisor')}</div>
+                <div style={{fontSize:11,color:'rgba(255,255,255,.28)'}}>{t(lang,'your_advisor')}</div>
               </div>
               <button onClick={()=>setChatOpen(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,.4)',cursor:'pointer',fontSize:22,padding:0}}>×</button>
             </div>
             <div ref={chatRef} style={{flex:1,overflowY:'auto',padding:16,display:'flex',flexDirection:'column',gap:12}}>
               {chatHistory.length===0&&(
                 <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:4}}>
-                  <div style={{fontSize:11,color:'rgba(255,255,255,.28)',marginBottom:4}}>Suggested questions:</div>
-                  {['Can I afford a $500 purchase next month?','What is my biggest financial problem right now?','How do I save $1,000 in 60 days?','Where is most of my money going?'].map(q=>(
+                  <div style={{fontSize:11,color:'rgba(255,255,255,.28)',marginBottom:4}}>{t(lang,'suggested_questions')}:</div>
+                  {[t(lang,'q1'),t(lang,'q2'),t(lang,'q3'),t(lang,'q4')].map(q=>(
                     <button key={q} onClick={()=>setChatMsg(q)} style={{padding:'9px 13px',borderRadius:9,background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.08)',color:'rgba(255,255,255,.55)',cursor:'pointer',fontSize:12,textAlign:'left',fontFamily:"'Inter',sans-serif",transition:'background .15s'}}>{q}</button>
                   ))}
                 </div>
@@ -386,8 +390,8 @@ export default function DashboardPage(){
               )}
             </div>
             <div style={{padding:14,borderTop:'1px solid rgba(255,255,255,.07)',display:'flex',gap:8}}>
-              <input value={chatMsg} onChange={e=>setChatMsg(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}} placeholder="Ask about your finances..." style={{...inp,flex:1}}/>
-              <button onClick={sendChat} disabled={!chatMsg.trim()||chatLoading} style={{padding:'10px 16px',borderRadius:8,background:!chatMsg.trim()||chatLoading?'rgba(255,255,255,.05)':'linear-gradient(135deg,#1a6bff,#7c00ff)',color:!chatMsg.trim()||chatLoading?'rgba(255,255,255,.3)':'#fff',border:'none',cursor:!chatMsg.trim()||chatLoading?'not-allowed':'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",transition:'all .2s',flexShrink:0}}>Send</button>
+              <input value={chatMsg} onChange={e=>setChatMsg(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}} placeholder={t(lang,'ask_finances')} style={{...inp,flex:1}}/>
+              <button onClick={sendChat} disabled={!chatMsg.trim()||chatLoading} style={{padding:'10px 16px',borderRadius:8,background:!chatMsg.trim()||chatLoading?'rgba(255,255,255,.05)':'linear-gradient(135deg,#1a6bff,#7c00ff)',color:!chatMsg.trim()||chatLoading?'rgba(255,255,255,.3)':'#fff',border:'none',cursor:!chatMsg.trim()||chatLoading?'not-allowed':'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",transition:'all .2s',flexShrink:0}}>{t(lang,'send')}</button>
             </div>
           </div>
         </div>
