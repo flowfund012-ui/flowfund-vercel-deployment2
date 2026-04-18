@@ -2,6 +2,7 @@
 export const dynamic='force-dynamic';
 import{useEffect,useState}from'react';
 import{createClient}from'@supabase/supabase-js';
+import{t,getLangFromStorage}from'@/lib/i18n';
 const sb=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
 const TYPE_ICONS:Record<string,string>={spreadsheet:'📊',guide:'📖',template:'📋',checklist:'✅',tool:'🔧'};
 const TYPE_COLORS:Record<string,string>={spreadsheet:'#10b981',guide:'#60a5fa',template:'#a78bfa',checklist:'#f59e0b',tool:'#f97316'};
@@ -14,7 +15,9 @@ export default function VaultPage(){
   const[filter,setFilter]=useState('All');
   const[search,setSearch]=useState('');
   const[downloading,setDownloading]=useState('');
+  const[lang,setLang]=useState('en');
   useEffect(()=>{
+    setLang(getLangFromStorage());
     sb.auth.getSession().then(async({data:{session}})=>{
       if(!session){setLoading(false);return;}
       const uid=session.user.id;
@@ -49,26 +52,24 @@ export default function VaultPage(){
   });
   const freeCount=assets.filter((a:any)=>a.plan_required==='free').length;
   const myDownloads=downloads.length;
-  if(loading)return<div style={{padding:40,textAlign:'center',color:'rgba(255,255,255,.4)'}}>Loading Vault...</div>;
+  if(loading)return<div style={{padding:40,textAlign:'center',color:'rgba(255,255,255,.4)'}}>{t(lang,'loading')}...</div>;
   return(
     <div style={{paddingBottom:48}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:22,flexWrap:'wrap',gap:12}}>
         <div>
-          <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:700,color:'#00f0ff',marginBottom:4}}>Vault Access</h1>
-          <p style={{fontSize:12,color:'rgba(255,255,255,.35)'}}>Real templates, spreadsheets, calculators and guides. Download instantly.</p>
+          <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:700,color:'#00f0ff',marginBottom:4}}>{t(lang,'vault_title')}</h1>
+          <p style={{fontSize:12,color:'rgba(255,255,255,.35)'}}>{t(lang,'vault_subtitle')}</p>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:8}}>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search vault..." style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.09)',borderRadius:8,padding:'8px 14px',color:'#fff',fontSize:12,outline:'none',fontFamily:"'Inter',sans-serif",width:180}}/>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t(lang,'search_vault')} style={{background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.09)',borderRadius:8,padding:'8px 14px',color:'#fff',fontSize:12,outline:'none',fontFamily:"'Inter',sans-serif",width:180}}/>
         </div>
       </div>
-
-      {/* Stats */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:20}}>
         {[
-          {l:'Total Assets',v:String(assets.length),c:'#00f0ff',bg:'rgba(0,240,255,.05)',b:'rgba(0,240,255,.15)'},
-          {l:'Free Assets',v:String(freeCount),c:'#10b981',bg:'rgba(16,185,129,.05)',b:'rgba(16,185,129,.15)'},
-          {l:'Downloaded',v:String(myDownloads),c:'#a78bfa',bg:'rgba(167,139,250,.05)',b:'rgba(167,139,250,.15)'},
-          {l:'Your Plan',v:plan.charAt(0).toUpperCase()+plan.slice(1),c:plan==='premium'?'#ffd700':plan==='pro'?'#00f2ff':'rgba(255,255,255,.5)',bg:'rgba(255,255,255,.03)',b:'rgba(255,255,255,.08)'},
+          {l:t(lang,'total_assets'),v:String(assets.length),c:'#00f0ff',bg:'rgba(0,240,255,.05)',b:'rgba(0,240,255,.15)'},
+          {l:t(lang,'free_assets'),v:String(freeCount),c:'#10b981',bg:'rgba(16,185,129,.05)',b:'rgba(16,185,129,.15)'},
+          {l:t(lang,'downloaded'),v:String(myDownloads),c:'#a78bfa',bg:'rgba(167,139,250,.05)',b:'rgba(167,139,250,.15)'},
+          {l:t(lang,'your_plan'),v:plan.charAt(0).toUpperCase()+plan.slice(1),c:plan==='premium'?'#ffd700':plan==='pro'?'#00f2ff':'rgba(255,255,255,.5)',bg:'rgba(255,255,255,.03)',b:'rgba(255,255,255,.08)'},
         ].map(s=>(
           <div key={s.l} style={{background:s.bg,border:`1px solid ${s.b}`,borderRadius:12,padding:'12px 16px',textAlign:'center'}}>
             <div style={{fontSize:10,color:'rgba(255,255,255,.35)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.07em'}}>{s.l}</div>
@@ -76,23 +77,17 @@ export default function VaultPage(){
           </div>
         ))}
       </div>
-
-      {/* Filter tabs */}
       <div style={{display:'flex',gap:6,marginBottom:20,flexWrap:'wrap'}}>
-        {types.map(t=>(
-          <button key={t} onClick={()=>setFilter(t)} style={{padding:'6px 14px',borderRadius:100,fontSize:11,background:filter===t?'rgba(0,240,255,.1)':'rgba(255,255,255,.04)',border:`1px solid ${filter===t?'rgba(0,240,255,.3)':'rgba(255,255,255,.07)'}`,color:filter===t?'#00f0ff':'rgba(255,255,255,.4)',cursor:'pointer',fontFamily:"'Inter',sans-serif",textTransform:'capitalize'}}>{t}</button>
+        {types.map(tp=>(
+          <button key={tp} onClick={()=>setFilter(tp)} style={{padding:'6px 14px',borderRadius:100,fontSize:11,background:filter===tp?'rgba(0,240,255,.1)':'rgba(255,255,255,.04)',border:`1px solid ${filter===tp?'rgba(0,240,255,.3)':'rgba(255,255,255,.07)'}`,color:filter===tp?'#00f0ff':'rgba(255,255,255,.4)',cursor:'pointer',fontFamily:"'Inter',sans-serif",textTransform:'capitalize'}}>{tp}</button>
         ))}
       </div>
-
-      {/* Plan upgrade banner */}
       {plan==='free'&&(
         <div style={{background:'rgba(255,215,0,.05)',border:'1px solid rgba(255,215,0,.18)',borderRadius:12,padding:'12px 20px',marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
-          <div style={{fontSize:13,color:'rgba(255,215,0,.8)'}}>🔒 {assets.filter((a:any)=>a.plan_required!=='free').length} premium assets locked. Upgrade to Pro or Premium to unlock all spreadsheets, calculators, and guides.</div>
-          <a href="/dashboard/settings" style={{padding:'7px 16px',borderRadius:8,background:'linear-gradient(135deg,#ffd700,#daa520)',color:'#000',textDecoration:'none',fontSize:11,fontWeight:700,fontFamily:"'Orbitron',monospace",whiteSpace:'nowrap'}}>Upgrade Now</a>
+          <div style={{fontSize:13,color:'rgba(255,215,0,.8)'}}>🔒 {assets.filter((a:any)=>a.plan_required!=='free').length} {t(lang,'locked_msg')}</div>
+          <a href="/dashboard/settings" style={{padding:'7px 16px',borderRadius:8,background:'linear-gradient(135deg,#ffd700,#daa520)',color:'#000',textDecoration:'none',fontSize:11,fontWeight:700,fontFamily:"'Orbitron',monospace",whiteSpace:'nowrap'}}>{t(lang,'upgrade_now')}</a>
         </div>
       )}
-
-      {/* Assets Grid */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:16}}>
         {filtered.map((asset:any)=>{
           const downloaded=downloads.includes(asset.id);
@@ -107,7 +102,7 @@ export default function VaultPage(){
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4,flexWrap:'wrap'}}>
                     <span style={{fontSize:10,color:col,textTransform:'uppercase',letterSpacing:'.08em',fontWeight:700}}>{asset.type}</span>
                     {asset.plan_required!=='free'&&<span style={{padding:'1px 7px',borderRadius:100,fontSize:9,background:asset.plan_required==='premium'?'rgba(255,215,0,.1)':'rgba(0,242,255,.08)',color:asset.plan_required==='premium'?'#ffd700':'#00f2ff',border:`1px solid ${asset.plan_required==='premium'?'rgba(255,215,0,.2)':'rgba(0,242,255,.15)'}`,fontFamily:"'Orbitron',monospace"}}>{asset.plan_required.toUpperCase()}</span>}
-                    {downloaded&&<span style={{padding:'1px 7px',borderRadius:100,fontSize:9,background:'rgba(16,185,129,.1)',color:'#10b981',border:'1px solid rgba(16,185,129,.2)'}}>✓ Downloaded</span>}
+                    {downloaded&&<span style={{padding:'1px 7px',borderRadius:100,fontSize:9,background:'rgba(16,185,129,.1)',color:'#10b981',border:'1px solid rgba(16,185,129,.2)'}}>✓ {t(lang,'downloaded')}</span>}
                   </div>
                   <h3 style={{fontSize:14,fontWeight:700,color:'#fff',lineHeight:1.3}}>{asset.title}</h3>
                 </div>
@@ -119,10 +114,10 @@ export default function VaultPage(){
                   {asset.tags&&asset.tags.slice(0,2).map((tag:string)=><span key={tag} style={{padding:'2px 7px',borderRadius:100,background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.06)'}}>{tag}</span>)}
                 </div>
                 {locked?(
-                  <a href="/dashboard/settings" style={{padding:'7px 16px',borderRadius:8,background:'rgba(255,215,0,.08)',border:'1px solid rgba(255,215,0,.2)',color:'#ffd700',fontSize:11,textDecoration:'none',fontFamily:"'Orbitron',monospace",whiteSpace:'nowrap'}}>🔒 Upgrade</a>
+                  <a href="/dashboard/settings" style={{padding:'7px 16px',borderRadius:8,background:'rgba(255,215,0,.08)',border:'1px solid rgba(255,215,0,.2)',color:'#ffd700',fontSize:11,textDecoration:'none',fontFamily:"'Orbitron',monospace",whiteSpace:'nowrap'}}>🔒 {t(lang,'upgrade_to')}</a>
                 ):(
                   <button onClick={()=>handleDownload(asset)} disabled={downloading===asset.id} style={{padding:'8px 18px',borderRadius:8,background:downloaded?'rgba(16,185,129,.1)':'linear-gradient(135deg,#0d9aff,#1a6bff)',color:downloaded?'#10b981':'#fff',border:downloaded?'1px solid rgba(16,185,129,.25)':'none',cursor:downloading===asset.id?'not-allowed':'pointer',fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif",whiteSpace:'nowrap',opacity:downloading===asset.id?.7:1}}>
-                    {downloading===asset.id?'Opening...':(downloaded?'↻ Open Again':'↓ Download')}
+                    {downloading===asset.id?t(lang,'opening'):(downloaded?t(lang,'open_again'):t(lang,'download'))}
                   </button>
                 )}
               </div>
@@ -130,7 +125,7 @@ export default function VaultPage(){
           );
         })}
       </div>
-      {filtered.length===0&&<div style={{textAlign:'center',padding:'40px 0',color:'rgba(255,255,255,.3)',fontSize:13}}>No assets match your search.</div>}
+      {filtered.length===0&&<div style={{textAlign:'center',padding:'40px 0',color:'rgba(255,255,255,.3)',fontSize:13}}>{t(lang,'no_assets')}</div>}
     </div>
   );
 }
