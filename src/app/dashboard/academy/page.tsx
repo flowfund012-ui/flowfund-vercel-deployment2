@@ -2,6 +2,7 @@
 export const dynamic='force-dynamic';
 import{useEffect,useRef,useState}from'react';
 import{createClient}from'@supabase/supabase-js';
+import{t,getLangFromStorage}from'@/lib/i18n';
 const sb=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
 const PLAN_RANK:Record<string,number>={free:0,pro:1,premium:2};
 const LEVEL_COL:Record<string,string>={Beginner:'#10b981',Intermediate:'#f59e0b',Advanced:'#ef4444'};
@@ -26,8 +27,10 @@ export default function AcademyPage(){
   const[uploadFile,setUploadFile]=useState<File|null>(null);
   const[uploadMsg,setUploadMsg]=useState('');
   const[catFilter,setCatFilter]=useState('All');
+  const[lang,setLang]=useState('en');
   const fileRef=useRef<HTMLInputElement>(null);
   useEffect(()=>{
+    setLang(getLangFromStorage());
     sb.auth.getSession().then(async({data:{session}})=>{
       if(!session){setLoading(false);return;}
       const uid=session.user.id;
@@ -83,7 +86,7 @@ export default function AcademyPage(){
     const{data:rec}=await sb.from('academy_user_uploads').insert({user_id:session.user.id,title:uploadTitle.trim(),description:uploadDesc.trim()||null,file_name:uploadFile.name,file_url:fileUrl||null,file_type:uploadFile.type.includes('pdf')?'pdf':uploadFile.type.includes('image')?'image':uploadFile.type.includes('video')?'video':'document',file_size_kb:Math.round(uploadFile.size/1024)}).select().single();
     if(rec)setUploads(p=>[rec,...p]);
     setUploadTitle('');setUploadDesc('');setUploadFile(null);
-    setUploadMsg('Uploaded successfully!');setTimeout(()=>setUploadMsg(''),3000);
+    setUploadMsg(t(lang,'upload_success'));setTimeout(()=>setUploadMsg(''),3000);
     if(fileRef.current)fileRef.current.value='';
     setUploading(false);
   };
@@ -92,7 +95,7 @@ export default function AcademyPage(){
   const filtered=courses.filter((c:any)=>catFilter==='All'||c.category===catFilter);
   const completedCount=Object.values(progress).filter((p:any)=>p.completed_at).length;
   const inp:React.CSSProperties={width:'100%',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.09)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,outline:'none',fontFamily:"'Inter',sans-serif",boxSizing:'border-box'};
-  if(loading)return<div style={{padding:40,textAlign:'center',color:'rgba(255,255,255,.4)'}}>Loading Academy...</div>;
+  if(loading)return<div style={{padding:40,textAlign:'center',color:'rgba(255,255,255,.4)'}}>{t(lang,'loading')} {t(lang,'academy')}...</div>;
 
   // COURSE VIEW
   if(view==='course'&&activeCourse){
@@ -101,7 +104,7 @@ export default function AcademyPage(){
     const pct=total>0?Math.round((activeLesson/total)*100):0;
     return(
       <div style={{maxWidth:760,margin:'0 auto',paddingBottom:48}}>
-        <button onClick={()=>{setView('grid');setActiveCourse(null);}} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.09)',borderRadius:8,padding:'7px 14px',color:'rgba(255,255,255,.6)',cursor:'pointer',fontSize:12,fontFamily:"'Inter',sans-serif",marginBottom:20}}>← Back to courses</button>
+        <button onClick={()=>{setView('grid');setActiveCourse(null);}} style={{background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.09)',borderRadius:8,padding:'7px 14px',color:'rgba(255,255,255,.6)',cursor:'pointer',fontSize:12,fontFamily:"'Inter',sans-serif",marginBottom:20}}>← {t(lang,'back_to_courses')}</button>
         <div style={{background:'rgba(13,17,23,.95)',border:'1px solid rgba(255,255,255,.08)',borderRadius:16,padding:28}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
             <div style={{fontSize:10,color:LEVEL_COL[activeCourse.level]||'#10b981',textTransform:'uppercase',letterSpacing:'.1em',fontWeight:700}}>{activeCourse.level} · {activeCourse.category}</div>
@@ -115,7 +118,7 @@ export default function AcademyPage(){
           <div style={{fontSize:14,color:'rgba(255,255,255,.75)',lineHeight:1.9,whiteSpace:'pre-line',marginBottom:24}}>{lesson.content}</div>
           {lesson.quiz&&(
             <div style={{background:'rgba(26,107,255,.06)',border:'1px solid rgba(26,107,255,.2)',borderRadius:12,padding:20,marginBottom:20}}>
-              <div style={{fontSize:13,fontWeight:600,color:'#60a5fa',marginBottom:14}}>Quick Check: {lesson.quiz.question}</div>
+              <div style={{fontSize:13,fontWeight:600,color:'#60a5fa',marginBottom:14}}>{t(lang,'quick_check')}: {lesson.quiz.question}</div>
               {lesson.quiz.options.map((opt:string,i:number)=>{
                 const isCorrect=i===lesson.quiz.correct;
                 const isSelected=selectedAnswer===i;
@@ -129,13 +132,13 @@ export default function AcademyPage(){
                   </div>
                 );
               })}
-              {showResult&&<div style={{fontSize:12,color:selectedAnswer===lesson.quiz.correct?'#10b981':'rgba(239,68,68,.8)',marginTop:8,fontStyle:'italic'}}>{selectedAnswer===lesson.quiz.correct?'Correct!':'Incorrect — correct answer is highlighted above.'}</div>}
+              {showResult&&<div style={{fontSize:12,color:selectedAnswer===lesson.quiz.correct?'#10b981':'rgba(239,68,68,.8)',marginTop:8,fontStyle:'italic'}}>{selectedAnswer===lesson.quiz.correct?t(lang,'correct'):t(lang,'incorrect')}</div>}
             </div>
           )}
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <button onClick={()=>{if(activeLesson>0){setActiveLesson(l=>l-1);setSelectedAnswer(null);setShowResult(false);}}} disabled={activeLesson===0} style={{padding:'10px 20px',borderRadius:9,background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.09)',color:'rgba(255,255,255,.5)',cursor:activeLesson===0?'not-allowed':'pointer',fontSize:13,fontFamily:"'Inter',sans-serif",opacity:activeLesson===0?.4:1}}>← Previous</button>
+            <button onClick={()=>{if(activeLesson>0){setActiveLesson(l=>l-1);setSelectedAnswer(null);setShowResult(false);}}} disabled={activeLesson===0} style={{padding:'10px 20px',borderRadius:9,background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.09)',color:'rgba(255,255,255,.5)',cursor:activeLesson===0?'not-allowed':'pointer',fontSize:13,fontFamily:"'Inter',sans-serif",opacity:activeLesson===0?.4:1}}>← {t(lang,'previous')}</button>
             <button onClick={completeLesson} disabled={!!(lesson.quiz&&!showResult)} style={{padding:'10px 28px',borderRadius:9,background:(!lesson.quiz||showResult)?'linear-gradient(135deg,#1a6bff,#7c00ff)':'rgba(255,255,255,.06)',color:(!lesson.quiz||showResult)?'#fff':'rgba(255,255,255,.35)',border:'none',cursor:(!lesson.quiz||showResult)?'pointer':'not-allowed',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif"}}>
-              {activeLesson===total-1?'Complete Course ✓':'Next Lesson →'}
+              {activeLesson===total-1?t(lang,'complete_course'):t(lang,'next_lesson')}
             </button>
           </div>
         </div>
@@ -147,23 +150,22 @@ export default function AcademyPage(){
     <div style={{paddingBottom:48}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20,flexWrap:'wrap',gap:12}}>
         <div>
-          <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:700,color:'#f59e0b',marginBottom:4}}>Personal Academy</h1>
-          <p style={{fontSize:12,color:'rgba(255,255,255,.35)'}}>Real financial education. Learn, apply, and upload your own resources.</p>
+          <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:700,color:'#f59e0b',marginBottom:4}}>{t(lang,'academy_title')}</h1>
+          <p style={{fontSize:12,color:'rgba(255,255,255,.35)'}}>{t(lang,'academy_subtitle')}</p>
         </div>
         <div style={{display:'flex',gap:8}}>
-          <button onClick={()=>setTab('courses')} style={{padding:'8px 16px',borderRadius:8,fontSize:12,background:tab==='courses'?'rgba(245,158,11,.1)':'transparent',border:`1px solid ${tab==='courses'?'rgba(245,158,11,.3)':'rgba(255,255,255,.07)'}`,color:tab==='courses'?'#f59e0b':'rgba(255,255,255,.4)',cursor:'pointer',fontFamily:"'Inter',sans-serif"}}>Courses</button>
-          <button onClick={()=>setTab('uploads')} style={{padding:'8px 16px',borderRadius:8,fontSize:12,background:tab==='uploads'?'rgba(245,158,11,.1)':'transparent',border:`1px solid ${tab==='uploads'?'rgba(245,158,11,.3)':'rgba(255,255,255,.07)'}`,color:tab==='uploads'?'#f59e0b':'rgba(255,255,255,.4)',cursor:'pointer',fontFamily:"'Inter',sans-serif"}}>My Library ({uploads.length})</button>
+          <button onClick={()=>setTab('courses')} style={{padding:'8px 16px',borderRadius:8,fontSize:12,background:tab==='courses'?'rgba(245,158,11,.1)':'transparent',border:`1px solid ${tab==='courses'?'rgba(245,158,11,.3)':'rgba(255,255,255,.07)'}`,color:tab==='courses'?'#f59e0b':'rgba(255,255,255,.4)',cursor:'pointer',fontFamily:"'Inter',sans-serif"}}>{t(lang,'courses')}</button>
+          <button onClick={()=>setTab('uploads')} style={{padding:'8px 16px',borderRadius:8,fontSize:12,background:tab==='uploads'?'rgba(245,158,11,.1)':'transparent',border:`1px solid ${tab==='uploads'?'rgba(245,158,11,.3)':'rgba(255,255,255,.07)'}`,color:tab==='uploads'?'#f59e0b':'rgba(255,255,255,.4)',cursor:'pointer',fontFamily:"'Inter',sans-serif"}}>{t(lang,'my_library')} ({uploads.length})</button>
         </div>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:22}}>
-        {[{l:'Courses',v:String(courses.length),c:'#f59e0b',bg:'rgba(245,158,11,.06)',b:'rgba(245,158,11,.18)'},{l:'Completed',v:String(completedCount),c:'#10b981',bg:'rgba(16,185,129,.06)',b:'rgba(16,185,129,.18)'},{l:'In Progress',v:String(Object.values(progress).filter((p:any)=>!p.completed_at).length),c:'#60a5fa',bg:'rgba(96,165,250,.06)',b:'rgba(96,165,250,.18)'},{l:'Total XP',v:xp.toLocaleString(),c:'#ffd700',bg:'rgba(255,215,0,.06)',b:'rgba(255,215,0,.18)'}].map(s=>(
+        {[{l:t(lang,'courses'),v:String(courses.length),c:'#f59e0b',bg:'rgba(245,158,11,.06)',b:'rgba(245,158,11,.18)'},{l:'Completed',v:String(completedCount),c:'#10b981',bg:'rgba(16,185,129,.06)',b:'rgba(16,185,129,.18)'},{l:t(lang,'in_progress'),v:String(Object.values(progress).filter((p:any)=>!p.completed_at).length),c:'#60a5fa',bg:'rgba(96,165,250,.06)',b:'rgba(96,165,250,.18)'},{l:t(lang,'total_xp'),v:xp.toLocaleString(),c:'#ffd700',bg:'rgba(255,215,0,.06)',b:'rgba(255,215,0,.18)'}].map(s=>(
           <div key={s.l} style={{background:s.bg,border:`1px solid ${s.b}`,borderRadius:12,padding:'12px 16px',textAlign:'center'}}>
             <div style={{fontSize:10,color:'rgba(255,255,255,.35)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.07em'}}>{s.l}</div>
             <div style={{fontSize:20,fontWeight:700,color:s.c,fontFamily:"'Roboto Mono',monospace"}}>{s.v}</div>
           </div>
         ))}
       </div>
-
       {tab==='courses'&&(
         <>
         <div style={{display:'flex',gap:6,marginBottom:20,flexWrap:'wrap'}}>
@@ -204,10 +206,10 @@ export default function AcademyPage(){
                   </div>
                 )}
                 {locked?(
-                  <a href="/dashboard/settings" style={{display:'block',padding:'9px',textAlign:'center',borderRadius:9,background:'rgba(255,215,0,.07)',border:'1px solid rgba(255,215,0,.18)',color:'#ffd700',textDecoration:'none',fontSize:12,fontFamily:"'Orbitron',monospace"}}>🔒 Upgrade to {course.plan_required}</a>
+                  <a href="/dashboard/settings" style={{display:'block',padding:'9px',textAlign:'center',borderRadius:9,background:'rgba(255,215,0,.07)',border:'1px solid rgba(255,215,0,.18)',color:'#ffd700',textDecoration:'none',fontSize:12,fontFamily:"'Orbitron',monospace"}}>🔒 {t(lang,'upgrade_to')} {course.plan_required}</a>
                 ):(
                   <button onClick={()=>startCourse(course)} style={{padding:'10px',borderRadius:9,background:completed?'rgba(16,185,129,.1)':started?`${col}18`:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:completed?'#10b981':started?col:'#fff',border:completed?'1px solid rgba(16,185,129,.25)':started?`1px solid ${col}30`:'none',cursor:'pointer',fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif"}}>
-                    {completed?'↻ Review Course':started?'Continue →':'Start Course →'}
+                    {completed?t(lang,'review_course'):started?t(lang,'continue_course'):t(lang,'start_course')}
                   </button>
                 )}
               </div>
@@ -216,30 +218,29 @@ export default function AcademyPage(){
         </div>
         </>
       )}
-
       {tab==='uploads'&&(
         <>
         <div style={{background:'rgba(13,17,23,.95)',border:'1px solid rgba(245,158,11,.2)',borderRadius:16,padding:24,marginBottom:20}}>
-          <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:'#f59e0b',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:6}}>Upload to My Library</div>
-          <p style={{fontSize:12,color:'rgba(255,255,255,.35)',marginBottom:18,lineHeight:1.6}}>Upload your own notes, PDFs, spreadsheets, or any study material. Private — only you can see them. Use this as your personal financial knowledge base.</p>
+          <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:'#f59e0b',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:6}}>{t(lang,'upload_title')}</div>
+          <p style={{fontSize:12,color:'rgba(255,255,255,.35)',marginBottom:18,lineHeight:1.6}}>{t(lang,'upload_subtitle')}</p>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
             <div><label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>Title</label><input value={uploadTitle} onChange={e=>setUploadTitle(e.target.value)} placeholder="My Budget Notes" style={inp}/></div>
             <div><label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>Description (optional)</label><input value={uploadDesc} onChange={e=>setUploadDesc(e.target.value)} placeholder="What is this about?" style={inp}/></div>
           </div>
           <div style={{marginBottom:16}}>
             <label style={{padding:'9px 18px',borderRadius:8,background:'rgba(245,158,11,.08)',border:'1px solid rgba(245,158,11,.2)',color:'#f59e0b',cursor:'pointer',fontSize:12,fontWeight:600,fontFamily:"'Inter',sans-serif",display:'inline-block'}}>
-              {uploadFile?`📎 ${uploadFile.name}`:'Choose File'}
+              {uploadFile?`📎 ${uploadFile.name}`:t(lang,'choose_file')}
               <input ref={fileRef} type="file" style={{display:'none'}} accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.jpg,.png,.mp4" onChange={e=>setUploadFile(e.target.files?.[0]||null)}/>
             </label>
             {uploadFile&&<span style={{fontSize:11,color:'rgba(255,255,255,.35)',marginLeft:12}}>{(uploadFile.size/1024).toFixed(0)} KB</span>}
           </div>
           <div style={{display:'flex',alignItems:'center',gap:14}}>
-            <button onClick={handleUpload} disabled={uploading||!uploadTitle.trim()||!uploadFile} style={{padding:'10px 24px',borderRadius:9,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:(!uploadTitle.trim()||!uploadFile||uploading)?'not-allowed':'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:(!uploadTitle.trim()||!uploadFile||uploading)?.5:1}}>{uploading?'Uploading...':'Upload to My Library'}</button>
+            <button onClick={handleUpload} disabled={uploading||!uploadTitle.trim()||!uploadFile} style={{padding:'10px 24px',borderRadius:9,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:(!uploadTitle.trim()||!uploadFile||uploading)?'not-allowed':'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:(!uploadTitle.trim()||!uploadFile||uploading)?.5:1}}>{uploading?t(lang,'uploading'):t(lang,'upload_btn')}</button>
             {uploadMsg&&<span style={{fontSize:12,color:'#10b981'}}>✓ {uploadMsg}</span>}
           </div>
         </div>
         <div style={{background:'rgba(13,17,23,.9)',border:'1px solid rgba(255,255,255,.07)',borderRadius:14,padding:22}}>
-          <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:'rgba(255,255,255,.4)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:16}}>My Library ({uploads.length})</div>
+          <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:'rgba(255,255,255,.4)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:16}}>{t(lang,'my_library')} ({uploads.length})</div>
           {uploads.length===0?(
             <div style={{textAlign:'center',padding:'28px 0'}}>
               <div style={{fontSize:32,marginBottom:10}}>📚</div>
