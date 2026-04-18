@@ -2,9 +2,9 @@
 export const dynamic='force-dynamic';
 import{useEffect,useState}from'react';
 import{createClient}from'@supabase/supabase-js';
+import{t,getLangFromStorage}from'@/lib/i18n';
 const sb=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
 const BANKS=['ABN AMRO','ANZ Bank','Barclays','Bank of America','Bank of Afghanistan','Bank Melli Iran','Citibank','Chase','Commonwealth Bank','Commerzbank','Deutsche Bank','Emirates NBD','First Abu Dhabi Bank','HSBC','ING Bank','JP Morgan','KBL Bank','Kabul Bank','Lloyds Bank','Maybank','National Bank of Pakistan','Pashtany Bank','Rabobank','Royal Bank of Canada','Standard Chartered','Santander','TD Bank','UniCredit','Wells Fargo','Westpac','Other / Custom'];
-const fm=(n:number)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const inp:React.CSSProperties={width:'100%',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.09)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,outline:'none',fontFamily:"'Inter',sans-serif",boxSizing:'border-box'};
 export default function BankSyncPage(){
   const[connections,setConnections]=useState<any[]>([]);
@@ -19,7 +19,9 @@ export default function BankSyncPage(){
   const[csvFile,setCsvFile]=useState<File|null>(null);
   const[csvParsing,setCsvParsing]=useState(false);
   const[csvResult,setCsvResult]=useState('');
+  const[lang,setLang]=useState('en');
   useEffect(()=>{
+    setLang(getLangFromStorage());
     sb.auth.getSession().then(async({data:{session}})=>{
       if(!session){setLoading(false);return;}
       const{data}=await sb.from('bank_connections').select('*').eq('user_id',session.user.id).order('created_at',{ascending:false});
@@ -67,25 +69,24 @@ export default function BankSyncPage(){
     setCsvResult(`Imported ${imported} transactions. Skipped ${skipped}.`);
     setCsvParsing(false);
   };
-  if(loading)return<div style={{padding:40,textAlign:'center',color:'rgba(255,255,255,.4)'}}>Loading Bank Sync...</div>;
+  if(loading)return<div style={{padding:40,textAlign:'center',color:'rgba(255,255,255,.4)'}}>{t(lang,'loading')} {t(lang,'banksync')}...</div>;
   return(
     <div style={{paddingBottom:48}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
         <div>
-          <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:700,color:'#60a5fa',marginBottom:4}}>Bank Sync</h1>
-          <p style={{fontSize:12,color:'rgba(255,255,255,.32)'}}>Connect accounts, import CSV files, or add manually.</p>
+          <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:700,color:'#60a5fa',marginBottom:4}}>{t(lang,'banksync_title')}</h1>
+          <p style={{fontSize:12,color:'rgba(255,255,255,.32)'}}>{t(lang,'banksync_subtitle')}</p>
         </div>
-        <button onClick={()=>setShowForm(!showForm)} style={{padding:'10px 20px',borderRadius:9,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif"}}>+ Connect Account</button>
+        <button onClick={()=>setShowForm(!showForm)} style={{padding:'10px 20px',borderRadius:9,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif"}}>+ {t(lang,'connect_account')}</button>
       </div>
-
       {showForm&&(
         <div style={{background:'rgba(13,17,23,.95)',border:'1px solid rgba(96,165,250,.25)',borderRadius:16,padding:24,marginBottom:20}}>
-          <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:'#60a5fa',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:16}}>New Bank Connection</div>
+          <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:'#60a5fa',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:16}}>{t(lang,'new_connection')}</div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
             <div>
-              <label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>Bank Name</label>
+              <label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>{t(lang,'bank_name')}</label>
               <select value={bankName} onChange={e=>setBankName(e.target.value)} style={{...inp,background:'rgba(7,8,16,.95)'}}>
-                <option value="">Select a bank...</option>
+                <option value="">{t(lang,'select_bank')}</option>
                 {BANKS.map(b=><option key={b} value={b} style={{background:'#0d1117'}}>{b}</option>)}
               </select>
             </div>
@@ -96,20 +97,20 @@ export default function BankSyncPage(){
               </div>
             )}
             <div>
-              <label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>Account Type</label>
+              <label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>{t(lang,'account_type')}</label>
               <select value={accountType} onChange={e=>setAccountType(e.target.value)} style={{...inp,background:'rgba(7,8,16,.95)'}}>
-                {['Checking','Savings','Business','Investment','Credit Card','Other'].map(t=><option key={t} style={{background:'#0d1117'}}>{t}</option>)}
+                {['Checking','Savings','Business','Investment','Credit Card','Other'].map(tp=><option key={tp} style={{background:'#0d1117'}}>{tp}</option>)}
               </select>
             </div>
             <div>
-              <label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>Last 4 Digits (optional)</label>
+              <label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>{t(lang,'last_four')}</label>
               <input value={lastFour} onChange={e=>setLastFour(e.target.value.replace(/\D/g,'').slice(0,4))} placeholder="1234" maxLength={4} style={inp}/>
             </div>
           </div>
           <div style={{marginBottom:16}}>
-            <label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.06em'}}>Sync Method</label>
+            <label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.06em'}}>{t(lang,'sync_method')}</label>
             <div style={{display:'flex',gap:8}}>
-              {[{id:'manual',label:'Manual Entry',col:'rgba(255,255,255,.5)'},{id:'csv',label:'CSV Import',col:'#00f2ff'},{id:'plaid',label:'Plaid (auto)',col:'#a78bfa'}].map(o=>(
+              {[{id:'manual',label:t(lang,'manual_entry'),col:'rgba(255,255,255,.5)'},{id:'csv',label:t(lang,'csv_import'),col:'#00f2ff'},{id:'plaid',label:'Plaid (auto)',col:'#a78bfa'}].map(o=>(
                 <button key={o.id} onClick={()=>setSyncMethod(o.id)} style={{flex:1,padding:'9px',borderRadius:8,background:syncMethod===o.id?'rgba(96,165,250,.1)':'rgba(255,255,255,.03)',border:`1px solid ${syncMethod===o.id?'rgba(96,165,250,.3)':'rgba(255,255,255,.08)'}`,color:syncMethod===o.id?'#60a5fa':'rgba(255,255,255,.4)',cursor:'pointer',fontSize:12,fontFamily:"'Inter',sans-serif",transition:'all .15s'}}>
                   {o.label}{o.id==='plaid'?' 🔜':''}
                 </button>
@@ -117,34 +118,30 @@ export default function BankSyncPage(){
             </div>
           </div>
           <div style={{display:'flex',gap:12}}>
-            <button onClick={addConnection} disabled={saving||!bankName} style={{padding:'10px 24px',borderRadius:9,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:(!bankName||saving)?'not-allowed':'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:(!bankName||saving)?0.5:1}}>{saving?'Adding...':'Add Account'}</button>
+            <button onClick={addConnection} disabled={saving||!bankName} style={{padding:'10px 24px',borderRadius:9,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:(!bankName||saving)?'not-allowed':'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:(!bankName||saving)?0.5:1}}>{saving?t(lang,'adding'):t(lang,'add_account')}</button>
             <button onClick={()=>setShowForm(false)} style={{padding:'10px 20px',borderRadius:9,background:'transparent',border:'1px solid rgba(255,255,255,.1)',color:'rgba(255,255,255,.5)',cursor:'pointer',fontSize:13,fontFamily:"'Inter',sans-serif"}}>Cancel</button>
           </div>
         </div>
       )}
-
-      {/* CSV Import Section */}
       <div style={{background:'rgba(13,17,23,.9)',border:'1px solid rgba(0,242,255,.15)',borderRadius:14,padding:22,marginBottom:16}}>
-        <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:'#00f2ff',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:6}}>CSV Import</div>
-        <p style={{fontSize:12,color:'rgba(255,255,255,.35)',marginBottom:14,lineHeight:1.6}}>Export your bank statement as CSV and upload it here. FlowFund will automatically parse Date, Description, and Amount columns and import your transactions.</p>
+        <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:'#00f2ff',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:6}}>{t(lang,'csv_import_title')}</div>
+        <p style={{fontSize:12,color:'rgba(255,255,255,.35)',marginBottom:14,lineHeight:1.6}}>{t(lang,'csv_subtitle')}</p>
         <div style={{display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
           <label style={{padding:'9px 18px',borderRadius:8,background:'rgba(0,242,255,.08)',border:'1px solid rgba(0,242,255,.2)',color:'#00f2ff',cursor:'pointer',fontSize:12,fontWeight:600,fontFamily:"'Inter',sans-serif"}}>
-            {csvFile?csvFile.name:'Choose CSV File'}
+            {csvFile?csvFile.name:t(lang,'choose_file')}
             <input type="file" accept=".csv,.txt" style={{display:'none'}} onChange={e=>setCsvFile(e.target.files?.[0]||null)}/>
           </label>
-          {csvFile&&<button onClick={handleCsvUpload} disabled={csvParsing} style={{padding:'9px 20px',borderRadius:8,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:csvParsing?0.7:1}}>{csvParsing?'Importing...':'Import Now'}</button>}
-          {csvFile&&<button onClick={()=>{setCsvFile(null);setCsvResult('');}} style={{padding:'9px 14px',borderRadius:8,background:'transparent',border:'1px solid rgba(255,255,255,.08)',color:'rgba(255,255,255,.4)',cursor:'pointer',fontSize:12,fontFamily:"'Inter',sans-serif"}}>Clear</button>}
+          {csvFile&&<button onClick={handleCsvUpload} disabled={csvParsing} style={{padding:'9px 20px',borderRadius:8,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:csvParsing?0.7:1}}>{csvParsing?'Importing...':t(lang,'import_now')}</button>}
+          {csvFile&&<button onClick={()=>{setCsvFile(null);setCsvResult('');}} style={{padding:'9px 14px',borderRadius:8,background:'transparent',border:'1px solid rgba(255,255,255,.08)',color:'rgba(255,255,255,.4)',cursor:'pointer',fontSize:12,fontFamily:"'Inter',sans-serif"}}>{t(lang,'clear')}</button>}
         </div>
         {csvResult&&<div style={{marginTop:12,padding:'9px 14px',borderRadius:8,background:csvResult.includes('Imported')?'rgba(16,185,129,.08)':'rgba(239,68,68,.08)',border:`1px solid ${csvResult.includes('Imported')?'rgba(16,185,129,.2)':'rgba(239,68,68,.2)'}`,fontSize:12,color:csvResult.includes('Imported')?'#10b981':'#ef4444'}}>{csvResult}</div>}
       </div>
-
-      {/* Connected Accounts */}
       <div style={{background:'rgba(13,17,23,.9)',border:'1px solid rgba(255,255,255,.07)',borderRadius:14,padding:22}}>
-        <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:'rgba(255,255,255,.4)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:16}}>Connected Accounts ({connections.length})</div>
+        <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:'rgba(255,255,255,.4)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:16}}>{t(lang,'connected_accounts')} ({connections.length})</div>
         {connections.length===0?(
           <div style={{textAlign:'center',padding:'28px 0'}}>
             <div style={{fontSize:28,marginBottom:10}}>🏦</div>
-            <div style={{fontSize:13,color:'rgba(255,255,255,.3)',marginBottom:6}}>No accounts connected yet.</div>
+            <div style={{fontSize:13,color:'rgba(255,255,255,.3)',marginBottom:6}}>{t(lang,'no_accounts')}</div>
             <div style={{fontSize:11,color:'rgba(255,255,255,.18)'}}>Click "+ Connect Account" above to add your first bank.</div>
           </div>
         ):(
