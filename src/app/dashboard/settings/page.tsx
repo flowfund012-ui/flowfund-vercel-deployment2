@@ -2,7 +2,7 @@
 export const dynamic='force-dynamic';
 import{useEffect,useState}from'react';
 import{createClient}from'@supabase/supabase-js';
-import{LANGS,setLangInStorage,getLangFromStorage}from'@/lib/i18n';
+import{LANGS,setLangInStorage,getLangFromStorage,t}from'@/lib/i18n';
 const sb=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
 const inp:React.CSSProperties={width:'100%',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.09)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,outline:'none',fontFamily:"'Inter',sans-serif",boxSizing:'border-box'};
 const card:React.CSSProperties={background:'rgba(13,17,23,.92)',border:'1px solid rgba(255,255,255,.08)',borderRadius:16,padding:24,marginBottom:16};
@@ -44,44 +44,39 @@ export default function SettingsPage(){
       await sb.from('user_preferences').upsert({user_id:session.user.id,language:lang,updated_at:new Date().toISOString()},{onConflict:'user_id'});
       setLangInStorage(lang);
       setSaved('l');setTimeout(()=>setSaved(''),2500);
-      // Force page reload to apply language everywhere
       setTimeout(()=>window.location.reload(),600);
     }
     setSaving(false);
   };
   const currentPlan=profile?.plan||'free';
-  if(loading)return<div style={{padding:40,textAlign:'center',color:'rgba(255,255,255,.4)'}}>Loading...</div>;
+  if(loading)return<div style={{padding:40,textAlign:'center',color:'rgba(255,255,255,.4)'}}>{t(lang,'loading')}...</div>;
   const TabBtn=({id,label}:{id:typeof tab,label:string})=>(
     <button onClick={()=>setTab(id)} style={{padding:'8px 16px',borderRadius:8,fontSize:12,fontWeight:tab===id?600:400,background:tab===id?'rgba(0,242,255,.1)':'transparent',border:'1px solid '+(tab===id?'rgba(0,242,255,.3)':'rgba(255,255,255,.07)'),color:tab===id?'#00f2ff':'rgba(255,255,255,.45)',cursor:'pointer',fontFamily:"'Inter',sans-serif",transition:'all .15s'}}>{label}</button>
   );
   return(
     <div style={{paddingBottom:48,maxWidth:860}}>
-      <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:700,color:'#fff',marginBottom:4}}>Settings</h1>
+      <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:700,color:'#fff',marginBottom:4}}>{t(lang,'settings')}</h1>
       <p style={{fontSize:12,color:'rgba(255,255,255,.32)',marginBottom:22}}>Manage your account and subscription.</p>
       <div style={{display:'flex',gap:8,marginBottom:24,flexWrap:'wrap'}}>
-        <TabBtn id="profile" label="Profile"/><TabBtn id="language" label="Language"/><TabBtn id="billing" label="Billing"/>
+        <TabBtn id="profile" label={t(lang,'profile')}/><TabBtn id="language" label={t(lang,'language')}/><TabBtn id="billing" label={t(lang,'billing')}/>
       </div>
-
       {tab==='profile'&&(
         <div style={card}>
-          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:18,fontFamily:"'Orbitron',monospace"}}>Profile</div>
+          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:18,fontFamily:"'Orbitron',monospace"}}>{t(lang,'profile')}</div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:18}}>
-            <div><label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>Full Name</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" style={inp}/></div>
-            <div><label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>Role</label><select value={role} onChange={e=>setRole(e.target.value)} style={{...inp,background:'rgba(7,8,16,.95)'}}>{['Student','Freelancer','Entrepreneur','Employee','Investor','Other'].map(r=><option key={r} style={{background:'#0d1117'}}>{r}</option>)}</select></div>
+            <div><label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>{t(lang,'full_name')}</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" style={inp}/></div>
+            <div><label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>{t(lang,'role')}</label><select value={role} onChange={e=>setRole(e.target.value)} style={{...inp,background:'rgba(7,8,16,.95)'}}>{['Student','Freelancer','Entrepreneur','Employee','Investor','Other'].map(r=><option key={r} style={{background:'#0d1117'}}>{r}</option>)}</select></div>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:14}}>
-            <button onClick={saveProfile} disabled={saving} style={{padding:'10px 24px',borderRadius:9,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:saving?0.7:1}}>{saving?'Saving...':'Save Profile'}</button>
+            <button onClick={saveProfile} disabled={saving} style={{padding:'10px 24px',borderRadius:9,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:saving?0.7:1}}>{saving?t(lang,'saving'):t(lang,'save_profile')}</button>
             {saved==='p'&&<span style={{fontSize:12,color:'#10b981'}}>✓ Saved</span>}
           </div>
         </div>
       )}
-
       {tab==='language'&&(
         <div style={card}>
-          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:6,fontFamily:"'Orbitron',monospace"}}>Interface Language</div>
-          <p style={{fontSize:12,color:'rgba(255,255,255,.32)',marginBottom:18,lineHeight:1.6}}>
-            Select your language. The entire dashboard will switch to your chosen language including all menus, labels, and buttons. Pashto (پښتو), Dari, Arabic, and Urdu display right-to-left automatically.
-          </p>
+          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:6,fontFamily:"'Orbitron',monospace"}}>{t(lang,'interface_language')}</div>
+          <p style={{fontSize:12,color:'rgba(255,255,255,.32)',marginBottom:18,lineHeight:1.6}}>{t(lang,'lang_subtitle')}</p>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(162px,1fr))',gap:8,marginBottom:22}}>
             {LANGS.map(l=>(
               <div key={l.code} onClick={()=>setLang(l.code)} style={{padding:'11px 14px',borderRadius:10,cursor:'pointer',border:'1px solid '+(lang===l.code?'rgba(0,242,255,.45)':'rgba(255,255,255,.07)'),background:lang===l.code?'rgba(0,242,255,.08)':'rgba(255,255,255,.02)',transition:'all .15s',direction:l.rtl?'rtl':'ltr'}}>
@@ -96,18 +91,17 @@ export default function SettingsPage(){
           </div>
           <div style={{display:'flex',alignItems:'center',gap:14}}>
             <button onClick={saveLang} disabled={saving} style={{padding:'10px 28px',borderRadius:9,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:saving?0.7:1}}>
-              {saving?'Applying...':'Save & Apply Language'}
+              {saving?t(lang,'applying'):t(lang,'save_apply_lang')}
             </button>
-            {saved==='l'&&<span style={{fontSize:12,color:'#10b981'}}>✓ Language applied! Reloading...</span>}
+            {saved==='l'&&<span style={{fontSize:12,color:'#10b981'}}>✓ {t(lang,'lang_applied')} Reloading...</span>}
           </div>
         </div>
       )}
-
       {tab==='billing'&&(
         <>
         <div style={{...card,marginBottom:16}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
-            <div style={{fontSize:11,color:'rgba(255,255,255,.35)',letterSpacing:'.1em',textTransform:'uppercase',fontFamily:"'Orbitron',monospace"}}>Current Plan</div>
+            <div style={{fontSize:11,color:'rgba(255,255,255,.35)',letterSpacing:'.1em',textTransform:'uppercase',fontFamily:"'Orbitron',monospace"}}>{t(lang,'current_plan')}</div>
             <span style={{padding:'4px 14px',borderRadius:100,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',background:currentPlan==='premium'?'rgba(255,215,0,.1)':currentPlan==='pro'?'rgba(0,242,255,.08)':'rgba(255,255,255,.05)',border:`1px solid ${currentPlan==='premium'?'rgba(255,215,0,.28)':currentPlan==='pro'?'rgba(0,242,255,.22)':'rgba(255,255,255,.1)'}`,color:currentPlan==='premium'?'#ffd700':currentPlan==='pro'?'#00f2ff':'rgba(255,255,255,.4)'}}>{currentPlan}</span>
           </div>
           <p style={{fontSize:12,color:'rgba(255,255,255,.38)',lineHeight:1.6}}>{currentPlan==='free'?'Upgrade to unlock AI Advisor, unlimited transactions, Tax Radar, Growth Engine and more.':currentPlan==='pro'?'Pro active. Upgrade to Premium for full Vault, PDF reports, and priority AI.':'Full Premium access. Thank you for supporting FlowFund.'}</p>
