@@ -57,12 +57,12 @@ export default function DashboardPage(){
   const cs:Record<string,number>={};
   tm.filter(tx=>tx.type==='expense').forEach((tx:any)=>{cs[tx.category]=(cs[tx.category]||0)+Number(tx.amount);});
   const MODULES=[
-    {href:'/dashboard/mission',label:t(lang,'mission'),desc:t(lang,'mission_desc'),color:'#00f2ff',icon:'T'},
-    {href:'/dashboard/autopilot',label:t(lang,'autopilot'),desc:t(lang,'autopilot_desc'),color:'#a78bfa',icon:'A'},
-    {href:'/dashboard/growth',label:t(lang,'growth'),desc:t(lang,'growth_desc'),color:'#2dd4bf',icon:'G'},
-    {href:'/dashboard/debts',label:t(lang,'debts'),desc:t(lang,'debts_desc'),color:'#ef4444',icon:'X'},
-    {href:'/dashboard/academy',label:t(lang,'academy'),desc:t(lang,'academy_desc'),color:'#f59e0b',icon:'E'},
-    {href:'/dashboard/vault',label:t(lang,'vault'),desc:t(lang,'vault_desc'),color:'#00f0ff',icon:'V'},
+    {href:'/dashboard/mission',label:t(lang,'mission'),desc:t(lang,'mission_desc'),color:'#00f2ff'},
+    {href:'/dashboard/autopilot',label:t(lang,'autopilot'),desc:t(lang,'autopilot_desc'),color:'#a78bfa'},
+    {href:'/dashboard/growth',label:t(lang,'growth'),desc:t(lang,'growth_desc'),color:'#2dd4bf'},
+    {href:'/dashboard/debts',label:t(lang,'debts'),desc:t(lang,'debts_desc'),color:'#ef4444'},
+    {href:'/dashboard/academy',label:t(lang,'academy'),desc:t(lang,'academy_desc'),color:'#f59e0b'},
+    {href:'/dashboard/vault',label:t(lang,'vault_title'),desc:t(lang,'vault_desc'),color:'#00f0ff'},
   ];
   const callAI=async(prompt:string,maxTokens=1200):Promise<string>=>{
     const{data:{session}}=await sb.auth.getSession();
