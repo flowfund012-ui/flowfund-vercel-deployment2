@@ -22,7 +22,7 @@ export default function SecurityPage() {
         sb.from('profiles').select('*').eq('id',uid).single(),
       ]);
       setLogs(l??[]); setProfile(p);
-      await sb.from('security_logs').insert({user_id:uid,event:'Security Hub accessed',type:'info',metadata:{user_agent:navigator.userAgent.slice(0,100)}});
+      await sb.from('security_logs').insert({user_id:uid,event:'Security accessed',type:'info',metadata:{user_agent:navigator.userAgent.slice(0,100)}});
       setLoading(false);
     });
   },[]);
