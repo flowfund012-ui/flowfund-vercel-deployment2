@@ -4,7 +4,7 @@ import{useEffect,useState}from'react';
 import{createClient}from'@supabase/supabase-js';
 import{t,getLangFromStorage}from'@/lib/i18n';
 const sb=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
-const TYPE_ICONS:Record<string,string>={spreadsheet:'📊',guide:'📖',template:'📋',checklist:'✅',tool:'🔧'};
+const TYPE_ICONS:Record<string,string>={spreadsheet:'SS',guide:'GD',template:'TP',checklist:'CL',tool:'TL'};
 const TYPE_COLORS:Record<string,string>={spreadsheet:'#10b981',guide:'#60a5fa',template:'#a78bfa',checklist:'#f59e0b',tool:'#f97316'};
 const PLAN_RANK:Record<string,number>={free:0,pro:1,premium:2};
 export default function VaultPage(){
