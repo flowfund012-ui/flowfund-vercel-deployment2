@@ -184,7 +184,7 @@ export default function AcademyPage(){
             return(
               <div key={course.id} style={{background:'rgba(13,17,23,.9)',border:`1px solid ${completed?'rgba(16,185,129,.3)':started?`${col}30`:locked?'rgba(255,215,0,.12)':'rgba(255,255,255,.07)'}`,borderRadius:16,padding:22,display:'flex',flexDirection:'column',transition:'border-color .18s'}} onMouseEnter={e=>{if(!locked)(e.currentTarget as HTMLElement).style.borderColor=col+'44';}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor=completed?'rgba(16,185,129,.3)':started?`${col}30`:locked?'rgba(255,215,0,.12)':'rgba(255,255,255,.07)';}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
-                  <div style={{fontSize:32}}>{course.thumbnail_emoji||'📚'}</div>
+                  <div style={{fontSize:16,fontWeight:800,fontFamily:"'Orbitron',monospace"}}>{course.category?course.category[0]:'F'}</div>
                   <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-end'}}>
                     <span style={{padding:'2px 8px',borderRadius:100,fontSize:9,fontWeight:700,background:`${col}18`,color:col,border:`1px solid ${col}30`}}>{course.level}</span>
                     {course.plan_required!=='free'&&<span style={{padding:'2px 8px',borderRadius:100,fontSize:9,background:course.plan_required==='premium'?'rgba(255,215,0,.1)':'rgba(0,242,255,.08)',color:course.plan_required==='premium'?'#ffd700':'#00f2ff',border:`1px solid ${course.plan_required==='premium'?'rgba(255,215,0,.2)':'rgba(0,242,255,.15)'}`,fontFamily:"'Orbitron',monospace"}}>{course.plan_required.toUpperCase()}</span>}
@@ -243,7 +243,7 @@ export default function AcademyPage(){
           <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:'rgba(255,255,255,.4)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:16}}>{t(lang,'my_library')} ({uploads.length})</div>
           {uploads.length===0?(
             <div style={{textAlign:'center',padding:'28px 0'}}>
-              <div style={{fontSize:32,marginBottom:10}}>📚</div>
+              <div style={{fontSize:16,fontWeight:800,fontFamily:"'Orbitron',monospace",marginBottom:10}}>📚</div>
               <div style={{fontSize:13,color:'rgba(255,255,255,.3)',marginBottom:4}}>Your library is empty.</div>
               <div style={{fontSize:11,color:'rgba(255,255,255,.18)'}}>Upload notes, PDFs, spreadsheets — anything that helps you learn.</div>
             </div>
