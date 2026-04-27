@@ -1,128 +1,199 @@
 'use client';
 export const dynamic='force-dynamic';
-import{useEffect,useState}from'react';
+import{useState,useEffect}from'react';
 import{createClient}from'@supabase/supabase-js';
-import{LANGS,setLangInStorage,getLangFromStorage,t}from'@/lib/i18n';
 const sb=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
-const inp:React.CSSProperties={width:'100%',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.09)',borderRadius:8,padding:'10px 14px',color:'#fff',fontSize:13,outline:'none',fontFamily:"'Inter',sans-serif",boxSizing:'border-box'};
-const card:React.CSSProperties={background:'rgba(13,17,23,.92)',border:'1px solid rgba(255,255,255,.08)',borderRadius:16,padding:24,marginBottom:16};
-const PLANS=[
-  {id:'free',label:'Free',price:'$0',sub:'/forever',col:'rgba(255,255,255,.35)',bdr:'rgba(255,255,255,.09)',features:['Dashboard & AI Score','50 transactions/month','Mission Tracker','1 savings goal','3 Academy courses','2 Vault assets']},
-  {id:'pro',label:'Pro',price:'$19',sub:'/month',col:'#00f2ff',bdr:'rgba(0,242,255,.28)',features:['Everything in Free','Unlimited transactions','Full AI Advisor + Chat','Growth Engine','All Academy courses','4 Vault assets','Budgets & categories','Debt Planner + AI','Cashflow forecast','CSV export']},
-  {id:'premium',label:'Premium',price:'$39',sub:'/month',col:'#ffd700',bdr:'rgba(255,215,0,.32)',badge:'BEST VALUE',features:['Everything in Pro','Full Vault + hidden drops','PDF reports','Priority AI','Tax Radar pro','Early access','Custom categories','Unlimited everything']},
-];
+const LANGS=[['en','English'],['ps','پښتو (Pashto)'],['fa','دری (Dari)'],['ar','العربية'],['ur','اردو'],['de','Deutsch'],['fr','Français'],['es','Español'],['zh','中文'],['hi','हिन्दी'],['tr','Türkçe'],['ru','Русский'],['pt','Português'],['id','Bahasa Indonesia'],['ja','日本語'],['ko','한국어']];
+const ROLES=['Student','Freelancer','Entrepreneur','Employee','Investor','Other'];
 export default function SettingsPage(){
-  const[profile,setProfile]=useState<any>(null);
-  const[loading,setLoading]=useState(true);
-  const[saving,setSaving]=useState(false);
-  const[saved,setSaved]=useState('');
-  const[tab,setTab]=useState<'profile'|'language'|'billing'>('profile');
+  const[tab,setTab]=useState('profile');
   const[name,setName]=useState('');
-  const[role,setRole]=useState('Student');
+  const[role,setRole]=useState('');
   const[lang,setLang]=useState('en');
+  const[saving,setSaving]=useState(false);
+  const[msg,setMsg]=useState('');
+  const[plan,setPlan]=useState('free');
+  const[resetConfirm,setResetConfirm]=useState<string|null>(null);
+  const[delConfirm,setDelConfirm]=useState('');
+  const[working,setWorking]=useState(false);
   useEffect(()=>{
-    setLang(getLangFromStorage());
-    sb.auth.getSession().then(async({data:{session}})=>{
-      if(!session){setLoading(false);return;}
-      const[{data:p},{data:pr}]=await Promise.all([
-        sb.from('profiles').select('*').eq('id',session.user.id).single(),
-        sb.from('user_preferences').select('language').eq('user_id',session.user.id).single(),
-      ]);
-      if(p){setProfile(p);setName(p.full_name||'');setRole(p.role||'Student');}
-      if(pr?.language){setLang(pr.language);setLangInStorage(pr.language);}
-      setLoading(false);
+    const saved=localStorage.getItem('ff_lang')||'en';
+    setLang(saved);
+    sb.auth.getUser().then(async({data})=>{
+      if(!data.user)return;
+      const{data:p}=await sb.from('profiles').select('*').eq('id',data.user.id).single();
+      if(p){setName(p.full_name||'');setRole(p.role||'Student');setPlan(p.plan||'free');}
     });
   },[]);
   const saveProfile=async()=>{
-    setSaving(true);const{data:{session}}=await sb.auth.getSession();
-    if(session){await sb.from('profiles').update({full_name:name.trim(),role,updated_at:new Date().toISOString()}).eq('id',session.user.id);setSaved('p');setTimeout(()=>setSaved(''),2000);}
-    setSaving(false);
+    setSaving(true);setMsg('');
+    const{data}=await sb.auth.getUser();
+    if(!data.user){setSaving(false);return;}
+    await sb.from('profiles').update({full_name:name,role}).eq('id',data.user.id);
+    setSaving(false);setMsg('Profile saved.');
+    setTimeout(()=>setMsg(''),3000);
   };
-  const saveLang=async()=>{
-    setSaving(true);const{data:{session}}=await sb.auth.getSession();
-    if(session){
-      await sb.from('user_preferences').upsert({user_id:session.user.id,language:lang,updated_at:new Date().toISOString()},{onConflict:'user_id'});
-      setLangInStorage(lang);
-      setSaved('l');setTimeout(()=>setSaved(''),2500);
-      setTimeout(()=>window.location.reload(),600);
+  const saveLang=()=>{
+    localStorage.setItem('ff_lang',lang);
+    setMsg('Language saved. Reloading...');
+    setTimeout(()=>window.location.reload(),1000);
+  };
+  const exportData=async()=>{
+    setWorking(true);
+    const{data:u}=await sb.auth.getUser();
+    if(!u.user){setWorking(false);return;}
+    const[{data:tx},{data:goals},{data:rev}]=await Promise.all([
+      sb.from('transactions').select('*').eq('user_id',u.user.id),
+      sb.from('savings_goals').select('*').eq('user_id',u.user.id),
+      sb.from('revenue_entries').select('*').eq('user_id',u.user.id),
+    ]);
+    const rows:string[]=[];
+    rows.push('TYPE,DATE,DESCRIPTION,AMOUNT,CATEGORY');
+    (tx||[]).forEach((r:Record<string,unknown>)=>rows.push(`Transaction,${r.date||''},${String(r.description||'').replace(/,/g,' ')},${r.amount||0},${r.category||''}`));
+    (goals||[]).forEach((r:Record<string,unknown>)=>rows.push(`Goal,${r.created_at||''},${String(r.name||'').replace(/,/g,' ')},${r.target_amount||0},Savings`));
+    (rev||[]).forEach((r:Record<string,unknown>)=>rows.push(`Revenue,${r.date||''},${String(r.description||'').replace(/,/g,' ')},${r.amount||0},${r.type||''}`));
+    const blob=new Blob([rows.join('\n')],{type:'text/csv'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='flowfund-export.csv';a.click();
+    setWorking(false);setMsg('Data exported successfully.');
+    setTimeout(()=>setMsg(''),4000);
+  };
+  const resetData=async(type:string)=>{
+    setWorking(true);setMsg('');
+    const{data:u}=await sb.auth.getUser();
+    if(!u.user){setWorking(false);return;}
+    if(type==='transactions')await sb.from('transactions').delete().eq('user_id',u.user.id);
+    if(type==='goals')await sb.from('savings_goals').delete().eq('user_id',u.user.id);
+    if(type==='revenue')await sb.from('revenue_entries').delete().eq('user_id',u.user.id);
+    if(type==='all'){
+      await Promise.all([
+        sb.from('transactions').delete().eq('user_id',u.user.id),
+        sb.from('savings_goals').delete().eq('user_id',u.user.id),
+        sb.from('revenue_entries').delete().eq('user_id',u.user.id),
+        sb.from('debts').delete().eq('user_id',u.user.id),
+        sb.from('autopilot_settings').delete().eq('user_id',u.user.id),
+      ]);
     }
-    setSaving(false);
+    setResetConfirm(null);setWorking(false);
+    setMsg(`${type==='all'?'All data':'Data'} cleared successfully.`);
+    setTimeout(()=>setMsg(''),4000);
   };
-  const currentPlan=profile?.plan||'free';
-  if(loading)return<div style={{padding:40,textAlign:'center',color:'rgba(255,255,255,.4)'}}>{t(lang,'loading')}...</div>;
-  const TabBtn=({id,label}:{id:typeof tab,label:string})=>(
-    <button onClick={()=>setTab(id)} style={{padding:'8px 16px',borderRadius:8,fontSize:12,fontWeight:tab===id?600:400,background:tab===id?'rgba(0,242,255,.1)':'transparent',border:'1px solid '+(tab===id?'rgba(0,242,255,.3)':'rgba(255,255,255,.07)'),color:tab===id?'#00f2ff':'rgba(255,255,255,.45)',cursor:'pointer',fontFamily:"'Inter',sans-serif",transition:'all .15s'}}>{label}</button>
-  );
+  const deleteAccount=async()=>{
+    if(delConfirm!=='DELETE'){setMsg('Type DELETE to confirm.');return;}
+    setWorking(true);
+    const{data:u}=await sb.auth.getUser();
+    if(!u.user){setWorking(false);return;}
+    await Promise.all([
+      sb.from('transactions').delete().eq('user_id',u.user.id),
+      sb.from('savings_goals').delete().eq('user_id',u.user.id),
+      sb.from('revenue_entries').delete().eq('user_id',u.user.id),
+      sb.from('profiles').delete().eq('id',u.user.id),
+    ]);
+    await sb.auth.signOut();
+    window.location.href='/';
+  };
+  const card:React.CSSProperties={background:'rgba(13,17,30,.95)',border:'1px solid rgba(255,255,255,.07)',borderRadius:16,padding:24,marginBottom:16};
+  const inp:React.CSSProperties={width:'100%',background:'rgba(255,255,255,.06)',border:'1px solid rgba(255,255,255,.1)',borderRadius:9,padding:'11px 14px',color:'#fff',fontSize:13,outline:'none',fontFamily:"'Inter',sans-serif",boxSizing:'border-box'};
+  const btn=(bg:string,col='#fff'):React.CSSProperties=>({padding:'10px 22px',borderRadius:9,background:bg,color:col,border:'none',cursor:'pointer',fontSize:13,fontWeight:600,fontFamily:"'Inter',sans-serif"});
+  const TABS=[['profile','Profile'],['language','Language'],['billing','Billing'],['data','Data & Privacy']];
   return(
-    <div style={{paddingBottom:48,maxWidth:860}}>
-      <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:700,color:'#fff',marginBottom:4}}>{t(lang,'settings')}</h1>
-      <p style={{fontSize:12,color:'rgba(255,255,255,.32)',marginBottom:22}}>Manage your account and subscription.</p>
-      <div style={{display:'flex',gap:8,marginBottom:24,flexWrap:'wrap'}}>
-        <TabBtn id="profile" label={t(lang,'profile')}/><TabBtn id="language" label={t(lang,'language')}/><TabBtn id="billing" label={t(lang,'billing')}/>
+    <div style={{maxWidth:680,margin:'0 auto',fontFamily:"'Inter',sans-serif"}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600;700&display=swap');input:focus{border-color:rgba(26,107,255,.5)!important;outline:none}`}</style>
+      <h1 style={{fontFamily:"'Orbitron',monospace",fontSize:20,fontWeight:700,color:'#fff',marginBottom:6}}>Settings</h1>
+      <p style={{fontSize:13,color:'rgba(255,255,255,.4)',marginBottom:24}}>Manage your account, language, billing and data.</p>
+      {msg&&<div style={{background:msg.includes('error')||msg.includes('Type')?'rgba(239,68,68,.1)':'rgba(34,197,94,.1)',border:`1px solid ${msg.includes('error')||msg.includes('Type')?'rgba(239,68,68,.3)':'rgba(34,197,94,.3)'}`,borderRadius:9,padding:'10px 14px',fontSize:13,color:msg.includes('error')||msg.includes('Type')?'#f87171':'#4ade80',marginBottom:16}}>{msg}</div>}
+      <div style={{display:'flex',gap:4,marginBottom:20,borderBottom:'1px solid rgba(255,255,255,.07)',paddingBottom:0}}>
+        {TABS.map(([k,l])=><button key={k} onClick={()=>setTab(k)} style={{padding:'9px 16px',borderRadius:'8px 8px 0 0',background:'none',border:'none',color:tab===k?'#fff':'rgba(255,255,255,.4)',fontSize:13,fontWeight:tab===k?600:400,cursor:'pointer',borderBottom:tab===k?'2px solid #1a6bff':'2px solid transparent',fontFamily:"'Inter',sans-serif"}}>{l}</button>)}
       </div>
       {tab==='profile'&&(
         <div style={card}>
-          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:18,fontFamily:"'Orbitron',monospace"}}>{t(lang,'profile')}</div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:18}}>
-            <div><label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>{t(lang,'full_name')}</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" style={inp}/></div>
-            <div><label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,textTransform:'uppercase',letterSpacing:'.06em'}}>{t(lang,'role')}</label><select value={role} onChange={e=>setRole(e.target.value)} style={{...inp,background:'rgba(7,8,16,.95)'}}>{['Student','Freelancer','Entrepreneur','Employee','Investor','Other'].map(r=><option key={r} style={{background:'#0d1117'}}>{r}</option>)}</select></div>
+          <h3 style={{color:'#fff',fontSize:15,fontWeight:700,marginBottom:18}}>Profile Information</h3>
+          <div style={{marginBottom:14}}>
+            <label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:5,letterSpacing:'.08em',textTransform:'uppercase'}}>Full Name</label>
+            <input value={name} onChange={e=>setName(e.target.value)} style={inp} placeholder="Your full name"/>
           </div>
-          <div style={{display:'flex',alignItems:'center',gap:14}}>
-            <button onClick={saveProfile} disabled={saving} style={{padding:'10px 24px',borderRadius:9,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:saving?0.7:1}}>{saving?t(lang,'saving'):t(lang,'save_profile')}</button>
-            {saved==='p'&&<span style={{fontSize:12,color:'#10b981'}}>✓ Saved</span>}
+          <div style={{marginBottom:20}}>
+            <label style={{display:'block',fontSize:11,color:'rgba(255,255,255,.35)',marginBottom:8,letterSpacing:'.08em',textTransform:'uppercase'}}>Role</label>
+            <div style={{display:'flex',flexWrap:'wrap',gap:7}}>
+              {ROLES.map(r=><button key={r} onClick={()=>setRole(r)} style={{padding:'6px 14px',borderRadius:16,border:role===r?'1.5px solid #1a6bff':'1px solid rgba(255,255,255,.1)',background:role===r?'rgba(26,107,255,.14)':'transparent',color:role===r?'#60a5fa':'rgba(255,255,255,.45)',fontSize:12,cursor:'pointer',fontFamily:"'Inter',sans-serif"}}>{r}</button>)}
+            </div>
           </div>
+          <button onClick={saveProfile} disabled={saving} style={btn('linear-gradient(135deg,#1a6bff,#7c00ff)')}>{saving?'Saving...':'Save Profile'}</button>
         </div>
       )}
       {tab==='language'&&(
         <div style={card}>
-          <div style={{fontSize:11,color:'rgba(255,255,255,.35)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:6,fontFamily:"'Orbitron',monospace"}}>{t(lang,'interface_language')}</div>
-          <p style={{fontSize:12,color:'rgba(255,255,255,.32)',marginBottom:18,lineHeight:1.6}}>{t(lang,'lang_subtitle')}</p>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(162px,1fr))',gap:8,marginBottom:22}}>
-            {LANGS.map(l=>(
-              <div key={l.code} onClick={()=>setLang(l.code)} style={{padding:'11px 14px',borderRadius:10,cursor:'pointer',border:'1px solid '+(lang===l.code?'rgba(0,242,255,.45)':'rgba(255,255,255,.07)'),background:lang===l.code?'rgba(0,242,255,.08)':'rgba(255,255,255,.02)',transition:'all .15s',direction:l.rtl?'rtl':'ltr'}}>
-                <div style={{fontSize:14,color:lang===l.code?'#00f2ff':'rgba(255,255,255,.72)',fontWeight:lang===l.code?600:400}}>{l.native}</div>
-                <div style={{fontSize:10,color:'rgba(255,255,255,.28)',marginTop:3,direction:'ltr'}}>{l.name}</div>
-                {lang===l.code&&<div style={{marginTop:4,fontSize:9,color:'#00f2ff',opacity:.7}}>✓ Selected</div>}
-              </div>
-            ))}
+          <h3 style={{color:'#fff',fontSize:15,fontWeight:700,marginBottom:6}}>Display Language</h3>
+          <p style={{fontSize:13,color:'rgba(255,255,255,.4)',marginBottom:18}}>Changes the language of the entire dashboard including the sidebar, module names, and labels.</p>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:20}}>
+            {LANGS.map(([code,label])=><button key={code} onClick={()=>setLang(code)} style={{padding:'10px 14px',borderRadius:10,border:lang===code?'1.5px solid #1a6bff':'1px solid rgba(255,255,255,.08)',background:lang===code?'rgba(26,107,255,.12)':'rgba(255,255,255,.03)',color:lang===code?'#60a5fa':'rgba(255,255,255,.55)',fontSize:13,cursor:'pointer',fontFamily:"'Inter',sans-serif",textAlign:'left'}}>{label}</button>)}
           </div>
-          <div style={{background:'rgba(0,242,255,.05)',border:'1px solid rgba(0,242,255,.12)',borderRadius:9,padding:'10px 14px',marginBottom:18,fontSize:12,color:'rgba(0,242,255,.7)',lineHeight:1.6}}>
-            After saving, the page will reload and apply <strong>{LANGS.find(l=>l.code===lang)?.native||'English'}</strong> across the entire dashboard.
-          </div>
-          <div style={{display:'flex',alignItems:'center',gap:14}}>
-            <button onClick={saveLang} disabled={saving} style={{padding:'10px 28px',borderRadius:9,background:'linear-gradient(135deg,#1a6bff,#7c00ff)',color:'#fff',border:'none',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",opacity:saving?0.7:1}}>
-              {saving?t(lang,'applying'):t(lang,'save_apply_lang')}
-            </button>
-            {saved==='l'&&<span style={{fontSize:12,color:'#10b981'}}>✓ {t(lang,'lang_applied')} Reloading...</span>}
-          </div>
+          <button onClick={saveLang} style={btn('linear-gradient(135deg,#1a6bff,#7c00ff)')}>Save and Apply Language</button>
         </div>
       )}
       {tab==='billing'&&(
-        <>
-        <div style={{...card,marginBottom:16}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
-            <div style={{fontSize:11,color:'rgba(255,255,255,.35)',letterSpacing:'.1em',textTransform:'uppercase',fontFamily:"'Orbitron',monospace"}}>{t(lang,'current_plan')}</div>
-            <span style={{padding:'4px 14px',borderRadius:100,fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',background:currentPlan==='premium'?'rgba(255,215,0,.1)':currentPlan==='pro'?'rgba(0,242,255,.08)':'rgba(255,255,255,.05)',border:`1px solid ${currentPlan==='premium'?'rgba(255,215,0,.28)':currentPlan==='pro'?'rgba(0,242,255,.22)':'rgba(255,255,255,.1)'}`,color:currentPlan==='premium'?'#ffd700':currentPlan==='pro'?'#00f2ff':'rgba(255,255,255,.4)'}}>{currentPlan}</span>
-          </div>
-          <p style={{fontSize:12,color:'rgba(255,255,255,.38)',lineHeight:1.6}}>{currentPlan==='free'?'Upgrade to unlock AI Advisor, unlimited transactions, Tax Radar, Growth Engine and more.':currentPlan==='pro'?'Pro active. Upgrade to Premium for full Vault, PDF reports, and priority AI.':'Full Premium access. Thank you for supporting FlowFund.'}</p>
-        </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
-          {PLANS.map(plan=>{
-            const isCurrent=currentPlan===plan.id;
-            return(
-              <div key={plan.id} style={{background:'rgba(13,17,23,.85)',border:`2px solid ${isCurrent?plan.col:plan.bdr}`,borderRadius:16,padding:22,position:'relative'}}>
-                {(plan as any).badge&&!isCurrent&&<div style={{position:'absolute',top:-10,left:'50%',transform:'translateX(-50%)',background:'linear-gradient(135deg,#ffd700,#daa520)',color:'#000',fontSize:8,fontWeight:700,fontFamily:"'Orbitron',monospace",padding:'2px 12px',borderRadius:100,whiteSpace:'nowrap'}}>{(plan as any).badge}</div>}
-                {isCurrent&&<div style={{position:'absolute',top:-10,right:12,background:'rgba(16,185,129,.9)',color:'#fff',fontSize:8,padding:'2px 10px',borderRadius:100,fontFamily:"'Orbitron',monospace"}}>ACTIVE</div>}
-                <div style={{fontFamily:"'Orbitron',monospace",fontSize:13,fontWeight:700,color:plan.col,marginBottom:6}}>{plan.label}</div>
-                <div style={{marginBottom:14}}><span style={{fontFamily:"'Orbitron',monospace",fontSize:24,fontWeight:900,color:'#fff'}}>{plan.price}</span><span style={{fontSize:11,color:'rgba(255,255,255,.3)',marginLeft:3}}>{plan.sub}</span></div>
-                {plan.features.map(f=><div key={f} style={{display:'flex',gap:7,fontSize:11,marginBottom:5,color:'rgba(255,255,255,.52)'}}><span style={{color:'#10b981',flexShrink:0}}>✓</span>{f}</div>)}
-                {!isCurrent&&plan.id!=='free'&&<button style={{width:'100%',marginTop:14,padding:'9px',borderRadius:9,background:plan.id==='premium'?'linear-gradient(135deg,#ffd700,#daa520)':'linear-gradient(135deg,#1a6bff,#7c00ff)',color:plan.id==='premium'?'#000':'#fff',border:'none',cursor:'pointer',fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif"}}>Upgrade to {plan.label}</button>}
+        <div>
+          <div style={{...card,borderColor:plan==='pro'?'rgba(26,107,255,.4)':'rgba(255,255,255,.07)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+              <div>
+                <div style={{fontFamily:"'Orbitron',monospace",fontSize:14,fontWeight:700,color:'#fff',marginBottom:3}}>Current Plan: <span style={{color:plan==='pro'?'#60a5fa':plan==='premium'?'#a78bfa':'rgba(255,255,255,.5)',textTransform:'capitalize'}}>{plan}</span></div>
+                <div style={{fontSize:12,color:'rgba(255,255,255,.35)'}}>{plan==='free'?'50 transactions/month — upgrade for unlimited access':plan==='pro'?'$19/month — unlimited access + AI Advisor':'$39/month — full access + priority AI'}</div>
               </div>
-            );
-          })}
+              {plan==='free'&&<span style={{background:'rgba(255,255,255,.08)',borderRadius:16,padding:'4px 12px',fontSize:11,color:'rgba(255,255,255,.4)'}}>Free</span>}
+              {plan!=='free'&&<span style={{background:'rgba(26,107,255,.2)',borderRadius:16,padding:'4px 12px',fontSize:11,color:'#60a5fa'}}>Active</span>}
+            </div>
+          </div>
+          {plan==='free'&&(
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+              {[{n:'Pro',p:'$19/mo',f:['Unlimited transactions','AI Advisor + Chat','Revenue module','Tax Radar','Bank Sync','CSV export']},{n:'Premium',p:'$39/mo',f:['Everything in Pro','Full Toolkit library','PDF reports','Priority AI','Early access']}].map(p=>(
+                <div key={p.n} style={{...card,border:'1px solid rgba(26,107,255,.25)'}}>
+                  <div style={{fontFamily:"'Orbitron',monospace",fontSize:14,fontWeight:700,color:'#fff',marginBottom:3}}>{p.n}</div>
+                  <div style={{fontSize:18,fontWeight:800,color:'#fff',marginBottom:12}}>{p.p}</div>
+                  {p.f.map(f=><div key={f} style={{fontSize:12,color:'rgba(255,255,255,.55)',marginBottom:5,display:'flex',gap:6}}><span style={{color:'#22c55e',fontSize:11}}>✓</span>{f}</div>)}
+                  <button onClick={()=>setTab('billing')} style={{...btn('linear-gradient(135deg,#1a6bff,#7c00ff)'),marginTop:14,width:'100%'}}>Upgrade to {p.n}</button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <p style={{textAlign:'center',marginTop:18,fontSize:11,color:'rgba(255,255,255,.2)'}}>Payments via NOWPayments — BTC, ETH, USDT, USDC and 150+ coins. Zero KYC.</p>
-        </>
+      )}
+      {tab==='data'&&(
+        <div>
+          <div style={card}>
+            <h3 style={{color:'#fff',fontSize:15,fontWeight:700,marginBottom:6}}>Export Your Data</h3>
+            <p style={{fontSize:13,color:'rgba(255,255,255,.4)',marginBottom:16}}>Download all your transactions, goals, and revenue as a CSV file. You own your data.</p>
+            <button onClick={exportData} disabled={working} style={btn('rgba(26,107,255,.2)','#60a5fa')}>{working?'Exporting...':'Download CSV Export'}</button>
+          </div>
+          <div style={card}>
+            <h3 style={{color:'#fff',fontSize:15,fontWeight:700,marginBottom:6}}>Reset Data</h3>
+            <p style={{fontSize:13,color:'rgba(255,255,255,.4)',marginBottom:16}}>Permanently delete specific data. This cannot be undone.</p>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:8}}>
+              {[['transactions','Reset Transactions'],['goals','Reset Goals'],['revenue','Reset Revenue'],['all','Reset Everything']].map(([type,label])=>(
+                <div key={type}>
+                  {resetConfirm===type?(
+                    <div style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.2)',borderRadius:9,padding:12}}>
+                      <div style={{fontSize:12,color:'#f87171',marginBottom:8}}>Are you sure? This deletes all your {label.replace('Reset ','')} data forever.</div>
+                      <div style={{display:'flex',gap:7}}>
+                        <button onClick={()=>resetData(type)} disabled={working} style={{...btn('rgba(239,68,68,.8)'),fontSize:12,padding:'7px 14px'}}>{working?'Deleting...':'Yes, Delete'}</button>
+                        <button onClick={()=>setResetConfirm(null)} style={{...btn('rgba(255,255,255,.08)','rgba(255,255,255,.6)'),fontSize:12,padding:'7px 14px'}}>Cancel</button>
+                      </div>
+                    </div>
+                  ):(
+                    <button onClick={()=>setResetConfirm(type)} style={{...btn(type==='all'?'rgba(239,68,68,.12)':'rgba(255,255,255,.05)',type==='all'?'#f87171':'rgba(255,255,255,.55)'),border:`1px solid ${type==='all'?'rgba(239,68,68,.2)':'rgba(255,255,255,.08)'}`,width:'100%',textAlign:'left',padding:'10px 14px',fontSize:12}}>{label}</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{...card,borderColor:'rgba(239,68,68,.2)'}}>
+            <h3 style={{color:'#f87171',fontSize:15,fontWeight:700,marginBottom:6}}>Delete Account</h3>
+            <p style={{fontSize:13,color:'rgba(255,255,255,.4)',marginBottom:16}}>Permanently delete your account and all associated data. This action is irreversible.</p>
+            <div style={{marginBottom:12}}>
+              <label style={{display:'block',fontSize:11,color:'rgba(239,68,68,.7)',marginBottom:6,letterSpacing:'.08em',textTransform:'uppercase'}}>Type DELETE to confirm</label>
+              <input value={delConfirm} onChange={e=>setDelConfirm(e.target.value)} placeholder="DELETE" style={{...inp,borderColor:'rgba(239,68,68,.2)',maxWidth:220}}/>
+            </div>
+            <button onClick={deleteAccount} disabled={working||delConfirm!=='DELETE'} style={{...btn('rgba(239,68,68,.8)'),opacity:delConfirm==='DELETE'?1:0.4,cursor:delConfirm==='DELETE'?'pointer':'not-allowed'}}>{working?'Deleting Account...':'Delete My Account'}</button>
+          </div>
+        </div>
       )}
     </div>
   );
