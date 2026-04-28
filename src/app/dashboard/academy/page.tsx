@@ -191,7 +191,7 @@ export default function AcademyPage(){
                     {completed&&<span style={{padding:'2px 8px',borderRadius:100,fontSize:9,background:'rgba(16,185,129,.1)',color:'#10b981',border:'1px solid rgba(16,185,129,.2)'}}>✓ Done</span>}
                   </div>
                 </div>
-                <h3 style={{fontSize:14,fontWeight:700,color:'#fff',marginBottom:6,lineHeight:1.3}}>{course.title}</h3>
+                <h3 style={{fontSize:13,fontWeight:900,color:'#fff',marginBottom:6,lineHeight:1.3}}>{course.title}</h3>
                 <p style={{fontSize:12,color:'rgba(255,255,255,.45)',lineHeight:1.65,flex:1,marginBottom:14}}>{course.description}</p>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,fontSize:11,color:'rgba(255,255,255,.3)'}}>
                   <span>{course.duration_mins} min · {lessonCount} lessons</span>
