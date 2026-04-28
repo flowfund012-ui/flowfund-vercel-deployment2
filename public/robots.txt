@@ -1,0 +1,1 @@
+User-agent: *\nAllow: /\nDisallow: /dashboard/\nSitemap: https://flowfund-v3.vercel.app/sitemap.xml\n
