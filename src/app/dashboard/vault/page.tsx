@@ -4,7 +4,7 @@ import{useEffect,useState}from'react';
 import{createClient}from'@supabase/supabase-js';
 import{t,getLangFromStorage}from'@/lib/i18n';
 const sb=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
-const TYPE_ICONS:Record<string,string>={spreadsheet:'SS',guide:'GD',template:'TP',checklist:'CL',tool:'TL'};
+const TYPE_ICONS:Record<string,string>={spreadsheet:'▦',guide:'≡',template:'◫',checklist:'✓',tool:'⚙'};
 const TYPE_COLORS:Record<string,string>={spreadsheet:'#10b981',guide:'#60a5fa',template:'#a78bfa',checklist:'#f59e0b',tool:'#f97316'};
 const PLAN_RANK:Record<string,number>={free:0,pro:1,premium:2};
 export default function VaultPage(){
@@ -85,7 +85,7 @@ export default function VaultPage(){
       {plan==='free'&&(
         <div style={{background:'rgba(255,215,0,.05)',border:'1px solid rgba(255,215,0,.18)',borderRadius:12,padding:'12px 20px',marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
           <div style={{fontSize:13,color:'rgba(255,215,0,.8)'}}>🔒 {assets.filter((a:any)=>a.plan_required!=='free').length} {t(lang,'locked_msg')}</div>
-          <a href="/dashboard/settings" style={{padding:'7px 16px',borderRadius:8,background:'linear-gradient(135deg,#ffd700,#daa520)',color:'#000',textDecoration:'none',fontSize:11,fontWeight:700,fontFamily:"'Orbitron',monospace",whiteSpace:'nowrap'}}>{t(lang,'upgrade_now')}</a>
+          <a href="/dashboard/settings" style={{padding:'7px 16px',borderRadius:8,background:'linear-gradient(135deg,#ffd700,#daa520)',color:'#000',textDecoration:'none',fontSize:15,fontWeight:400,fontFamily:"'Orbitron',monospace",whiteSpace:'nowrap'}}>{t(lang,'upgrade_now')}</a>
         </div>
       )}
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:16}}>
