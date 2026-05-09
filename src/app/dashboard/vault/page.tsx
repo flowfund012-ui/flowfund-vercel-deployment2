@@ -93,11 +93,11 @@ export default function VaultPage(){
           const downloaded=downloads.includes(asset.id);
           const locked=!canAccess(asset.plan_required);
           const col=TYPE_COLORS[asset.type]||'#60a5fa';
-          const icon=TYPE_ICONS[asset.type]||'📄';
+          const icon=TYPE_ICONS[asset.type]||'◈';
           return(
             <div key={asset.id} style={{background:'rgba(13,17,23,.9)',border:`1px solid ${downloaded?'rgba(16,185,129,.25)':locked?'rgba(255,215,0,.15)':'rgba(255,255,255,.07)'}`,borderRadius:16,padding:22,transition:'all .18s',display:'flex',flexDirection:'column'}} onMouseEnter={e=>{if(!locked)(e.currentTarget as HTMLElement).style.borderColor=col+'44';}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor=downloaded?'rgba(16,185,129,.25)':locked?'rgba(255,215,0,.15)':'rgba(255,255,255,.07)';}}>
               <div style={{display:'flex',alignItems:'flex-start',gap:14,marginBottom:14}}>
-                <div style={{width:48,height:48,borderRadius:12,background:`${col}15`,border:`1px solid ${col}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>{icon}</div>
+                <div style={{width:48,height:48,borderRadius:12,background:`${col}15`,border:`1px solid ${col}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,fontWeight:400,color:col,lineHeight:1}}>{icon}</div>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4,flexWrap:'wrap'}}>
                     <span style={{fontSize:10,color:col,textTransform:'uppercase',letterSpacing:'.08em',fontWeight:700}}>{asset.type}</span>
