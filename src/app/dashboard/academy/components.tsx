@@ -12,16 +12,17 @@ export const gi=(c:string)=>CI[c]||CI.Default;
 export async function uploadFile(file:File,folder:string,uid:string):Promise<string|null>{
   const ext=file.name.split('.').pop();
   const path=`${uid}/${folder}/${Date.now()}.${ext}`;
-  const{error}=await sb.storage.from(BUCKET).upload(path,file,{upsert:true});
-  if(error)return null;
-  return STORAGE_URL+path;
+  const{error}=await sb.storage.from(BUCKET).upload(path,file,{upsert:true,cacheControl:'3600'});
+  if(error){console.error('Upload failed:',error.message);return null;}
+  const{data}=sb.storage.from(BUCKET).getPublicUrl(path);
+  return data.publicUrl;
 }
 
 export function WaveLogo({size=32}:{size?:number}){return(<svg width={size} height={size} viewBox="0 0 64 64"><defs><linearGradient id="wga" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#1a6bff"/><stop offset="60%" stopColor="#6c2ef5"/><stop offset="100%" stopColor="#0d9aff"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#wga)"/><path d="M10 38 Q18 22 26 32 Q34 42 42 26 Q50 10 54 26" stroke="white" strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>);}
 
 export function UploadBtn({label,accept,onFile,uploading}:{label:string,accept:string,onFile:(f:File)=>void,uploading?:boolean}){
   const ref=useRef<HTMLInputElement>(null);
-  return(<><input ref={ref} type="file" accept={accept} style={{display:'none'}} onChange={e=>{const f=e.target.files?.[0];if(f)onFile(f);}}/><button type="button" onClick={()=>ref.current?.click()} style={{padding:'8px 14px',borderRadius:8,border:'1px dashed rgba(26,107,255,0.4)',background:'rgba(26,107,255,0.06)',color:'#1a6bff',cursor:'pointer',fontSize:13,fontWeight:600}}>{uploading?'Uploading...':label}</button></>);}
+  return(<><input ref={ref} type="file" accept={accept} style={{display:'none'}} onChange={e=>{const f=e.target.files?.[0];if(f)onFile(f);}}/><button type="button" onClick={()=>ref.current?.click()} style={{padding:'8px 14px',borderRadius:8,border:'1px dashed rgba(26,107,255,0.4)',background:'rgba(26,107,255,0.06)',color:'#1a6bff',cursor:uploading?'not-allowed':'pointer',fontSize:13,fontWeight:600,opacity:uploading?0.7:1}}>{uploading?'Uploading...':label}</button></>);}
 
 export const B:Record<string,any>={
   wrap:{minHeight:'100vh',background:'#000814',color:'#e2e8f0',fontFamily:"'Inter',sans-serif"},
@@ -154,7 +155,7 @@ export function LessonViewer({course,lessons,activeLesson,setActiveLesson,user,o
                   {src?(
                     src.includes('youtube.com/embed')?
                       <iframe width="100%" height="100%" src={src} style={{border:'none'}} allowFullScreen/>:
-                      <video src={src} controls style={{width:'100%',height:'100%',background:'#000'}}/>
+                      <video src={src} controls style={{width:'100%',height:'100%',background:'#000'}} controlsList="nodownload"/>
                   ):(
                     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100%',color:'#475569'}}><div style={{fontSize:48}}>▶</div><div style={{fontSize:13,marginTop:8}}>Video coming soon</div></div>
                   )}
@@ -202,8 +203,12 @@ export function CreatorStudio({user,profile,onBack,showToast}:{user:any,profile:
     setUploadingVideo(p=>({...p,[i]:true}));
     const url=await uploadFile(file,'videos',user.id);
     setUploadingVideo(p=>({...p,[i]:false}));
-    if(url)setLs(p=>p.map((x:any,j:number)=>j===i?{...x,video_url:url}:x));
-    else showToast('Upload failed');
+    if(url){
+      setLs(p=>p.map((x:any,j:number)=>j===i?{...x,video_url:url}:x));
+      showToast('Video uploaded!');
+    }else{
+      showToast('Upload failed — check file type (MP4/WebM/MOV only)');
+    }
   }
   async function publish(){
     if(!nc.title){showToast('Add a title');return;}setSaving(true);
@@ -277,15 +282,15 @@ export function CreatorStudio({user,profile,onBack,showToast}:{user:any,profile:
                   </div>
                   {l.lesson_type==='video'&&(
                     <div style={{marginBottom:8}}>
-                      <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:6}}>
-                        <UploadBtn label="Upload Video" accept="video/mp4,video/webm,video/quicktime" onFile={f=>handleVideoUpload(f,i)} uploading={uploadingVideo[i]}/>
-                        <span style={{color:'#475569',fontSize:12}}>or paste URL:</span>
+                      <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:6,flexWrap:'wrap'}}>
+                        <UploadBtn label="📤 Upload Video" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" onFile={f=>handleVideoUpload(f,i)} uploading={uploadingVideo[i]}/>
+                        <span style={{color:'#475569',fontSize:12}}>or paste URL below</span>
                       </div>
-                      <input style={B.inp} placeholder="https://youtube.com/watch?v=... or direct link" value={l.video_url||''} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,video_url:e.target.value}:x))}/>
-                      {l.video_url&&l.video_url.startsWith(STORAGE_URL)&&<div style={{fontSize:11,color:'#10b981',marginTop:4}}>✓ Video uploaded</div>}
+                      <input style={B.inp} placeholder="https://youtube.com/watch?v=... or direct video link" value={l.video_url||''} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,video_url:e.target.value}:x))}/>
+                      {l.video_url&&<div style={{fontSize:11,color:'#10b981',marginTop:4}}>✓ {l.video_url.includes('supabase')?'Video uploaded to storage':'External video URL set'}</div>}
                     </div>
                   )}
-                  <textarea style={{...B.ta,minHeight:56,marginBottom:6}} placeholder="Lesson content / notes" value={l.content||''} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,content:e.target.value}:x))}/>
+                  <textarea style={{...B.ta,minHeight:56,marginBottom:6}} placeholder="Lesson notes or content" value={l.content||''} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,content:e.target.value}:x))}/>
                   <label style={{display:'flex',alignItems:'center',gap:7,fontSize:12,color:'#64748b',cursor:'pointer'}}><input type="checkbox" checked={l.is_free_preview||false} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,is_free_preview:e.target.checked}:x))}/> Free preview</label>
                 </div>
               ))}
