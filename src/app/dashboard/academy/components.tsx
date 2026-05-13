@@ -1,28 +1,19 @@
 'use client';
 import{useState,useEffect,useRef}from'react';
 import{createClient}from'@supabase/supabase-js';
+import{uploadToStorage}from'./upload-helper';
 export const sb=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
-const BUCKET='academy-uploads';
-export const STORAGE_URL='https://ammymxsyerlkdezsxuip.supabase.co/storage/v1/object/public/'+BUCKET+'/';
+export const STORAGE_URL='https://ammymxsyerlkdezsxuip.supabase.co/storage/v1/object/public/academy-uploads/';
 export const CC:Record<string,string>={'Budgeting':'#1a6bff','Investing':'#10b981','Debt':'#ef4444','Freelance':'#f59e0b','Tax':'#8b5cf6','Crypto':'#06b6d4','Business':'#f97316','Savings':'#3b82f6','Default':'#6c2ef5'};
 export const CI:Record<string,string>={'Budgeting':'💰','Investing':'📈','Debt':'🏦','Freelance':'💼','Tax':'🧾','Crypto':'⛓','Business':'🏢','Savings':'🐷','Default':'📚'};
 export const gc=(c:string)=>CC[c]||CC.Default;
 export const gi=(c:string)=>CI[c]||CI.Default;
 
-export async function uploadFile(file:File,folder:string,uid:string):Promise<string|null>{
-  const ext=file.name.split('.').pop();
-  const path=`${uid}/${folder}/${Date.now()}.${ext}`;
-  const{error}=await sb.storage.from(BUCKET).upload(path,file,{upsert:true,cacheControl:'3600'});
-  if(error){console.error('Upload failed:',error.message);return null;}
-  const{data}=sb.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
-}
-
 export function WaveLogo({size=32}:{size?:number}){return(<svg width={size} height={size} viewBox="0 0 64 64"><defs><linearGradient id="wga" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#1a6bff"/><stop offset="60%" stopColor="#6c2ef5"/><stop offset="100%" stopColor="#0d9aff"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#wga)"/><path d="M10 38 Q18 22 26 32 Q34 42 42 26 Q50 10 54 26" stroke="white" strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>);}
 
 export function UploadBtn({label,accept,onFile,uploading}:{label:string,accept:string,onFile:(f:File)=>void,uploading?:boolean}){
   const ref=useRef<HTMLInputElement>(null);
-  return(<><input ref={ref} type="file" accept={accept} style={{display:'none'}} onChange={e=>{const f=e.target.files?.[0];if(f)onFile(f);}}/><button type="button" onClick={()=>ref.current?.click()} style={{padding:'8px 14px',borderRadius:8,border:'1px dashed rgba(26,107,255,0.4)',background:'rgba(26,107,255,0.06)',color:'#1a6bff',cursor:uploading?'not-allowed':'pointer',fontSize:13,fontWeight:600,opacity:uploading?0.7:1}}>{uploading?'Uploading...':label}</button></>);}
+  return(<><input ref={ref} type="file" accept={accept} style={{display:'none'}} onChange={e=>{const f=e.target.files?.[0];if(f)onFile(f);e.target.value='';}}/><button type="button" onClick={()=>ref.current?.click()} disabled={uploading} style={{padding:'8px 14px',borderRadius:8,border:'1px dashed rgba(26,107,255,0.5)',background:'rgba(26,107,255,0.08)',color:'#1a6bff',cursor:uploading?'not-allowed':'pointer',fontSize:13,fontWeight:600,opacity:uploading?0.6:1}}>{uploading?'Uploading...':label}</button></>);}
 
 export const B:Record<string,any>={
   wrap:{minHeight:'100vh',background:'#000814',color:'#e2e8f0',fontFamily:"'Inter',sans-serif"},
@@ -66,16 +57,10 @@ export function ArticleDetail({article,user,onBack}:{article:any,user:any,onBack
         <h1 style={{fontSize:28,fontWeight:800,lineHeight:1.3,marginBottom:16,color:'#f1f5f9'}}>{article.title}</h1>
         <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:24,paddingBottom:20,borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
           <div style={{width:40,height:40,borderRadius:'50%',background:'linear-gradient(135deg,#1a6bff,#6c2ef5)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:16,flexShrink:0}}>{(article.author_name||'?')[0].toUpperCase()}</div>
-          <div>
-            <div style={{fontWeight:700,color:'#e2e8f0'}}>{article.author_name}</div>
-            <div style={{fontSize:12,color:'#64748b'}}>{new Date(article.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}{article.read_time?` · ${article.read_time} min read`:''}</div>
-          </div>
+          <div><div style={{fontWeight:700,color:'#e2e8f0'}}>{article.author_name}</div><div style={{fontSize:12,color:'#64748b'}}>{new Date(article.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}{article.read_time?` · ${article.read_time} min read`:''}</div></div>
           <div style={{marginLeft:'auto',display:'flex',gap:16,alignItems:'center'}}>
             <span style={{fontSize:13,color:'#64748b'}}>👁 {article.views||0}</span>
-            <button onClick={toggleLike} style={{background:'none',border:'none',cursor:user?'pointer':'default',fontSize:20,display:'flex',alignItems:'center',gap:4}}>
-              <span style={{color:liked?'#ef4444':'#64748b'}}>{liked?'❤️':'🤍'}</span>
-              <span style={{fontSize:13,color:'#64748b'}}>{likes}</span>
-            </button>
+            <button onClick={toggleLike} style={{background:'none',border:'none',cursor:user?'pointer':'default',fontSize:20,display:'flex',alignItems:'center',gap:4}}><span style={{color:liked?'#ef4444':'#64748b'}}>{liked?'❤️':'🤍'}</span><span style={{fontSize:13,color:'#64748b'}}>{likes}</span></button>
           </div>
         </div>
         <div style={{fontSize:16,lineHeight:1.9,color:'#cbd5e1',whiteSpace:'pre-wrap'}}>{article.content}</div>
@@ -88,19 +73,8 @@ export function BookReader({book,onBack}:{book:any,onBack:()=>void}){
   const url=book.file_url||(book.file_path?STORAGE_URL+book.file_path:null);
   return(
     <div style={{...B.wrap,display:'flex',flexDirection:'column',height:'100vh'}}>
-      <div style={B.hdr}>
-        <button style={{...B.back,padding:0}} onClick={onBack}>← Back to Books</button>
-        <h2 style={{...B.title,fontSize:16,margin:0}}>{book.title}</h2>
-        {url&&<a href={url} download style={{...B.btn('ghost'),marginLeft:'auto',textDecoration:'none',fontSize:12,padding:'6px 14px'}}>Download</a>}
-      </div>
-      {url?(
-        <iframe src={url+'#toolbar=1'} style={{flex:1,border:'none',background:'#fff'}} title={book.title}/>
-      ):(
-        <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',color:'#475569'}}>
-          <div style={{fontSize:48,marginBottom:12}}>📖</div>
-          <div>No file available for this book yet</div>
-        </div>
-      )}
+      <div style={B.hdr}><button style={{...B.back,padding:0}} onClick={onBack}>← Back</button><h2 style={{...B.title,fontSize:16,margin:0}}>{book.title}</h2>{url&&<a href={url} download style={{...B.btn('ghost'),marginLeft:'auto',textDecoration:'none',fontSize:12,padding:'6px 14px'}}>Download</a>}</div>
+      {url?(<iframe src={url} style={{flex:1,border:'none',background:'#fff'}} title={book.title}/>):(<div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',color:'#475569'}}><div style={{fontSize:48,marginBottom:12}}>📖</div><div>No file available yet</div></div>)}
     </div>
   );
 }
@@ -118,12 +92,7 @@ export function LessonViewer({course,lessons,activeLesson,setActiveLesson,user,o
     if(pct>=70)onComplete(l);
   }
   const videoSrc=(l:any)=>{
-    if(l.video_path)return STORAGE_URL+l.video_path;
-    if(l.video_url){
-      const u=l.video_url;
-      if(u.includes('youtube.com')||u.includes('youtu.be'))return u.replace('watch?v=','embed/').replace('youtu.be/','www.youtube.com/embed/');
-      return u;
-    }
+    if(l.video_url){const u=l.video_url;if(u.includes('youtube.com')||u.includes('youtu.be'))return u.replace('watch?v=','embed/').replace('youtu.be/','www.youtube.com/embed/');return u;}
     return null;
   };
   return(
@@ -137,9 +106,7 @@ export function LessonViewer({course,lessons,activeLesson,setActiveLesson,user,o
         <div style={{width:240,background:'rgba(255,255,255,0.02)',borderRight:'1px solid rgba(255,255,255,0.06)',overflowY:'auto',flexShrink:0}}>
           <div style={{padding:'10px 14px',fontSize:11,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'0.08em'}}>Lessons</div>
           {lessons.map((l:any,i:number)=>{
-            const done=progress>=(((i+1)/lessons.length)*100);
-            const active=activeLesson?.id===l.id;
-            const t=ltype(l);
+            const done=progress>=(((i+1)/lessons.length)*100);const active=activeLesson?.id===l.id;const t=ltype(l);
             return(<div key={l.id} onClick={()=>{setActiveLesson(l);setQa({});setQResult('');}} style={{padding:'10px 14px',cursor:'pointer',borderLeft:`3px solid ${active?'#1a6bff':'transparent'}`,background:active?'rgba(26,107,255,0.08)':'transparent',display:'flex',alignItems:'center',gap:8}}>
               <span style={{width:20,height:20,borderRadius:'50%',background:done?'#10b981':active?'#1a6bff':'rgba(255,255,255,0.08)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,color:'#fff',flexShrink:0,fontWeight:700}}>{done?'✓':i+1}</span>
               <div style={{flex:1}}><div style={{fontSize:12,color:active?'#1a6bff':'#94a3b8',lineHeight:1.3}}>{l.title}</div><div style={{fontSize:10,color:'#475569',marginTop:1}}>{t==='video'?'▶ Video':t==='quiz'?'📝 Quiz':'📄 Reading'}</div></div>
@@ -152,13 +119,7 @@ export function LessonViewer({course,lessons,activeLesson,setActiveLesson,user,o
               <h2 style={{fontSize:20,fontWeight:800,marginBottom:16,color:'#f1f5f9'}}>{activeLesson.title}</h2>
               {ltype(activeLesson)==='video'&&(()=>{const src=videoSrc(activeLesson);return(
                 <div style={{width:'100%',aspectRatio:'16/9',background:'rgba(255,255,255,0.03)',borderRadius:12,overflow:'hidden',marginBottom:20,border:'1px solid rgba(255,255,255,0.08)'}}>
-                  {src?(
-                    src.includes('youtube.com/embed')?
-                      <iframe width="100%" height="100%" src={src} style={{border:'none'}} allowFullScreen/>:
-                      <video src={src} controls style={{width:'100%',height:'100%',background:'#000'}} controlsList="nodownload"/>
-                  ):(
-                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100%',color:'#475569'}}><div style={{fontSize:48}}>▶</div><div style={{fontSize:13,marginTop:8}}>Video coming soon</div></div>
-                  )}
+                  {src?(src.includes('youtube.com/embed')?<iframe width="100%" height="100%" src={src} style={{border:'none'}} allowFullScreen/>:<video src={src} controls style={{width:'100%',height:'100%',background:'#000'}} controlsList="nodownload"/>):(<div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100%',color:'#475569'}}><div style={{fontSize:48}}>▶</div><div style={{fontSize:13,marginTop:8}}>No video yet</div></div>)}
                 </div>
               );})()}
               {ltype(activeLesson)==='quiz'&&(
@@ -179,9 +140,7 @@ export function LessonViewer({course,lessons,activeLesson,setActiveLesson,user,o
               <div style={{fontSize:15,lineHeight:1.9,color:'#cbd5e1',whiteSpace:'pre-wrap',marginBottom:20}}>{activeLesson.content}</div>
               {ltype(activeLesson)!=='quiz'&&<button style={{...B.btn('primary'),width:'100%',padding:'13px'}} onClick={()=>onComplete(activeLesson)}>{lessons.indexOf(activeLesson)===lessons.length-1?'Complete Course 🎉':'Next Lesson →'}</button>}
             </>
-          ):(
-            <div style={{textAlign:'center',padding:60,color:'#475569'}}><div style={{fontSize:44,marginBottom:12}}>📖</div><div>Select a lesson to begin</div></div>
-          )}
+          ):(<div style={{textAlign:'center',padding:60,color:'#475569'}}><div style={{fontSize:44,marginBottom:12}}>📖</div><div>Select a lesson to begin</div></div>)}
         </div>
       </div>
     </div>
@@ -192,60 +151,59 @@ export function CreatorStudio({user,profile,onBack,showToast}:{user:any,profile:
   const[tab,setTab]=useState<'courses'|'new-course'|'profile'>('courses');
   const[myCourses,setMyCourses]=useState<any[]>([]);
   const[ep,setEp]=useState({display_name:profile?.display_name||'',bio:profile?.bio||'',website:profile?.website||'',expertise:(profile?.expertise||[]).join(', ')});
-  const[nc,setNc]=useState({title:'',description:'',category:'Budgeting',level:'Beginner',price:'0',is_free:true,language:'English',what_you_learn:'',requirements:'',video_intro_url:''});
+  const[nc,setNc]=useState({title:'',description:'',category:'Budgeting',level:'Beginner',price:'0',is_free:true,language:'English',what_you_learn:'',requirements:''});
   const[ls,setLs]=useState<any[]>([{title:'',lesson_type:'video',content:'',video_url:'',order_index:0,is_free_preview:true}]);
   const[saving,setSaving]=useState(false);
   const[uploadingVideo,setUploadingVideo]=useState<Record<number,boolean>>({});
   useEffect(()=>{if(user)load();},[user]);
   async function load(){const{data}=await sb.from('academy_courses').select('*').eq('instructor_id',user.id).order('created_at',{ascending:false});setMyCourses(data||[]);}
   async function saveProfile(){setSaving(true);await sb.from('academy_creator_profiles').upsert({user_id:user.id,...ep,expertise:ep.expertise.split(',').map((s:string)=>s.trim()).filter(Boolean)},{onConflict:'user_id'});showToast('Profile saved!');setSaving(false);}
+
   async function handleVideoUpload(file:File,i:number){
     setUploadingVideo(p=>({...p,[i]:true}));
-    const url=await uploadFile(file,'videos',user.id);
+    const{url,error}=await uploadToStorage(file,'videos',user.id);
     setUploadingVideo(p=>({...p,[i]:false}));
     if(url){
       setLs(p=>p.map((x:any,j:number)=>j===i?{...x,video_url:url}:x));
-      showToast('Video uploaded!');
+      showToast('Video uploaded successfully!');
     }else{
-      showToast('Upload failed — check file type (MP4/WebM/MOV only)');
+      showToast(`Upload failed: ${error||'Unknown error'}`);
     }
   }
+
+  async function handleCoverUpload(file:File):Promise<string|null>{
+    const{url,error}=await uploadToStorage(file,'covers',user.id);
+    if(!url){showToast(`Cover upload failed: ${error}`);return null;}
+    return url;
+  }
+
   async function publish(){
     if(!nc.title){showToast('Add a title');return;}setSaving(true);
     const{data:c,error}=await sb.from('academy_courses').insert({...nc,price:parseFloat(nc.price)||0,what_you_learn:nc.what_you_learn.split('\n').filter(Boolean),requirements:nc.requirements.split('\n').filter(Boolean),instructor_id:user.id,instructor_name:profile?.display_name||user.email?.split('@')[0]||'Instructor',is_published:true,certificate_enabled:true}).select().single();
     if(error){showToast('Error: '+error.message);setSaving(false);return;}
     if(c){const rows=ls.filter((l:any)=>l.title).map((l:any,i:number)=>({...l,course_id:c.id,order_index:i}));if(rows.length)await sb.from('academy_lessons').insert(rows);}
     showToast('Course published!');setSaving(false);setTab('courses');load();
-    setNc({title:'',description:'',category:'Budgeting',level:'Beginner',price:'0',is_free:true,language:'English',what_you_learn:'',requirements:'',video_intro_url:''});
+    setNc({title:'',description:'',category:'Budgeting',level:'Beginner',price:'0',is_free:true,language:'English',what_you_learn:'',requirements:''});
     setLs([{title:'',lesson_type:'video',content:'',video_url:'',order_index:0,is_free_preview:true}]);
   }
   const cats=['Budgeting','Investing','Debt','Freelance','Tax','Crypto','Business','Savings'];
   return(
     <div style={{...B.wrap,paddingBottom:80}}>
       <div style={B.hdr}><button style={{...B.back,padding:0}} onClick={onBack}>← Back</button><h2 style={{...B.title,fontSize:18,margin:0}}>Creator Studio</h2></div>
-      <div style={B.tabs}>
-        {(['courses','new-course','profile']as const).map(t=><button key={t} style={B.tab(tab===t)} onClick={()=>setTab(t)}>{t==='courses'?'My Courses':t==='new-course'?'+ New Course':'Profile'}</button>)}
-      </div>
+      <div style={B.tabs}>{(['courses','new-course','profile']as const).map(t=><button key={t} style={B.tab(tab===t)} onClick={()=>setTab(t)}>{t==='courses'?'My Courses':t==='new-course'?'+ New Course':'Profile'}</button>)}</div>
       <div style={{padding:'20px 24px'}}>
         {tab==='profile'&&(
           <div style={{maxWidth:520}}>
             <h3 style={{color:'#e2e8f0',marginBottom:16}}>Creator Profile</h3>
             {[['Display Name','display_name','text'],['Bio','bio','ta'],['Website','website','text'],['Expertise (comma separated)','expertise','text']].map(([lbl,k,t])=>(
-              <div key={k} style={{marginBottom:14}}>
-                <label style={B.label}>{lbl}</label>
-                {t==='ta'?<textarea style={B.ta} rows={3} value={(ep as any)[k]} onChange={e=>setEp(p=>({...p,[k]:e.target.value}))}/>:<input style={B.inp} value={(ep as any)[k]} onChange={e=>setEp(p=>({...p,[k]:e.target.value}))}/>}
-              </div>
+              <div key={k} style={{marginBottom:14}}><label style={B.label}>{lbl}</label>{t==='ta'?<textarea style={B.ta} rows={3} value={(ep as any)[k]} onChange={e=>setEp(p=>({...p,[k]:e.target.value}))}/>:<input style={B.inp} value={(ep as any)[k]} onChange={e=>setEp(p=>({...p,[k]:e.target.value}))}/>}</div>
             ))}
             <button style={B.btn('primary')} onClick={saveProfile} disabled={saving}>{saving?'Saving...':'Save Profile'}</button>
           </div>
         )}
         {tab==='courses'&&(
-          myCourses.length===0?(
-            <div style={{textAlign:'center',padding:40,color:'#475569'}}>
-              <div style={{fontSize:40,marginBottom:12}}>🎬</div><div>No courses yet.</div>
-              <button style={{...B.btn('primary'),marginTop:14}} onClick={()=>setTab('new-course')}>Create First Course</button>
-            </div>
-          ):myCourses.map((c:any)=>(
+          myCourses.length===0?(<div style={{textAlign:'center',padding:40,color:'#475569'}}><div style={{fontSize:40,marginBottom:12}}>🎬</div><div>No courses yet.</div><button style={{...B.btn('primary'),marginTop:14}} onClick={()=>setTab('new-course')}>Create First Course</button></div>)
+          :myCourses.map((c:any)=>(
             <div key={c.id} style={{...B.card,display:'flex',alignItems:'center',gap:14,padding:14,marginBottom:10,cursor:'default'}}>
               <div style={{width:44,height:44,borderRadius:10,background:`${gc(c.category)}22`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>{gi(c.category)}</div>
               <div style={{flex:1}}><div style={{fontWeight:700,color:'#e2e8f0'}}>{c.title}</div><div style={{fontSize:12,color:'#64748b',marginTop:3}}>{c.category} · {c.level} · {c.is_free?'Free':`$${c.price}`}</div></div>
@@ -284,10 +242,10 @@ export function CreatorStudio({user,profile,onBack,showToast}:{user:any,profile:
                     <div style={{marginBottom:8}}>
                       <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:6,flexWrap:'wrap'}}>
                         <UploadBtn label="📤 Upload Video" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" onFile={f=>handleVideoUpload(f,i)} uploading={uploadingVideo[i]}/>
-                        <span style={{color:'#475569',fontSize:12}}>or paste URL below</span>
+                        <span style={{color:'#475569',fontSize:12}}>or paste URL:</span>
                       </div>
-                      <input style={B.inp} placeholder="https://youtube.com/watch?v=... or direct video link" value={l.video_url||''} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,video_url:e.target.value}:x))}/>
-                      {l.video_url&&<div style={{fontSize:11,color:'#10b981',marginTop:4}}>✓ {l.video_url.includes('supabase')?'Video uploaded to storage':'External video URL set'}</div>}
+                      <input style={B.inp} placeholder="https://youtube.com/watch?v=... or direct link" value={l.video_url||''} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,video_url:e.target.value}:x))}/>
+                      {l.video_url&&<div style={{fontSize:11,color:'#10b981',marginTop:4}}>✓ {l.video_url.includes('supabase')?'Video uploaded':'URL set'}</div>}
                     </div>
                   )}
                   <textarea style={{...B.ta,minHeight:56,marginBottom:6}} placeholder="Lesson notes or content" value={l.content||''} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,content:e.target.value}:x))}/>
