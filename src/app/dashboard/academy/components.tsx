@@ -1,6 +1,6 @@
 'use client';
 import{useState,useEffect,useRef}from'react';
-import{createClient}from'@supabase/supabase-js';
+import{createClient,SupabaseClient}from'@supabase/supabase-js';
 export const sb=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
 export const STORAGE_URL='https://ammymxsyerlkdezsxuip.supabase.co/storage/v1/object/public/academy-uploads/';
 export const CC:Record<string,string>={'Budgeting':'#1a6bff','Investing':'#10b981','Debt':'#ef4444','Freelance':'#f59e0b','Tax':'#8b5cf6','Crypto':'#06b6d4','Business':'#f97316','Savings':'#3b82f6','Default':'#6c2ef5'};
@@ -25,7 +25,7 @@ export async function doUpload(file:File,folder:string,uid:string,onProgress?:(p
 export function UploadField({label,accept,value,onUrl,uid,folder,type='file'}:{label:string,accept:string,value:string,onUrl:(u:string)=>void,uid:string,folder:string,type?:string}){
   const ref=useRef<HTMLInputElement>(null);
   const[prog,setProg]=useState(0);const[uploading,setUploading]=useState(false);const[err,setErr]=useState('');const[done,setDone]=useState(false);
-  async function handle(f:File){setUploading(true);setProg(10);setErr('');setDone(false);const url=await doUpload(f,folder,uid,p=>setProg(p));setUploading(false);if(url){onUrl(url);setProg(100);setDone(true);}else{setErr('Upload failed — open browser console (F12) to see exact error');}}
+  async function handle(f:File){setUploading(true);setProg(10);setErr('');setDone(false);const url=await doUpload(f,folder,uid,p=>setProg(p));setUploading(false);if(url){onUrl(url);setProg(100);setDone(true);}else{setErr('Upload failed');}}
   return(<div style={{marginBottom:14}}>
     {label&&<label style={B.label}>{label}</label>}
     <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap',marginBottom:6}}>
@@ -59,7 +59,8 @@ export function LessonViewer({course,lessons,activeLesson,setActiveLesson,user,o
   {ltype(activeLesson)==='quiz'&&(<div style={{background:'rgba(139,92,246,0.05)',border:'1px solid rgba(139,92,246,0.15)',borderRadius:12,padding:20,marginBottom:16}}><div style={{fontWeight:800,fontSize:15,color:'#8b5cf6',marginBottom:14}}>Quiz</div>{(activeLesson.questions||[]).map((q:any,qi:number)=>(<div key={qi} style={{marginBottom:18}}><div style={{fontWeight:600,marginBottom:8,color:'#e2e8f0'}}>{qi+1}. {q.question}</div>{(q.options||[]).map((opt:string,oi:number)=>(<div key={oi} onClick={()=>setQa(p=>({...p,[qi]:oi}))} style={{padding:'9px 14px',borderRadius:8,marginBottom:5,cursor:'pointer',background:qa[qi]===oi?'rgba(26,107,255,0.2)':'rgba(255,255,255,0.03)',border:`1px solid ${qa[qi]===oi?'#1a6bff':'rgba(255,255,255,0.07)'}`,fontSize:14,color:qa[qi]===oi?'#e2e8f0':'#94a3b8'}}>{opt}</div>))}</div>))}{qResult&&<div style={{padding:'10px 14px',borderRadius:8,background:qResult.includes('Passed')?'rgba(16,185,129,0.1)':'rgba(239,68,68,0.1)',color:qResult.includes('Passed')?'#10b981':'#ef4444',fontWeight:700,marginBottom:10}}>{qResult}</div>}<button style={B.btn('primary')} onClick={()=>submitQuiz(activeLesson)}>Submit Quiz</button></div>)}
   {activeLesson.content&&<div style={{fontSize:15,lineHeight:1.9,color:'#cbd5e1',whiteSpace:'pre-wrap',marginBottom:20}}>{activeLesson.content}</div>}
   {ltype(activeLesson)!=='quiz'&&<button style={{...B.btn('primary'),width:'100%',padding:'13px'}} onClick={()=>onComplete(activeLesson)}>{lessons.indexOf(activeLesson)===lessons.length-1?'Complete Course 🎉':'Next Lesson →'}</button>}</>):(<div style={{textAlign:'center',padding:60,color:'#475569'}}><div style={{fontSize:44,marginBottom:12}}>📖</div><div>Select a lesson</div></div>)}</div></div></div>);}
-export function CreatorStudio({user,profile,onBack,showToast}:{user:any,profile:any,onBack:()=>void,showToast:(m:string)=>void}){
+export function CreatorStudio({user,supabase,profile,onBack,showToast}:{user:any,supabase?:SupabaseClient,profile:any,onBack:()=>void,showToast:(m:string)=>void}){
+  const db=supabase||sb;
   const[tab,setTab]=useState<'dashboard'|'new-course'|'edit-course'|'profile'>('dashboard');
   const[myCourses,setMyCourses]=useState<any[]>([]);
   const[editingCourse,setEditingCourse]=useState<any>(null);
@@ -72,135 +73,65 @@ export function CreatorStudio({user,profile,onBack,showToast}:{user:any,profile:
   const[stats,setStats]=useState({courses:0,students:0,lessons:0});
   useEffect(()=>{if(user)loadDashboard();},[user]);
   async function loadDashboard(){
-    const{data:courses}=await sb.from('academy_courses').select('id,title,category,level,is_free,price,is_published,total_enrollments,avg_rating,thumbnail_url,created_at').eq('instructor_id',user.id).order('created_at',{ascending:false});
+    const{data:courses}=await db.from('academy_courses').select('id,title,category,level,is_free,price,is_published,total_enrollments,avg_rating,thumbnail_url,created_at').eq('instructor_id',user.id).order('created_at',{ascending:false});
     setMyCourses(courses||[]);
     const totalStudents=(courses||[]).reduce((s:number,c:any)=>s+(c.total_enrollments||0),0);
     let lessonCount=0;
-    if((courses||[]).length>0){const ids=(courses||[]).map((c:any)=>c.id);const{count}=await sb.from('academy_lessons').select('id',{count:'exact',head:true}).in('course_id',ids);lessonCount=count||0;}
+    if((courses||[]).length>0){const ids=(courses||[]).map((c:any)=>c.id);const{count}=await db.from('academy_lessons').select('id',{count:'exact',head:true}).in('course_id',ids);lessonCount=count||0;}
     setStats({courses:(courses||[]).length,students:totalStudents,lessons:lessonCount});
   }
   async function loadCourseForEdit(course:any){
-    const{data:lessons}=await sb.from('academy_lessons').select('*').eq('course_id',course.id).order('order_index');
-    setEditingCourse(course);
-    setNc({...course,price:String(course.price||0),what_you_learn:(course.what_you_learn||[]).join('\n'),requirements:(course.requirements||[]).join('\n')});
-    setLs(lessons&&lessons.length>0?lessons:[{title:'Introduction',lesson_type:'text',content:'',video_url:'',is_free_preview:true}]);
-    setTab('edit-course');
+    const{data:lessons}=await db.from('academy_lessons').select('*').eq('course_id',course.id).order('order_index');
+    setEditingCourse(course);setNc({...course,price:String(course.price||0),what_you_learn:(course.what_you_learn||[]).join('\n'),requirements:(course.requirements||[]).join('\n')});
+    setLs(lessons&&lessons.length>0?lessons:[{title:'Introduction',lesson_type:'text',content:'',video_url:'',is_free_preview:true}]);setTab('edit-course');
   }
-  async function saveProfile(){setSaving(true);const{error}=await sb.from('academy_creator_profiles').upsert({user_id:user.id,...ep,expertise:ep.expertise.split(',').map((s:string)=>s.trim()).filter(Boolean)},{onConflict:'user_id'});if(error)showToast('Error: '+error.message);else showToast('Profile saved!');setSaving(false);}
+  async function saveProfile(){setSaving(true);const{error}=await db.from('academy_creator_profiles').upsert({user_id:user.id,...ep,expertise:ep.expertise.split(',').map((s:string)=>s.trim()).filter(Boolean)},{onConflict:'user_id'});if(error)showToast('Error: '+error.message);else showToast('Profile saved!');setSaving(false);}
   async function saveCourse(publish:boolean){
-    if(!nc.title.trim()){showToast('Please enter a course title');return;}
+    if(!nc.title.trim()){showToast('Please add a course title');return;}
     setSaving(true);setSaveError('');
-    const instructorId=(user?.id&&user.id.length===36)?user.id:null;
-    const instructorName=ep.display_name||user?.email?.split('@')[0]||'Instructor';
-    const payload:any={
-      title:nc.title.trim(),
-      description:nc.description||'',
-      category:nc.category||'Budgeting',
-      level:nc.level||'Beginner',
-      language:nc.language||'English',
-      thumbnail_url:nc.thumbnail_url||null,
-      price:parseFloat(nc.price)||0,
-      is_free:(parseFloat(nc.price)||0)===0,
-      what_you_learn:(nc.what_you_learn||'').split('\n').filter((s:string)=>s.trim()),
-      requirements:(nc.requirements||'').split('\n').filter((s:string)=>s.trim()),
-      instructor_name:instructorName,
-      is_published:publish,
-      certificate_enabled:true,
-    };
-    if(instructorId)payload.instructor_id=instructorId;
+    const payload:any={title:nc.title.trim(),description:nc.description||'',category:nc.category||'Budgeting',level:nc.level||'Beginner',language:nc.language||'English',thumbnail_url:nc.thumbnail_url||null,price:parseFloat(nc.price)||0,is_free:(parseFloat(nc.price)||0)===0,what_you_learn:(nc.what_you_learn||'').split('\n').filter((s:string)=>s.trim()),requirements:(nc.requirements||'').split('\n').filter((s:string)=>s.trim()),instructor_id:user.id,instructor_name:ep.display_name||user?.email?.split('@')[0]||'Instructor',is_published:publish,certificate_enabled:true};
     let courseId=editingCourse?.id;
     if(courseId){
-      const{error}=await sb.from('academy_courses').update(payload).eq('id',courseId);
+      const{error}=await db.from('academy_courses').update(payload).eq('id',courseId);
       if(error){setSaveError('Save error: '+error.message);showToast('Error: '+error.message);setSaving(false);return;}
     }else{
-      const{data,error}=await sb.from('academy_courses').insert(payload).select('id').single();
-      if(error){setSaveError('Create error: '+error.message);showToast('Error: '+error.message);setSaving(false);return;}
+      const{data,error}=await db.from('academy_courses').insert(payload).select('id').single();
+      if(error){setSaveError('Error: '+error.message+' (code:'+error.code+')');showToast('Error: '+error.message);setSaving(false);return;}
       courseId=data.id;
     }
     const validLessons=ls.filter((l:any)=>l.title.trim());
     if(validLessons.length>0){
-      if(editingCourse)await sb.from('academy_lessons').delete().eq('course_id',courseId);
+      if(editingCourse)await db.from('academy_lessons').delete().eq('course_id',courseId);
       const rows=validLessons.map((l:any,i:number)=>({course_id:courseId,title:l.title.trim(),lesson_type:l.lesson_type||'text',content:l.content||'',video_url:l.video_url||null,order_index:i,is_free_preview:l.is_free_preview||false,questions:l.questions||null}));
-      const{error:lErr}=await sb.from('academy_lessons').insert(rows);
+      const{error:lErr}=await db.from('academy_lessons').insert(rows);
       if(lErr){setSaveError('Lessons error: '+lErr.message);showToast('Lessons error: '+lErr.message);setSaving(false);return;}
     }
-    await sb.from('academy_courses').update({total_lessons:validLessons.length}).eq('id',courseId);
+    await db.from('academy_courses').update({total_lessons:validLessons.length}).eq('id',courseId);
     showToast(publish?'Course published! 🎉':'Saved as draft ✓');
     setSaving(false);setSaveError('');setTab('dashboard');setNc(blankCourse());setLs([{title:'Introduction',lesson_type:'text',content:'',video_url:'',is_free_preview:true}]);setEditingCourse(null);loadDashboard();
   }
-  async function deleteCourse(id:string){if(!confirm('Delete this course and all its lessons?'))return;await sb.from('academy_lessons').delete().eq('course_id',id);await sb.from('academy_courses').delete().eq('id',id);showToast('Deleted');loadDashboard();}
-  async function togglePublish(course:any){await sb.from('academy_courses').update({is_published:!course.is_published}).eq('id',course.id);showToast(course.is_published?'Unpublished':'Published! 🎉');loadDashboard();}
-  const cats=['Budgeting','Investing','Debt','Freelance','Tax','Crypto','Business','Savings'];
-  const isEditing=tab==='edit-course'||tab==='new-course';
+  async function deleteCourse(id:string){if(!confirm('Delete this course?'))return;await db.from('academy_lessons').delete().eq('course_id',id);await db.from('academy_courses').delete().eq('id',id);showToast('Deleted');loadDashboard();}
+  async function togglePublish(course:any){await db.from('academy_courses').update({is_published:!course.is_published}).eq('id',course.id);showToast(course.is_published?'Unpublished':'Published! 🎉');loadDashboard();}
+  const cats=['Budgeting','Investing','Debt','Freelance','Tax','Crypto','Business','Savings'];const isEditing=tab==='edit-course'||tab==='new-course';
   return(<div style={{...B.wrap,paddingBottom:80}}>
-    <div style={{...B.hdr,flexWrap:'wrap',gap:8}}>
-      <button style={{...B.back,padding:0}} onClick={isEditing?(()=>{setTab('dashboard');setSaveError('');setEditingCourse(null);}):onBack}>← {isEditing?'Back':'Exit Studio'}</button>
-      <h2 style={{...B.title,fontSize:18,margin:0}}>Creator Studio</h2>
-      {!isEditing&&<div style={{marginLeft:'auto'}}><button style={{...B.btn('primary'),padding:'7px 16px',fontSize:12}} onClick={()=>{setNc(blankCourse());setLs([{title:'Introduction',lesson_type:'text',content:'',video_url:'',is_free_preview:true}]);setEditingCourse(null);setSaveError('');setTab('new-course');}}>+ New Course</button></div>}
-    </div>
+    <div style={{...B.hdr,flexWrap:'wrap',gap:8}}><button style={{...B.back,padding:0}} onClick={isEditing?(()=>{setTab('dashboard');setSaveError('');setEditingCourse(null);}):onBack}>← {isEditing?'Back':'Exit Studio'}</button><h2 style={{...B.title,fontSize:18,margin:0}}>Creator Studio</h2>{!isEditing&&<div style={{marginLeft:'auto'}}><button style={{...B.btn('primary'),padding:'7px 16px',fontSize:12}} onClick={()=>{setNc(blankCourse());setLs([{title:'Introduction',lesson_type:'text',content:'',video_url:'',is_free_preview:true}]);setEditingCourse(null);setSaveError('');setTab('new-course');}}>+ New Course</button></div>}</div>
     {!isEditing&&<div style={B.tabs}>{(['dashboard','profile']as const).map(t=><button key={t} style={B.tab(tab===t)} onClick={()=>setTab(t)}>{t==='dashboard'?'My Courses':'Profile'}</button>)}</div>}
     <div style={{padding:'20px 24px'}}>
-    {tab==='profile'&&(<div style={{maxWidth:520}}><h3 style={{color:'#e2e8f0',marginBottom:16,fontWeight:800}}>Creator Profile</h3>
-      <div style={{marginBottom:14}}><label style={B.label}>Display Name</label><input style={B.inp} value={ep.display_name} onChange={e=>setEp(p=>({...p,display_name:e.target.value}))}/></div>
-      <div style={{marginBottom:14}}><label style={B.label}>Bio</label><textarea style={B.ta} rows={3} value={ep.bio} onChange={e=>setEp(p=>({...p,bio:e.target.value}))}/></div>
-      <div style={{marginBottom:14}}><label style={B.label}>Website</label><input style={B.inp} value={ep.website} onChange={e=>setEp(p=>({...p,website:e.target.value}))}/></div>
-      <div style={{marginBottom:20}}><label style={B.label}>Expertise (comma separated)</label><input style={B.inp} placeholder="e.g. Budgeting, Investing" value={ep.expertise} onChange={e=>setEp(p=>({...p,expertise:e.target.value}))}/></div>
-      <button style={B.btn('primary')} onClick={saveProfile} disabled={saving}>{saving?'Saving...':'Save Profile'}</button>
-    </div>)}
-    {tab==='dashboard'&&(<>
-      <div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap'}}>
-        {[['Courses',stats.courses,'#1a6bff'],['Students',stats.students,'#10b981'],['Lessons',stats.lessons,'#8b5cf6']].map(([l,v,c])=>(<div key={l as string} style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${c}33`,borderRadius:12,padding:'14px 20px',minWidth:120,flex:1}}><div style={{fontSize:28,fontWeight:800,fontFamily:"'Orbitron',monospace",color:c as string}}>{v}</div><div style={{fontSize:12,color:'#64748b',marginTop:2}}>{l}</div></div>))}
-      </div>
-      {myCourses.length===0?(<div style={{textAlign:'center',padding:40,color:'#475569',background:'rgba(255,255,255,0.02)',borderRadius:12,border:'1px dashed rgba(255,255,255,0.08)'}}><div style={{fontSize:40,marginBottom:12}}>🎬</div><div style={{marginBottom:16}}>No courses yet</div><button style={B.btn('primary')} onClick={()=>{setNc(blankCourse());setLs([{title:'Introduction',lesson_type:'text',content:'',video_url:'',is_free_preview:true}]);setEditingCourse(null);setTab('new-course');}}>Create Your First Course</button></div>):(
-      <div style={{display:'grid',gap:12}}>{myCourses.map((c:any)=>(<div key={c.id} style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:16,display:'flex',gap:14,alignItems:'center',flexWrap:'wrap'}}>
-        <div style={{width:48,height:48,borderRadius:10,background:c.thumbnail_url?'transparent':`${gc(c.category)}22`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0,overflow:'hidden'}}>{c.thumbnail_url?<img src={c.thumbnail_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:gi(c.category)}</div>
-        <div style={{flex:1,minWidth:0}}><div style={{fontWeight:700,color:'#e2e8f0',fontSize:14,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.title}</div><div style={{fontSize:12,color:'#64748b',marginTop:3,display:'flex',gap:8,flexWrap:'wrap'}}><span style={B.badge(gc(c.category))}>{c.category}</span><span>{c.level}</span><span style={{color:c.is_free?'#10b981':'#e2e8f0'}}>{c.is_free?'Free':'$'+c.price}</span><span>👥 {c.total_enrollments||0}</span></div></div>
-        <div style={{display:'flex',gap:6,flexShrink:0,flexWrap:'wrap'}}>
-          <span style={{...B.badge(c.is_published?'#10b981':'#f59e0b'),padding:'4px 10px',fontSize:11}}>{c.is_published?'Live':'Draft'}</span>
-          <button style={{...B.btn('ghost'),padding:'5px 12px',fontSize:11}} onClick={()=>loadCourseForEdit(c)}>Edit</button>
-          <button style={{...B.btn('ghost'),padding:'5px 12px',fontSize:11}} onClick={()=>togglePublish(c)}>{c.is_published?'Unpublish':'Publish'}</button>
-          <button style={{...B.btn('danger'),padding:'5px 12px',fontSize:11}} onClick={()=>deleteCourse(c.id)}>Delete</button>
-        </div>
-      </div>))}</div>)}
-    </>)}
-    {isEditing&&(<div style={{maxWidth:760}}>
-      <h3 style={{color:'#e2e8f0',marginBottom:20,fontWeight:800,fontSize:18}}>{editingCourse?'Edit Course':'New Course'}</h3>
-      {saveError&&<div style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:8,padding:'10px 14px',marginBottom:16,fontSize:13,color:'#ef4444'}}>{saveError}</div>}
-      <UploadField label="Thumbnail" accept="image/jpeg,image/png,image/webp" value={nc.thumbnail_url||''} onUrl={u=>setNc((p:any)=>({...p,thumbnail_url:u}))} uid={user?.id||'upload'} folder="thumbnails" type="image"/>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
-        <div style={{gridColumn:'1/-1'}}><label style={{...B.label,color:'#e2e8f0'}}>Course Title *</label><input style={{...B.inp,border:'1px solid rgba(26,107,255,0.5)',fontSize:15}} placeholder="e.g. Budgeting for Beginners" value={nc.title} onChange={e=>setNc((p:any)=>({...p,title:e.target.value}))}/></div>
-        <div><label style={B.label}>Category</label><select style={B.inp} value={nc.category} onChange={e=>setNc((p:any)=>({...p,category:e.target.value}))}>{cats.map(c=><option key={c}>{c}</option>)}</select></div>
-        <div><label style={B.label}>Level</label><select style={B.inp} value={nc.level} onChange={e=>setNc((p:any)=>({...p,level:e.target.value}))}>{['Beginner','Intermediate','Advanced'].map(l=><option key={l}>{l}</option>)}</select></div>
-        <div><label style={B.label}>Price USD (0 = free)</label><input style={B.inp} type="number" min="0" step="0.01" value={nc.price} onChange={e=>setNc((p:any)=>({...p,price:e.target.value}))}/></div>
-        <div><label style={B.label}>Language</label><select style={B.inp} value={nc.language||'English'} onChange={e=>setNc((p:any)=>({...p,language:e.target.value}))}>{['English','Pashto','Dari','Arabic','Urdu','German','French','Spanish'].map(l=><option key={l}>{l}</option>)}</select></div>
-      </div>
-      <div style={{marginBottom:14}}><label style={B.label}>Description</label><textarea style={{...B.ta,minHeight:80}} placeholder="What is this course about?" value={nc.description} onChange={e=>setNc((p:any)=>({...p,description:e.target.value}))}/></div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:20}}>
-        <div><label style={B.label}>What students will learn (one per line)</label><textarea style={B.ta} rows={4} value={nc.what_you_learn} onChange={e=>setNc((p:any)=>({...p,what_you_learn:e.target.value}))}/></div>
-        <div><label style={B.label}>Requirements (one per line)</label><textarea style={B.ta} rows={4} value={nc.requirements} onChange={e=>setNc((p:any)=>({...p,requirements:e.target.value}))}/></div>
-      </div>
-      <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:20,marginBottom:20}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-          <h4 style={{color:'#e2e8f0',margin:0,fontWeight:800}}>Lessons ({ls.length})</h4>
-          <div style={{display:'flex',gap:8}}>{(['text','video','quiz']as const).map(t=>(<button key={t} style={{...B.btn('ghost'),padding:'5px 12px',fontSize:11}} onClick={()=>setLs(p=>[...p,{title:'',lesson_type:t,content:'',video_url:'',is_free_preview:false}])}>+ {t==='video'?'Video':t==='quiz'?'Quiz':'Reading'}</button>))}</div>
-        </div>
-        {ls.map((l:any,i:number)=>(<div key={i} style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:16,marginBottom:10}}>
-          <div style={{display:'flex',gap:8,marginBottom:10,alignItems:'center'}}>
-            <div style={{width:28,height:28,borderRadius:'50%',background:l.lesson_type==='video'?'rgba(26,107,255,0.2)':l.lesson_type==='quiz'?'rgba(139,92,246,0.2)':'rgba(16,185,129,0.2)',color:l.lesson_type==='video'?'#1a6bff':l.lesson_type==='quiz'?'#8b5cf6':'#10b981',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,flexShrink:0,fontWeight:700}}>{l.lesson_type==='video'?'▶':l.lesson_type==='quiz'?'?':'T'}</div>
-            <input style={{...B.inp,flex:1}} placeholder={`Lesson ${i+1} title`} value={l.title} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,title:e.target.value}:x))}/>
-            <select style={{...B.inp,width:'auto'}} value={l.lesson_type} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,lesson_type:e.target.value}:x))}><option value="text">📄 Reading</option><option value="video">▶ Video</option><option value="quiz">📝 Quiz</option></select>
-            <label style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'#64748b',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}><input type="checkbox" checked={l.is_free_preview||false} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,is_free_preview:e.target.checked}:x))}/>Free</label>
-            <button onClick={()=>setLs(p=>p.filter((_:any,j:number)=>j!==i))} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer',fontSize:18,flexShrink:0,padding:0,lineHeight:1}}>✕</button>
-          </div>
-          {l.lesson_type==='video'&&(<UploadField label="" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" value={l.video_url||''} onUrl={u=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,video_url:u}:x))} uid={user?.id||'upload'} folder="videos" type="video"/>)}
-          <textarea style={{...B.ta,minHeight:l.lesson_type==='quiz'?52:80}} placeholder={l.lesson_type==='quiz'?'Quiz intro (optional)':'Lesson notes or reading content'} value={l.content||''} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,content:e.target.value}:x))}/>
-        </div>))}
-      </div>
-      <div style={{display:'flex',gap:10,flexWrap:'wrap',paddingBottom:40}}>
-        <button style={{...B.btn('primary'),padding:'13px 32px',fontSize:15}} onClick={()=>saveCourse(true)} disabled={saving}>{saving?'Publishing...':'Publish Course 🚀'}</button>
-        <button style={{...B.btn('ghost'),padding:'13px 24px'}} onClick={()=>saveCourse(false)} disabled={saving}>{saving?'Saving...':'Save as Draft'}</button>
-        <button style={{...B.btn('ghost'),padding:'13px 20px'}} onClick={()=>{setTab('dashboard');setEditingCourse(null);setSaveError('');}}>Cancel</button>
-      </div>
+    {tab==='profile'&&(<div style={{maxWidth:520}}><h3 style={{color:'#e2e8f0',marginBottom:16,fontWeight:800}}>Creator Profile</h3><div style={{marginBottom:14}}><label style={B.label}>Display Name</label><input style={B.inp} value={ep.display_name} onChange={e=>setEp(p=>({...p,display_name:e.target.value}))}/></div><div style={{marginBottom:14}}><label style={B.label}>Bio</label><textarea style={B.ta} rows={3} value={ep.bio} onChange={e=>setEp(p=>({...p,bio:e.target.value}))}/></div><div style={{marginBottom:14}}><label style={B.label}>Website</label><input style={B.inp} value={ep.website} onChange={e=>setEp(p=>({...p,website:e.target.value}))}/></div><div style={{marginBottom:20}}><label style={B.label}>Expertise (comma separated)</label><input style={B.inp} placeholder="e.g. Budgeting, Investing" value={ep.expertise} onChange={e=>setEp(p=>({...p,expertise:e.target.value}))}/></div><button style={B.btn('primary')} onClick={saveProfile} disabled={saving}>{saving?'Saving...':'Save Profile'}</button></div>)}
+    {tab==='dashboard'&&(<><div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap'}}>{[['Courses',stats.courses,'#1a6bff'],['Students',stats.students,'#10b981'],['Lessons',stats.lessons,'#8b5cf6']].map(([l,v,c])=>(<div key={l as string} style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${c}33`,borderRadius:12,padding:'14px 20px',minWidth:120,flex:1}}><div style={{fontSize:28,fontWeight:800,fontFamily:"'Orbitron',monospace",color:c as string}}>{v}</div><div style={{fontSize:12,color:'#64748b',marginTop:2}}>{l}</div></div>))}</div>
+    {myCourses.length===0?(<div style={{textAlign:'center',padding:40,color:'#475569',background:'rgba(255,255,255,0.02)',borderRadius:12,border:'1px dashed rgba(255,255,255,0.08)'}}><div style={{fontSize:40,marginBottom:12}}>🎬</div><div style={{marginBottom:16}}>No courses yet</div><button style={B.btn('primary')} onClick={()=>{setNc(blankCourse());setLs([{title:'Introduction',lesson_type:'text',content:'',video_url:'',is_free_preview:true}]);setEditingCourse(null);setTab('new-course');}}>Create Your First Course</button></div>):(
+    <div style={{display:'grid',gap:12}}>{myCourses.map((c:any)=>(<div key={c.id} style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:16,display:'flex',gap:14,alignItems:'center',flexWrap:'wrap'}}><div style={{width:48,height:48,borderRadius:10,background:c.thumbnail_url?'transparent':`${gc(c.category)}22`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0,overflow:'hidden'}}>{c.thumbnail_url?<img src={c.thumbnail_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:gi(c.category)}</div><div style={{flex:1,minWidth:0}}><div style={{fontWeight:700,color:'#e2e8f0',fontSize:14,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.title}</div><div style={{fontSize:12,color:'#64748b',marginTop:3,display:'flex',gap:8,flexWrap:'wrap'}}><span style={B.badge(gc(c.category))}>{c.category}</span><span>{c.level}</span><span style={{color:c.is_free?'#10b981':'#e2e8f0'}}>{c.is_free?'Free':'$'+c.price}</span><span>👥 {c.total_enrollments||0}</span></div></div><div style={{display:'flex',gap:6,flexShrink:0,flexWrap:'wrap'}}><span style={{...B.badge(c.is_published?'#10b981':'#f59e0b'),padding:'4px 10px',fontSize:11}}>{c.is_published?'Live':'Draft'}</span><button style={{...B.btn('ghost'),padding:'5px 12px',fontSize:11}} onClick={()=>loadCourseForEdit(c)}>Edit</button><button style={{...B.btn('ghost'),padding:'5px 12px',fontSize:11}} onClick={()=>togglePublish(c)}>{c.is_published?'Unpublish':'Publish'}</button><button style={{...B.btn('danger'),padding:'5px 12px',fontSize:11}} onClick={()=>deleteCourse(c.id)}>Delete</button></div></div>))}</div>)}</>)}
+    {isEditing&&(<div style={{maxWidth:760}}><h3 style={{color:'#e2e8f0',marginBottom:20,fontWeight:800,fontSize:18}}>{editingCourse?'Edit Course':'New Course'}</h3>
+    {saveError&&<div style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:8,padding:'10px 14px',marginBottom:16,fontSize:13,color:'#ef4444'}}>{saveError}</div>}
+    <UploadField label="Thumbnail" accept="image/jpeg,image/png,image/webp" value={nc.thumbnail_url||''} onUrl={u=>setNc((p:any)=>({...p,thumbnail_url:u}))} uid={user?.id||'upload'} folder="thumbnails" type="image"/>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}><div style={{gridColumn:'1/-1'}}><label style={{...B.label,color:'#e2e8f0',fontSize:13}}>Course Title *</label><input style={{...B.inp,border:'1px solid rgba(26,107,255,0.5)',fontSize:15}} placeholder="e.g. Budgeting for Beginners" value={nc.title} onChange={e=>setNc((p:any)=>({...p,title:e.target.value}))}/></div><div><label style={B.label}>Category</label><select style={B.inp} value={nc.category} onChange={e=>setNc((p:any)=>({...p,category:e.target.value}))}>{cats.map(c=><option key={c}>{c}</option>)}</select></div><div><label style={B.label}>Level</label><select style={B.inp} value={nc.level} onChange={e=>setNc((p:any)=>({...p,level:e.target.value}))}>{['Beginner','Intermediate','Advanced'].map(l=><option key={l}>{l}</option>)}</select></div><div><label style={B.label}>Price USD (0 = free)</label><input style={B.inp} type="number" min="0" step="0.01" value={nc.price} onChange={e=>setNc((p:any)=>({...p,price:e.target.value}))}/></div><div><label style={B.label}>Language</label><select style={B.inp} value={nc.language||'English'} onChange={e=>setNc((p:any)=>({...p,language:e.target.value}))}>{['English','Pashto','Dari','Arabic','Urdu','German','French','Spanish'].map(l=><option key={l}>{l}</option>)}</select></div></div>
+    <div style={{marginBottom:14}}><label style={B.label}>Description</label><textarea style={{...B.ta,minHeight:80}} placeholder="What is this course about?" value={nc.description} onChange={e=>setNc((p:any)=>({...p,description:e.target.value}))}/></div>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:20}}><div><label style={B.label}>What students will learn (one per line)</label><textarea style={B.ta} rows={4} value={nc.what_you_learn} onChange={e=>setNc((p:any)=>({...p,what_you_learn:e.target.value}))}/></div><div><label style={B.label}>Requirements (one per line)</label><textarea style={B.ta} rows={4} value={nc.requirements} onChange={e=>setNc((p:any)=>({...p,requirements:e.target.value}))}/></div></div>
+    <div style={{borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:20,marginBottom:20}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}><h4 style={{color:'#e2e8f0',margin:0,fontWeight:800}}>Lessons ({ls.length})</h4><div style={{display:'flex',gap:8}}>{(['text','video','quiz']as const).map(t=>(<button key={t} style={{...B.btn('ghost'),padding:'5px 12px',fontSize:11}} onClick={()=>setLs(p=>[...p,{title:'',lesson_type:t,content:'',video_url:'',is_free_preview:false}])}>+ {t==='video'?'Video':t==='quiz'?'Quiz':'Reading'}</button>))}</div></div>
+    {ls.map((l:any,i:number)=>(<div key={i} style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,padding:16,marginBottom:10}}><div style={{display:'flex',gap:8,marginBottom:10,alignItems:'center'}}><div style={{width:28,height:28,borderRadius:'50%',background:l.lesson_type==='video'?'rgba(26,107,255,0.2)':l.lesson_type==='quiz'?'rgba(139,92,246,0.2)':'rgba(16,185,129,0.2)',color:l.lesson_type==='video'?'#1a6bff':l.lesson_type==='quiz'?'#8b5cf6':'#10b981',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,flexShrink:0,fontWeight:700}}>{l.lesson_type==='video'?'▶':l.lesson_type==='quiz'?'?':'T'}</div><input style={{...B.inp,flex:1}} placeholder={`Lesson ${i+1} title`} value={l.title} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,title:e.target.value}:x))}/><select style={{...B.inp,width:'auto'}} value={l.lesson_type} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,lesson_type:e.target.value}:x))}><option value="text">📄 Reading</option><option value="video">▶ Video</option><option value="quiz">📝 Quiz</option></select><label style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:'#64748b',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}><input type="checkbox" checked={l.is_free_preview||false} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,is_free_preview:e.target.checked}:x))}/>Free</label><button onClick={()=>setLs(p=>p.filter((_:any,j:number)=>j!==i))} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer',fontSize:18,flexShrink:0,padding:0,lineHeight:1}}>✕</button></div>
+    {l.lesson_type==='video'&&(<UploadField label="" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" value={l.video_url||''} onUrl={u=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,video_url:u}:x))} uid={user?.id||'upload'} folder="videos" type="video"/>)}
+    <textarea style={{...B.ta,minHeight:l.lesson_type==='quiz'?52:80}} placeholder={l.lesson_type==='quiz'?'Quiz intro (optional)':'Lesson notes or reading content'} value={l.content||''} onChange={e=>setLs(p=>p.map((x:any,j:number)=>j===i?{...x,content:e.target.value}:x))}/></div>))}</div>
+    <div style={{display:'flex',gap:10,flexWrap:'wrap',paddingBottom:40}}><button style={{...B.btn('primary'),padding:'13px 32px',fontSize:15}} onClick={()=>saveCourse(true)} disabled={saving}>{saving?'Publishing...':'Publish Course 🚀'}</button><button style={{...B.btn('ghost'),padding:'13px 24px'}} onClick={()=>saveCourse(false)} disabled={saving}>{saving?'Saving...':'Save as Draft'}</button><button style={{...B.btn('ghost'),padding:'13px 20px'}} onClick={()=>{setTab('dashboard');setEditingCourse(null);setSaveError('');}}>Cancel</button></div>
     </div>)}
     </div>
   </div>);}
