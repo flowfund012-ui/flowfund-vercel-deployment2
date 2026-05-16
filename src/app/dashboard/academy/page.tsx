@@ -1,373 +1,269 @@
 'use client';
 import{useState,useEffect}from'react';
-import{getLangFromStorage}from'../../../lib/i18n';
-import{sb,gc,gi,WaveLogo,B,ArticleDetail,LessonViewer,CreatorStudio,BookReader,UploadBtn,STORAGE_URL}from'./components';
-import{uploadToStorage}from'./upload-helper';
+import{createClient}from'@supabase/supabase-js';
+import{B,sb,gc,gi,doUpload,UploadField,ArticleDetail,BookReader,LessonViewer,CreatorStudio,WaveLogo,STORAGE_URL}from'./components';
 
-function CourseDetail({course,user,onBack,onEnroll,showToast}:{course:any,user:any,onBack:()=>void,onEnroll:(c:any)=>void,showToast:(m:string)=>void}){
-  const[reviews,setReviews]=useState<any[]>([]);
-  const[myR,setMyR]=useState({rating:5,comment:''});
-  const[hasR,setHasR]=useState(false);
-  const[lessons,setLessons]=useState<any[]>([]);
-  useEffect(()=>{
-    sb.from('academy_lessons').select('id,title,lesson_type,duration_seconds,is_free_preview,order_index').eq('course_id',course.id).order('order_index').then(({data})=>setLessons(data||[]));
-    sb.from('academy_reviews').select('*').eq('course_id',course.id).order('created_at',{ascending:false}).then(({data})=>setReviews(data||[]));
-    if(user)sb.from('academy_reviews').select('id').eq('course_id',course.id).eq('user_id',user.id).then(({data})=>setHasR((data||[]).length>0));
-  },[]);
-  async function submitReview(){
-    if(!user){showToast('Login to review');return;}
-    await sb.from('academy_reviews').upsert({course_id:course.id,user_id:user.id,...myR},{onConflict:'course_id,user_id'});
-    showToast('Review submitted!');setHasR(true);
-    sb.from('academy_reviews').select('*').eq('course_id',course.id).order('created_at',{ascending:false}).then(({data})=>setReviews(data||[]));
-  }
-  const avg=reviews.length?Math.round((reviews.reduce((s:number,r:any)=>s+r.rating,0)/reviews.length)*10)/10:0;
-  const ltype=(l:any)=>l.lesson_type||l.type||'text';
-  return(
-    <div style={{...B.wrap,paddingBottom:80}}>
-      <div style={{background:'linear-gradient(135deg,#0a1628,#0d1f3c)',padding:'28px 24px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-        <button style={B.back} onClick={onBack}>← Back to Courses</button>
-        <span style={B.badge(gc(course.category))}>{course.category}</span>
-        <h1 style={{fontSize:26,fontWeight:800,margin:'10px 0 8px',color:'#f1f5f9',lineHeight:1.3}}>{course.title}</h1>
-        <p style={{fontSize:14,color:'#94a3b8',lineHeight:1.7,marginBottom:14}}>{course.description}</p>
-        <div style={{display:'flex',gap:14,flexWrap:'wrap',fontSize:13,color:'#64748b',marginBottom:16}}>
-          <span>👤 {course.instructor_name}</span><span>📊 {course.level}</span>
-          {avg>0&&<span style={{color:'#f59e0b'}}>★ {avg} ({reviews.length} reviews)</span>}
-          {course.total_enrollments>0&&<span>👥 {course.total_enrollments} students</span>}
-        </div>
-        <button style={{...B.btn('primary'),padding:'13px 32px',fontSize:14}} onClick={()=>onEnroll(course)}>
-          {course.enrolled?'Continue Learning →':course.is_free?'Enroll Free':'Enroll — $'+course.price}
-        </button>
-      </div>
-      <div style={{maxWidth:820,margin:'0 auto',padding:'20px 24px 0'}}>
-        {(course.what_you_learn||[]).length>0&&(
-          <div style={{background:'rgba(26,107,255,0.05)',border:'1px solid rgba(26,107,255,0.15)',borderRadius:12,padding:18,marginBottom:20}}>
-            <h3 style={{color:'#e2e8f0',marginBottom:12,fontWeight:800}}>What you will learn</h3>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:8}}>
-              {(course.what_you_learn||[]).map((item:string,i:number)=>(
-                <div key={i} style={{display:'flex',gap:7,fontSize:13,color:'#94a3b8'}}><span style={{color:'#10b981',flexShrink:0}}>✓</span>{item}</div>
-              ))}
-            </div>
-          </div>
-        )}
-        <h3 style={{color:'#e2e8f0',marginBottom:12,fontWeight:800}}>Course Content ({lessons.length} lessons)</h3>
-        <div style={{border:'1px solid rgba(255,255,255,0.06)',borderRadius:12,overflow:'hidden',marginBottom:20}}>
-          {lessons.length===0&&<div style={{padding:20,color:'#475569',textAlign:'center',fontSize:14}}>No lessons yet</div>}
-          {lessons.map((l:any,i:number)=>(
-            <div key={l.id} style={{padding:'11px 16px',borderBottom:i<lessons.length-1?'1px solid rgba(255,255,255,0.04)':'none',display:'flex',alignItems:'center',gap:10}}>
-              <span style={{width:26,height:26,borderRadius:'50%',background:'rgba(255,255,255,0.06)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#64748b',flexShrink:0}}>{i+1}</span>
-              <div style={{flex:1}}>
-                <div style={{fontSize:13,color:'#e2e8f0'}}>{l.title}</div>
-                <div style={{fontSize:11,color:'#64748b',marginTop:1}}>{ltype(l)==='video'?'▶ Video':ltype(l)==='quiz'?'📝 Quiz':'📄 Reading'}</div>
-              </div>
-              {l.is_free_preview&&<span style={{...B.badge('#10b981'),fontSize:10}}>Preview</span>}
-            </div>
-          ))}
-        </div>
-        <div style={{marginBottom:20}}>
-          <h3 style={{color:'#e2e8f0',marginBottom:14,fontWeight:800}}>Reviews{avg>0&&<span style={{color:'#f59e0b',fontWeight:400,fontSize:15}}> ★ {avg}</span>}</h3>
-          {!hasR&&user&&(
-            <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:10,padding:14,marginBottom:14}}>
-              <label style={B.label}>Your Rating</label>
-              <div style={{display:'flex',gap:5,marginBottom:10}}>{[1,2,3,4,5].map(n=><span key={n} onClick={()=>setMyR(p=>({...p,rating:n}))} style={{fontSize:22,cursor:'pointer',opacity:myR.rating>=n?1:0.3}}>★</span>)}</div>
-              <textarea style={{...B.ta,minHeight:68}} placeholder="Share your experience..." value={myR.comment} onChange={e=>setMyR(p=>({...p,comment:e.target.value}))}/>
-              <button style={{...B.btn('primary'),marginTop:8}} onClick={submitReview}>Submit Review</button>
-            </div>
-          )}
-          {reviews.map((r:any)=>(
-            <div key={r.id} style={{padding:'12px 0',borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
-                <div style={{width:30,height:30,borderRadius:'50%',background:'linear-gradient(135deg,#1a6bff,#6c2ef5)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700}}>{(r.reviewer_name||r.user_id||'?')[0].toUpperCase()}</div>
-                <div><div style={{fontSize:13,fontWeight:600,color:'#e2e8f0'}}>{r.reviewer_name||'Student'}</div><div style={{color:'#f59e0b',fontSize:12}}>{'★'.repeat(r.rating)}{'☆'.repeat(5-r.rating)}</div></div>
-                <span style={{marginLeft:'auto',fontSize:11,color:'#475569'}}>{new Date(r.created_at).toLocaleDateString()}</span>
-              </div>
-              {r.comment&&<p style={{fontSize:13,color:'#94a3b8',margin:'0 0 0 38px'}}>{r.comment}</p>}
-            </div>
-          ))}
-          {reviews.length===0&&<div style={{fontSize:13,color:'#475569',padding:'10px 0'}}>No reviews yet.</div>}
-        </div>
-      </div>
-    </div>
-  );
-}
+const DB=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
 
 export default function AcademyPage(){
   const[user,setUser]=useState<any>(null);
-  const[creatorProfile,setCreatorProfile]=useState<any>(null);
   const[tab,setTab]=useState<'courses'|'articles'|'books'|'my-learning'>('courses');
   const[courses,setCourses]=useState<any[]>([]);
   const[articles,setArticles]=useState<any[]>([]);
   const[books,setBooks]=useState<any[]>([]);
-  const[loading,setLoading]=useState(true);
-  const[search,setSearch]=useState('');
-  const[catFilter,setCatFilter]=useState('All');
-  const[viewCourse,setViewCourse]=useState<any>(null);
-  const[viewLesson,setViewLesson]=useState<any>(null);
-  const[viewArticle,setViewArticle]=useState<any>(null);
-  const[viewBook,setViewBook]=useState<any>(null);
-  const[showCreator,setShowCreator]=useState(false);
+  const[enrollments,setEnrollments]=useState<any[]>([]);
   const[toast,setToast]=useState('');
-  const[writingArticle,setWritingArticle]=useState(false);
-  const[coverUploading,setCoverUploading]=useState(false);
-  const[showUploadBook,setShowUploadBook]=useState(false);
-  const[uploadingBook,setUploadingBook]=useState(false);
-  const[af,setAf]=useState({title:'',content:'',category:'Budgeting',tags:'',cover_url:''});
-  const[bk,setBk]=useState({title:'',description:'',author:'',category:'Budgeting',price:'0',is_free:true});
-  const[lessonList,setLessonList]=useState<any[]>([]);
-  const[activeLesson,setActiveLesson]=useState<any>(null);
+  const[view,setView]=useState<any>(null);
+  const[catFilter,setCatFilter]=useState('All');
+  const[isCreator,setIsCreator]=useState(false);
+  const[creatorProfile,setCreatorProfile]=useState<any>(null);
+  const[writeArticle,setWriteArticle]=useState(false);
+  const[uploadBook,setUploadBook]=useState(false);
+  const[newArticle,setNewArticle]=useState({title:'',content:'',category:'Budgeting',tags:'',cover_url:''});
+  const[newBook,setNewBook]=useState({title:'',author:'',description:'',category:'Budgeting',is_free:true,price:'0',cover_url:'',file_url:''});
+  const cats=['All','Budgeting','Investing','Debt','Freelance','Tax','Crypto','Business','Savings'];
 
   useEffect(()=>{
-    getLangFromStorage();
-    sb.auth.getUser().then(({data})=>{
-      setUser(data.user);loadAll(data.user?.id);
-      if(data.user)sb.from('academy_creator_profiles').select('*').eq('user_id',data.user.id).single().then(({data:p})=>setCreatorProfile(p));
+    DB.auth.getUser().then(({data})=>{
+      setUser(data.user);
+      if(data.user){
+        DB.from('academy_creator_profiles').select('*').eq('user_id',data.user.id).maybeSingle().then(({data:p})=>setCreatorProfile(p));
+        DB.from('academy_enrollments').select('course_id,progress').eq('user_id',data.user.id).then(({data:e})=>setEnrollments(e||[]));
+      }
     });
+    loadCourses();
+    DB.from('academy_articles').select('*').eq('is_published',true).order('created_at',{ascending:false}).then(({data})=>setArticles(data||[]));
+    DB.from('academy_books').select('*').order('title',{ascending:true}).then(({data})=>setBooks(data||[]));
   },[]);
 
-  async function loadAll(uid?:string){
-    setLoading(true);
-    const[{data:c},{data:a},{data:b}]=await Promise.all([
-      sb.from('academy_courses').select('*').eq('is_published',true).order('created_at',{ascending:false}),
-      sb.from('academy_articles').select('*').order('created_at',{ascending:false}),
-      sb.from('academy_books').select('*').order('title'),
-    ]);
-    if(uid&&c){
-      const{data:enr}=await sb.from('academy_enrollments').select('course_id,progress').eq('user_id',uid);
-      const em:any=Object.fromEntries((enr||[]).map((e:any)=>[e.course_id,{progress:e.progress||0}]));
-      setCourses(c.map((x:any)=>({...x,...(em[x.id]||{}),enrolled:!!em[x.id]})));
-    }else setCourses(c||[]);
-    setArticles(a||[]);setBooks(b||[]);setLoading(false);
+  async function loadCourses(){
+    const{data}=await DB.from('academy_courses').select('*').eq('is_published',true).order('created_at',{ascending:false});
+    setCourses(data||[]);
   }
 
   function showToast(msg:string){setToast(msg);setTimeout(()=>setToast(''),3500);}
 
-  async function handleEnroll(course:any){
-    if(!user){showToast('Please log in first');return;}
-    if(!course.enrolled){
-      await sb.from('academy_enrollments').upsert({user_id:user.id,course_id:course.id,progress:0},{onConflict:'user_id,course_id'});
-      await sb.from('academy_courses').update({total_enrollments:(course.total_enrollments||0)+1}).eq('id',course.id);
-      showToast('Enrolled! Opening course...');await loadAll(user?.id);
-    }
-    const{data:ls}=await sb.from('academy_lessons').select('*').eq('course_id',course.id).order('order_index');
-    setLessonList(ls||[]);
-    const updated=courses.find((c2:any)=>c2.id===course.id)||course;
-    setViewLesson({...updated,enrolled:true});setActiveLesson(ls?.[0]||null);setViewCourse(null);
+  async function enroll(courseId:string){
+    if(!user){showToast('Sign in to enroll');return;}
+    const exists=enrollments.find(e=>e.course_id===courseId);
+    if(exists){setView({type:'course',course:courses.find(c=>c.id===courseId),enrollment:exists});return;}
+    await DB.from('academy_enrollments').insert({user_id:user.id,course_id:courseId,progress:0});
+    const newEnroll={course_id:courseId,progress:0};
+    setEnrollments(prev=>[...prev,newEnroll]);
+    showToast('Enrolled! 🎉');
+    setView({type:'course',course:courses.find(c=>c.id===courseId),enrollment:newEnroll});
   }
 
-  async function handleComplete(lesson:any){
-    if(!user||!viewLesson)return;
-    const idx=lessonList.findIndex((l:any)=>l.id===lesson.id);
-    const progress=Math.round(((idx+1)/lessonList.length)*100);
-    await sb.from('academy_enrollments').update({progress,last_lesson_id:lesson.id}).eq('user_id',user.id).eq('course_id',viewLesson.id);
-    if(progress===100){await sb.from('academy_certificates').upsert({user_id:user.id,course_id:viewLesson.id},{onConflict:'user_id,course_id'});showToast('🎉 Course complete! Certificate earned!');}
-    else{showToast('Lesson complete!');const next=lessonList[idx+1];if(next)setActiveLesson(next);}
-    setViewLesson((p:any)=>p?{...p,progress}:p);loadAll(user?.id);
-  }
-
-  async function handleCoverUpload(file:File){
-    if(!user){showToast('Log in first');return;}
-    setCoverUploading(true);
-    const{url,error}=await uploadToStorage(file,'article-covers',user.id);
-    setCoverUploading(false);
-    if(url)setAf(p=>({...p,cover_url:url}));
-    else showToast('Upload failed: '+error);
+  async function markComplete(lesson:any,courseId:string){
+    const enrollment=enrollments.find(e=>e.course_id===courseId);
+    if(!enrollment||!user)return;
+    const{data:lessons}=await DB.from('academy_lessons').select('id').eq('course_id',courseId);
+    const{data:completed}=await DB.from('academy_progress').select('lesson_id').eq('user_id',user.id).eq('course_id',courseId);
+    const completedIds=new Set((completed||[]).map((p:any)=>p.lesson_id));
+    completedIds.add(lesson.id);
+    await DB.from('academy_progress').upsert({user_id:user.id,course_id:courseId,lesson_id:lesson.id},{onConflict:'user_id,course_id,lesson_id'});
+    const pct=Math.round((completedIds.size/(lessons||[]).length)*100);
+    await DB.from('academy_enrollments').update({progress:pct}).eq('user_id',user.id).eq('course_id',courseId);
+    setEnrollments(prev=>prev.map(e=>e.course_id===courseId?{...e,progress:pct}:e));
+    if(pct>=100)showToast('Course complete! 🎉 Certificate earned!');
   }
 
   async function submitArticle(){
-    if(!user){showToast('Log in first');return;}
-    if(!af.title||!af.content){showToast('Fill title and content');return;}
-    await sb.from('academy_articles').insert({...af,tags:af.tags.split(',').map((s:string)=>s.trim()).filter(Boolean),author_name:creatorProfile?.display_name||user.email?.split('@')[0]||'Student',user_id:user.id,read_time:Math.ceil(af.content.split(' ').length/200)});
-    showToast('Article published!');setWritingArticle(false);setAf({title:'',content:'',category:'Budgeting',tags:'',cover_url:''});loadAll(user?.id);
+    if(!newArticle.title.trim()||!newArticle.content.trim()){showToast('Title and content required');return;}
+    const{error}=await DB.from('academy_articles').insert({...newArticle,author_id:user?.id||null,user_id:user?.id||null,author_name:user?.email?.split('@')[0]||'Anonymous',tags:newArticle.tags.split(',').map((t:string)=>t.trim()).filter(Boolean),is_published:true,views:0,likes:0});
+    if(error)showToast('Error: '+error.message);
+    else{showToast('Article published!');setWriteArticle(false);setNewArticle({title:'',content:'',category:'Budgeting',tags:'',cover_url:''});DB.from('academy_articles').select('*').eq('is_published',true).order('created_at',{ascending:false}).then(({data})=>setArticles(data||[]));}
   }
 
-  async function handleBookUpload(file:File){
-    if(!user){showToast('Log in first');return;}
-    if(!bk.title){showToast('Add a book title first');return;}
-    setUploadingBook(true);
-    const{url,error}=await uploadToStorage(file,'books',user.id);
-    setUploadingBook(false);
-    if(!url){showToast('Upload failed: '+error);return;}
-    await sb.from('academy_books').insert({...bk,price:parseFloat(bk.price)||0,file_url:url,is_published:true});
-    showToast('Book uploaded!');setShowUploadBook(false);setBk({title:'',description:'',author:'',category:'Budgeting',price:'0',is_free:true});loadAll(user?.id);
+  async function submitBook(){
+    if(!newBook.title.trim()){showToast('Book title required');return;}
+    const{error}=await DB.from('academy_books').insert({...newBook,author_id:user?.id||null,price:parseFloat(newBook.price)||0,is_free:newBook.is_free,is_published:true,total_downloads:0});
+    if(error)showToast('Error: '+error.message);
+    else{showToast('Book uploaded!');setUploadBook(false);setNewBook({title:'',author:'',description:'',category:'Budgeting',is_free:true,price:'0',cover_url:'',file_url:''});DB.from('academy_books').select('*').order('title',{ascending:true}).then(({data})=>setBooks(data||[]));}
   }
 
-  const cats=['All','Budgeting','Investing','Debt','Freelance','Tax','Crypto','Business','Savings'];
-  const filtered=(tab==='courses'?courses:tab==='articles'?articles:books).filter((x:any)=>{
-    const ms=!search||(x.title||'').toLowerCase().includes(search.toLowerCase())||(x.description||x.content||'').toLowerCase().includes(search.toLowerCase());
-    return ms&&(catFilter==='All'||x.category===catFilter);
-  });
-  const myCourses=courses.filter((c:any)=>c.enrolled);
+  const filteredCourses=catFilter==='All'?courses:courses.filter(c=>c.category===catFilter);
 
-  if(loading)return(<div style={{...B.wrap,display:'flex',alignItems:'center',justifyContent:'center',height:'100vh'}}><div style={{textAlign:'center'}}><WaveLogo size={48}/><p style={{color:'#64748b',marginTop:14}}>Loading Academy...</p></div></div>);
-  if(viewLesson&&activeLesson!==undefined)return(<LessonViewer course={viewLesson} lessons={lessonList} activeLesson={activeLesson} setActiveLesson={setActiveLesson} user={user} onBack={()=>{setViewLesson(null);loadAll(user?.id);}} onComplete={handleComplete}/>);
-  if(showCreator)return(<CreatorStudio user={user} profile={creatorProfile} onBack={()=>{setShowCreator(false);loadAll(user?.id);}} showToast={showToast}/>);
-  if(viewCourse)return(<CourseDetail course={viewCourse} user={user} onBack={()=>setViewCourse(null)} onEnroll={handleEnroll} showToast={showToast}/>);
-  if(viewArticle)return(<ArticleDetail article={viewArticle} user={user} onBack={()=>setViewArticle(null)}/>);
-  if(viewBook)return(<BookReader book={viewBook} onBack={()=>setViewBook(null)}/>);
+  if(isCreator)return(<CreatorStudio user={user} supabase={DB} profile={creatorProfile} onBack={()=>setIsCreator(false)} showToast={showToast}/>);
+  if(view?.type==='article')return(<ArticleDetail article={view.article} user={user} onBack={()=>setView(null)}/>);
+  if(view?.type==='book-reader')return(<BookReader book={view.book} onBack={()=>setView(null)}/>);
+  if(view?.type==='course'){
+    const enrollment=enrollments.find(e=>e.course_id===view.course.id)||{progress:0};
+    const[lessons,setLessons]=useState<any[]>([]);const[activeLesson,setActiveLesson]=useState<any>(null);
+    useEffect(()=>{DB.from('academy_lessons').select('*').eq('course_id',view.course.id).order('order_index').then(({data})=>{setLessons(data||[]);if(data&&data.length>0)setActiveLesson(data[0]);});},[view.course.id]);
+    return(<LessonViewer course={{...view.course,progress:enrollment.progress}} lessons={lessons} activeLesson={activeLesson} setActiveLesson={setActiveLesson} user={user} onBack={()=>setView(null)} onComplete={(l)=>markComplete(l,view.course.id)}/>);
+  }
 
   return(
-    <div style={{...B.wrap,paddingBottom:80}}>
+    <div style={B.wrap}>
       {toast&&<div style={B.toast}>{toast}</div>}
-      <div style={{...B.hdr,padding:'14px 24px'}}>
-        <WaveLogo size={26}/><h1 style={{...B.title,fontSize:20}}>Academy</h1>
+      <div style={{...B.hdr,gap:12}}>
+        <WaveLogo size={36}/>
+        <h1 style={B.title}>FlowFund Academy</h1>
         <div style={{marginLeft:'auto',display:'flex',gap:8,alignItems:'center'}}>
-          {user&&(
-            <div style={{background:'rgba(255,255,255,0.04)',borderRadius:8,display:'flex',padding:2,gap:2}}>
-              <button onClick={()=>setShowCreator(false)} style={{padding:'5px 12px',borderRadius:6,border:'none',cursor:'pointer',fontWeight:600,fontSize:12,background:!showCreator?'rgba(26,107,255,0.2)':'transparent',color:!showCreator?'#1a6bff':'#64748b'}}>Student</button>
-              <button onClick={()=>setShowCreator(true)} style={{padding:'5px 12px',borderRadius:6,border:'none',cursor:'pointer',fontWeight:600,fontSize:12,background:'transparent',color:'#64748b'}}>🎬 Creator</button>
-            </div>
-          )}
-          {user&&<div style={{width:30,height:30,borderRadius:'50%',background:'linear-gradient(135deg,#1a6bff,#6c2ef5)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:13}}>{(creatorProfile?.display_name||user.email||'?')[0].toUpperCase()}</div>}
+          {user&&<button onClick={()=>setIsCreator(true)} style={{padding:'7px 14px',borderRadius:8,border:'none',background:'rgba(108,46,245,0.15)',color:'#8b5cf6',cursor:'pointer',fontSize:12,fontWeight:700}}>🎬 Creator</button>}
+          {user&&<div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,#1a6bff,#6c2ef5)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:13,color:'#fff',flexShrink:0}}>{user.email?.[0]?.toUpperCase()}</div>}
         </div>
-      </div>
-      <div style={{display:'flex',gap:10,padding:'12px 24px',overflowX:'auto'}}>
-        {[['Courses',courses.length],['Enrolled',myCourses.length],['Articles',articles.length],['Books',books.length]].map(([lbl,val])=>(
-          <div key={lbl as string} style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:10,padding:'10px 16px',flexShrink:0,textAlign:'center',minWidth:80}}>
-            <div style={{fontSize:20,fontWeight:800,fontFamily:"'Orbitron',monospace",background:'linear-gradient(135deg,#1a6bff,#6c2ef5)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>{val}</div>
-            <div style={{fontSize:11,color:'#64748b'}}>{lbl}</div>
-          </div>
-        ))}
-      </div>
-      <div style={B.tabs}>{(['courses','articles','books','my-learning']as const).map(t=><button key={t} style={B.tab(tab===t)} onClick={()=>setTab(t)}>{t==='courses'?'Courses':t==='articles'?'Articles':t==='books'?'Books':'My Learning'}</button>)}</div>
-      <div style={{display:'flex',gap:10,padding:'12px 24px 0',alignItems:'center',flexWrap:'wrap'}}>
-        <input style={{...B.inp,flex:1,maxWidth:360,minWidth:180}} placeholder="Search..." value={search} onChange={e=>setSearch(e.target.value)}/>
-        {tab==='articles'&&<button style={B.btn('primary')} onClick={()=>setWritingArticle(v=>!v)}>+ Write</button>}
-        {tab==='books'&&user&&<button style={B.btn('primary')} onClick={()=>setShowUploadBook(v=>!v)}>+ Upload Book</button>}
-      </div>
-      <div style={{display:'flex',gap:6,padding:'10px 24px 0',flexWrap:'wrap'}}>
-        {cats.map(c=><button key={c} onClick={()=>setCatFilter(c)} style={{padding:'5px 12px',borderRadius:16,border:'none',cursor:'pointer',fontSize:12,fontWeight:600,background:catFilter===c?'rgba(26,107,255,0.2)':'rgba(255,255,255,0.04)',color:catFilter===c?'#1a6bff':'#64748b'}}>{c}</button>)}
       </div>
 
-      {showUploadBook&&tab==='books'&&(
-        <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,margin:'12px 24px 0',padding:18}}>
-          <h3 style={{color:'#e2e8f0',marginBottom:14}}>Upload a Book</h3>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:10}}>
-            <div><label style={B.label}>Title *</label><input style={B.inp} value={bk.title} onChange={e=>setBk(p=>({...p,title:e.target.value}))}/></div>
-            <div><label style={B.label}>Author</label><input style={B.inp} value={bk.author} onChange={e=>setBk(p=>({...p,author:e.target.value}))}/></div>
-            <div><label style={B.label}>Category</label><select style={B.inp} value={bk.category} onChange={e=>setBk(p=>({...p,category:e.target.value}))}>{cats.filter(c=>c!=='All').map(c=><option key={c}>{c}</option>)}</select></div>
-            <div><label style={B.label}>Price (0 = free)</label><input style={B.inp} type="number" min="0" value={bk.price} onChange={e=>setBk(p=>({...p,price:e.target.value,is_free:parseFloat(e.target.value)===0}))}/></div>
-          </div>
-          <div style={{marginBottom:12}}><label style={B.label}>Description</label><textarea style={{...B.ta,minHeight:72}} value={bk.description} onChange={e=>setBk(p=>({...p,description:e.target.value}))}/></div>
-          <div style={{marginBottom:14}}>
-            <label style={B.label}>Book File (PDF)</label>
-            <UploadBtn label="📤 Choose PDF to Upload" accept="application/pdf" onFile={handleBookUpload} uploading={uploadingBook}/>
-            <div style={{fontSize:11,color:'#475569',marginTop:6}}>Readers can view it in-browser and download it</div>
-          </div>
-          <button style={B.btn('ghost')} onClick={()=>setShowUploadBook(false)}>Cancel</button>
-        </div>
-      )}
-
-      {writingArticle&&tab==='articles'&&(
-        <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:12,margin:'12px 24px 0',padding:18}}>
-          <h3 style={{color:'#e2e8f0',marginBottom:14}}>Write an Article</h3>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:10}}>
-            <div><label style={B.label}>Title</label><input style={B.inp} value={af.title} onChange={e=>setAf(p=>({...p,title:e.target.value}))}/></div>
-            <div><label style={B.label}>Category</label><select style={B.inp} value={af.category} onChange={e=>setAf(p=>({...p,category:e.target.value}))}>{cats.filter(c=>c!=='All').map(c=><option key={c}>{c}</option>)}</select></div>
-          </div>
-          <div style={{marginBottom:10}}><label style={B.label}>Tags (comma separated)</label><input style={B.inp} placeholder="e.g. saving, tips" value={af.tags} onChange={e=>setAf(p=>({...p,tags:e.target.value}))}/></div>
-          <div style={{marginBottom:10}}>
-            <label style={B.label}>Cover Photo</label>
-            <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap',marginBottom:6}}>
-              <UploadBtn label="📤 Upload Photo" accept="image/jpeg,image/png,image/webp" onFile={handleCoverUpload} uploading={coverUploading}/>
-              <span style={{color:'#475569',fontSize:12}}>or paste URL:</span>
-              <input style={{...B.inp,flex:1,minWidth:160}} placeholder="https://..." value={af.cover_url} onChange={e=>setAf(p=>({...p,cover_url:e.target.value}))}/>
-            </div>
-            {af.cover_url&&<img src={af.cover_url} alt="preview" style={{height:80,borderRadius:8,objectFit:'cover'}}/>}
-          </div>
-          <div style={{marginBottom:14}}><label style={B.label}>Content</label><textarea style={{...B.ta,minHeight:160}} value={af.content} onChange={e=>setAf(p=>({...p,content:e.target.value}))}/></div>
-          <div style={{display:'flex',gap:8}}><button style={B.btn('primary')} onClick={submitArticle}>Publish</button><button style={B.btn('ghost')} onClick={()=>setWritingArticle(false)}>Cancel</button></div>
-        </div>
-      )}
-
-      {tab==='my-learning'&&(
-        <div style={B.grid}>
-          {myCourses.length===0?(<div style={{gridColumn:'1/-1',textAlign:'center',padding:44,color:'#475569'}}><div style={{fontSize:40,marginBottom:12}}>📚</div><div style={{marginBottom:14}}>No courses enrolled yet</div><button style={B.btn('primary')} onClick={()=>setTab('courses')}>Browse Courses</button></div>)
-          :myCourses.map((c:any)=>(
-            <div key={c.id} style={B.card} onClick={()=>handleEnroll(c)}>
-              <div style={{height:120,background:`linear-gradient(135deg,${gc(c.category)}22,${gc(c.category)}44)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:40}}>{gi(c.category)}</div>
-              <div style={{padding:14}}>
-                <span style={B.badge(gc(c.category))}>{c.category}</span>
-                <div style={{fontWeight:700,color:'#e2e8f0',margin:'7px 0 3px',fontSize:14}}>{c.title}</div>
-                <div style={{fontSize:12,color:'#64748b',marginBottom:7}}>{c.instructor_name}</div>
-                <div style={{fontSize:11,color:'#64748b',marginBottom:3}}>{c.progress||0}% complete</div>
-                <div style={{height:4,background:'rgba(255,255,255,0.08)',borderRadius:2}}><div style={{height:'100%',width:`${c.progress||0}%`,background:'linear-gradient(90deg,#1a6bff,#6c2ef5)',borderRadius:2}}/></div>
-                <button style={{...B.btn('primary'),width:'100%',marginTop:10,padding:'8px'}}>Continue →</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <div style={B.tabs}>
+        {(['courses','articles','books','my-learning']as const).map(t=><button key={t} style={B.tab(tab===t)} onClick={()=>setTab(t)}>{t==='my-learning'?'My Learning':t.charAt(0).toUpperCase()+t.slice(1)}</button>)}
+      </div>
 
       {tab==='courses'&&(
-        <div style={B.grid}>
-          {filtered.length===0?<div style={{gridColumn:'1/-1',textAlign:'center',padding:40,color:'#475569'}}>No courses found</div>
-          :filtered.map((c:any)=>(
-            <div key={c.id} style={B.card} onClick={()=>setViewCourse(c)}>
-              <div style={{height:130,background:`linear-gradient(135deg,${gc(c.category)}22,${gc(c.category)}44)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:48}}>{gi(c.category)}</div>
-              <div style={{padding:14}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:7}}>
-                  <span style={B.badge(gc(c.category))}>{c.category}</span><span style={{fontSize:11,color:'#64748b'}}>{c.level}</span>
+        <div style={{padding:'16px 24px 80px'}}>
+          <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+            {cats.map(c=><button key={c} onClick={()=>setCatFilter(c)} style={{padding:'5px 14px',borderRadius:20,border:'none',cursor:'pointer',fontSize:12,fontWeight:600,background:catFilter===c?gc(c):'rgba(255,255,255,0.05)',color:catFilter===c?'#fff':'#64748b'}}>{c}</button>)}
+          </div>
+          <div style={B.grid}>
+            {filteredCourses.map((c:any)=>{
+              const enroll=enrollments.find(e=>e.course_id===c.id);
+              return(
+                <div key={c.id} style={B.card} onClick={()=>enroll?setView({type:'course',course:c,enrollment:enroll}):null}>
+                  <div style={{height:140,position:'relative',overflow:'hidden',background:`${gc(c.category)}18`}}>
+                    {c.thumbnail_url
+                      ?<img src={c.thumbnail_url} alt={c.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} onError={(e)=>{(e.target as HTMLImageElement).style.display='none';}}/>
+                      :<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:48}}>{gi(c.category)}</div>
+                    }
+                    <div style={{position:'absolute',top:8,right:8}}><span style={{...B.badge(c.is_free?'#10b981':'#f59e0b'),fontSize:10}}>{c.is_free?'FREE':'$'+c.price}</span></div>
+                    {enroll&&<div style={{position:'absolute',bottom:0,left:0,right:0,height:3,background:'rgba(0,0,0,0.3)'}}><div style={{height:'100%',width:`${enroll.progress}%`,background:'linear-gradient(90deg,#1a6bff,#6c2ef5)'}}/></div>}
+                  </div>
+                  <div style={{padding:'12px 14px'}}>
+                    <div style={{display:'flex',gap:6,marginBottom:6,alignItems:'center'}}>
+                      <span style={B.badge(gc(c.category))}>{c.category}</span>
+                      <span style={{fontSize:11,color:'#475569'}}>{c.level}</span>
+                    </div>
+                    <div style={{fontWeight:700,fontSize:14,color:'#e2e8f0',lineHeight:1.3,marginBottom:6}}>{c.title}</div>
+                    <div style={{fontSize:11,color:'#64748b',marginBottom:10}}>by {c.instructor_name||'Instructor'} · {c.total_lessons||0} lessons</div>
+                    {enroll
+                      ?<button onClick={e=>{e.stopPropagation();setView({type:'course',course:c,enrollment:enroll});}} style={{...B.btn('primary'),width:'100%',padding:'8px',fontSize:12}}>Continue ({enroll.progress}%)</button>
+                      :<button onClick={e=>{e.stopPropagation();enroll?null:enroll===undefined&&user?enroll_course(c.id):showToast('Sign in to enroll');}} style={{...B.btn('primary'),width:'100%',padding:'8px',fontSize:12}} onClick={e=>{e.stopPropagation();enroll?setView({type:'course',course:c}):enrollCourse(c.id);}}>Enroll Now</button>
+                    }
+                  </div>
                 </div>
-                <div style={{fontWeight:700,color:'#e2e8f0',marginBottom:5,fontSize:14,lineHeight:1.4}}>{c.title}</div>
-                <div style={{fontSize:12,color:'#64748b',lineHeight:1.5,marginBottom:8,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>{c.description}</div>
-                <div style={{fontSize:11,color:'#475569',marginBottom:8}}>👤 {c.instructor_name}{c.total_enrollments>0&&` · ${c.total_enrollments} students`}</div>
-                {c.enrolled&&<><div style={{fontSize:11,color:'#64748b',marginBottom:3}}>{c.progress||0}% complete</div><div style={{height:3,background:'rgba(255,255,255,0.08)',borderRadius:2,marginBottom:8}}><div style={{height:'100%',width:`${c.progress||0}%`,background:'linear-gradient(90deg,#1a6bff,#6c2ef5)',borderRadius:2}}/></div></>}
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <span style={{fontWeight:800,color:c.is_free?'#10b981':'#e2e8f0',fontSize:14}}>{c.is_free?'Free':`$${c.price}`}</span>
-                  <button style={{...B.btn(c.enrolled?'ghost':'primary'),padding:'6px 14px',fontSize:12}} onClick={e=>{e.stopPropagation();c.enrolled?handleEnroll(c):setViewCourse(c);}}>{c.enrolled?'Continue':'View'}</button>
-                </div>
-              </div>
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
       )}
 
       {tab==='articles'&&(
-        <div style={{padding:'12px 24px 80px',display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:14}}>
-          {filtered.length===0?<div style={{gridColumn:'1/-1',textAlign:'center',padding:40,color:'#475569'}}>No articles yet. Write the first one!</div>
-          :filtered.map((a:any)=>{
-            const cover=a.cover_url||(a.cover_path?STORAGE_URL+a.cover_path:null);
-            return(<div key={a.id} style={{...B.card,cursor:'pointer'}} onClick={()=>setViewArticle(a)}>
-              {cover&&<img src={cover} alt="" style={{width:'100%',height:120,objectFit:'cover'}}/>}
-              <div style={{padding:14}}>
-                <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:8}}>
+        <div style={{padding:'16px 24px 80px'}}>
+          <div style={{display:'flex',justifyContent:'flex-end',marginBottom:16}}>
+            {user&&<button onClick={()=>setWriteArticle(true)} style={{...B.btn('primary'),padding:'8px 16px',fontSize:13}}>+ Write</button>}
+          </div>
+          {writeArticle&&(
+            <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,padding:20,marginBottom:20}}>
+              <h3 style={{color:'#e2e8f0',marginBottom:16,fontWeight:800}}>Write Article</h3>
+              <div style={{marginBottom:12}}><label style={B.label}>Title</label><input style={B.inp} value={newArticle.title} onChange={e=>setNewArticle(p=>({...p,title:e.target.value}))} placeholder="Article title"/></div>
+              <div style={{marginBottom:12}}><label style={B.label}>Category</label><select style={B.inp} value={newArticle.category} onChange={e=>setNewArticle(p=>({...p,category:e.target.value}))}>{cats.filter(c=>c!=='All').map(c=><option key={c}>{c}</option>)}</select></div>
+              <div style={{marginBottom:12}}><label style={B.label}>Tags (comma separated)</label><input style={B.inp} value={newArticle.tags} onChange={e=>setNewArticle(p=>({...p,tags:e.target.value}))} placeholder="budgeting, savings, tips"/></div>
+              <UploadField label="Cover Photo" accept="image/jpeg,image/png,image/webp" value={newArticle.cover_url} onUrl={u=>setNewArticle(p=>({...p,cover_url:u}))} uid={user?.id||'upload'} folder="articles" type="image"/>
+              <div style={{marginBottom:12}}><label style={B.label}>Content</label><textarea style={{...B.ta,minHeight:160}} value={newArticle.content} onChange={e=>setNewArticle(p=>({...p,content:e.target.value}))} placeholder="Write your article..."/></div>
+              <div style={{display:'flex',gap:8}}><button style={B.btn('primary')} onClick={submitArticle}>Publish</button><button style={B.btn('ghost')} onClick={()=>setWriteArticle(false)}>Cancel</button></div>
+            </div>
+          )}
+          <div style={B.grid}>
+            {articles.map((a:any)=>(
+              <div key={a.id} style={{...B.card,cursor:'pointer'}} onClick={()=>setView({type:'article',article:a})}>
+                {a.cover_url&&<img src={a.cover_url} alt={a.title} style={{width:'100%',height:120,objectFit:'cover',display:'block'}}/>}
+                {!a.cover_url&&<div style={{height:80,background:`${gc(a.category)}18`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:32}}>{gi(a.category)}</div>}
+                <div style={{padding:'12px 14px'}}>
                   <span style={B.badge(gc(a.category))}>{a.category}</span>
-                  {(a.tags||[]).slice(0,2).map((t:string)=><span key={t} style={{...B.badge('#475569'),fontSize:10}}>{t}</span>)}
-                </div>
-                <h3 style={{fontWeight:700,color:'#e2e8f0',marginBottom:7,lineHeight:1.4,fontSize:14}}>{a.title}</h3>
-                <p style={{fontSize:12,color:'#64748b',lineHeight:1.6,marginBottom:10,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical'}}>{a.content}</p>
-                <div style={{display:'flex',alignItems:'center',gap:10,fontSize:11,color:'#475569'}}>
-                  <div style={{width:22,height:22,borderRadius:'50%',background:'linear-gradient(135deg,#1a6bff,#6c2ef5)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,flexShrink:0}}>{(a.author_name||'?')[0].toUpperCase()}</div>
-                  <span>{a.author_name}</span>{a.read_time&&<span>· {a.read_time}min</span>}
-                  <span style={{marginLeft:'auto'}}>❤ {a.likes||0}</span>
+                  <div style={{fontWeight:700,fontSize:14,color:'#e2e8f0',lineHeight:1.3,margin:'8px 0 4px'}}>{a.title}</div>
+                  <div style={{fontSize:11,color:'#64748b'}}>by {a.author_name} · {a.read_time||5} min read · 👁 {a.views||0}</div>
                 </div>
               </div>
-            </div>);
-          })}
+            ))}
+          </div>
         </div>
       )}
 
       {tab==='books'&&(
-        <div style={B.grid}>
-          {filtered.length===0?<div style={{gridColumn:'1/-1',textAlign:'center',padding:40,color:'#475569'}}>No books yet. Upload the first one!</div>
-          :filtered.map((bk:any)=>(
-            <div key={bk.id} style={B.card}>
-              {bk.cover_url?<img src={bk.cover_url} alt={bk.title} style={{width:'100%',height:160,objectFit:'cover'}}/>
-              :<div style={{height:160,background:`linear-gradient(135deg,${gc(bk.category)}33,${gc(bk.category)}55)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:52}}>{gi(bk.category)}</div>}
-              <div style={{padding:14}}>
-                <span style={B.badge(gc(bk.category))}>{bk.category}</span>
-                <div style={{fontWeight:700,color:'#e2e8f0',margin:'7px 0 3px',fontSize:14}}>{bk.title}</div>
-                <div style={{fontSize:12,color:'#64748b',marginBottom:7}}>{bk.author||'FlowFund'}</div>
-                <div style={{fontSize:12,color:'#94a3b8',lineHeight:1.5,marginBottom:10,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>{bk.description}</div>
-                <span style={{fontWeight:800,color:bk.is_free?'#10b981':'#e2e8f0',display:'block',marginBottom:10}}>{bk.is_free?'Free':`$${bk.price}`}</span>
-                <div style={{display:'flex',gap:8}}>
-                  <button style={{...B.btn('primary'),flex:1,padding:'8px'}} onClick={()=>setViewBook(bk)}>Read Now</button>
-                  {bk.file_url&&<a href={bk.file_url} download style={{...B.btn('ghost'),padding:'8px 12px',textDecoration:'none',fontSize:12}}>↓</a>}
+        <div style={{padding:'16px 24px 80px'}}>
+          <div style={{display:'flex',justifyContent:'flex-end',marginBottom:16}}>
+            {user&&<button onClick={()=>setUploadBook(true)} style={{...B.btn('primary'),padding:'8px 16px',fontSize:13}}>+ Upload Book</button>}
+          </div>
+          {uploadBook&&(
+            <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,padding:20,marginBottom:20}}>
+              <h3 style={{color:'#e2e8f0',marginBottom:16,fontWeight:800}}>Upload Book</h3>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
+                <div><label style={B.label}>Title *</label><input style={B.inp} value={newBook.title} onChange={e=>setNewBook(p=>({...p,title:e.target.value}))} placeholder="Book title"/></div>
+                <div><label style={B.label}>Author</label><input style={B.inp} value={newBook.author} onChange={e=>setNewBook(p=>({...p,author:e.target.value}))} placeholder="Author name"/></div>
+                <div><label style={B.label}>Category</label><select style={B.inp} value={newBook.category} onChange={e=>setNewBook(p=>({...p,category:e.target.value}))}>{cats.filter(c=>c!=='All').map(c=><option key={c}>{c}</option>)}</select></div>
+                <div><label style={B.label}>Price (0 = free)</label><input style={B.inp} type="number" min="0" step="0.01" value={newBook.price} onChange={e=>setNewBook(p=>({...p,price:e.target.value,is_free:parseFloat(e.target.value)===0}))}/></div>
+              </div>
+              <div style={{marginBottom:12}}><label style={B.label}>Description</label><textarea style={{...B.ta,minHeight:70}} value={newBook.description} onChange={e=>setNewBook(p=>({...p,description:e.target.value}))} placeholder="What is this book about?"/></div>
+              <UploadField label="Cover Image" accept="image/jpeg,image/png,image/webp" value={newBook.cover_url} onUrl={u=>setNewBook(p=>({...p,cover_url:u}))} uid={user?.id||'upload'} folder="book-covers" type="image"/>
+              <UploadField label="Book File (PDF)" accept="application/pdf" value={newBook.file_url} onUrl={u=>setNewBook(p=>({...p,file_url:u}))} uid={user?.id||'upload'} folder="books" type="file"/>
+              <div style={{display:'flex',gap:8,marginTop:4}}><button style={B.btn('primary')} onClick={submitBook}>Upload Book</button><button style={B.btn('ghost')} onClick={()=>setUploadBook(false)}>Cancel</button></div>
+            </div>
+          )}
+          <div style={B.grid}>
+            {books.map((b:any)=>(
+              <div key={b.id} style={B.card}>
+                <div style={{height:160,background:`${gc(b.category||'Default')}18`,position:'relative',overflow:'hidden'}}>
+                  {b.cover_url
+                    ?<img src={b.cover_url} alt={b.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>
+                    :<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:52}}>📖</div>
+                  }
+                  <div style={{position:'absolute',top:8,right:8}}><span style={{...B.badge(b.is_free?'#10b981':'#f59e0b'),fontSize:10}}>{b.is_free?'FREE':'$'+b.price}</span></div>
+                </div>
+                <div style={{padding:'12px 14px'}}>
+                  <span style={B.badge(gc(b.category||'Default'))}>{b.category}</span>
+                  <div style={{fontWeight:700,fontSize:14,color:'#e2e8f0',margin:'8px 0 4px',lineHeight:1.3}}>{b.title}</div>
+                  <div style={{fontSize:11,color:'#64748b',marginBottom:10}}>by {b.author}</div>
+                  <div style={{display:'flex',gap:8}}>
+                    {(b.file_url||b.file_path)&&<button onClick={()=>setView({type:'book-reader',book:b})} style={{...B.btn('primary'),flex:1,padding:'7px',fontSize:12}}>Read Now</button>}
+                    {(b.file_url||b.file_path)&&<a href={b.file_url||(STORAGE_URL+(b.file_path||''))} download style={{...B.btn('ghost'),padding:'7px 12px',fontSize:12,textDecoration:'none'}}>↓</a>}
+                    {!b.file_url&&!b.file_path&&<button style={{...B.btn('ghost'),flex:1,padding:'7px',fontSize:12,opacity:0.5}} disabled>Coming Soon</button>}
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab==='my-learning'&&(
+        <div style={{padding:'16px 24px 80px'}}>
+          {enrollments.length===0?(
+            <div style={{textAlign:'center',padding:60,color:'#475569'}}><div style={{fontSize:44,marginBottom:12}}>📚</div><div>No courses enrolled yet</div><button style={{...B.btn('primary'),marginTop:16}} onClick={()=>setTab('courses')}>Browse Courses</button></div>
+          ):(
+            <div style={B.grid}>
+              {enrollments.map(e=>{
+                const c=courses.find(co=>co.id===e.course_id);if(!c)return null;
+                return(
+                  <div key={e.course_id} style={{...B.card,cursor:'pointer'}} onClick={()=>setView({type:'course',course:c,enrollment:e})}>
+                    <div style={{height:120,background:`${gc(c.category)}18`,position:'relative',overflow:'hidden'}}>
+                      {c.thumbnail_url
+                        ?<img src={c.thumbnail_url} alt={c.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>
+                        :<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:40}}>{gi(c.category)}</div>
+                      }
+                      <div style={{position:'absolute',bottom:0,left:0,right:0,height:4,background:'rgba(0,0,0,0.4)'}}><div style={{height:'100%',width:`${e.progress}%`,background:'linear-gradient(90deg,#1a6bff,#6c2ef5)'}}/></div>
+                    </div>
+                    <div style={{padding:'12px 14px'}}>
+                      <div style={{fontWeight:700,fontSize:14,color:'#e2e8f0',marginBottom:6}}>{c.title}</div>
+                      <div style={{fontSize:12,color:'#64748b',marginBottom:8}}>{e.progress}% complete</div>
+                      <button style={{...B.btn('primary'),width:'100%',padding:'7px',fontSize:12}}>Continue</button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>
   );
+
+  async function enrollCourse(courseId:string){
+    if(!user){showToast('Sign in to enroll');return;}
+    const{error}=await DB.from('academy_enrollments').insert({user_id:user.id,course_id:courseId,progress:0});
+    if(error&&error.code!=='23505'){showToast('Error: '+error.message);return;}
+    const newEnroll={course_id:courseId,progress:0};
+    setEnrollments(prev=>[...prev.filter(e=>e.course_id!==courseId),newEnroll]);
+    showToast('Enrolled! 🎉');
+    setView({type:'course',course:courses.find(c=>c.id===courseId),enrollment:newEnroll});
+  }
 }
