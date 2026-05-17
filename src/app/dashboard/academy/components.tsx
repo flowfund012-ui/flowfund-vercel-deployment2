@@ -1,4 +1,4 @@
-'use client';
+'use client'; // v2-PUT-fix
 import{useState,useEffect,useRef,useCallback}from'react';
 import{createClient,SupabaseClient}from'@supabase/supabase-js';
 export const sb=createClient('https://ammymxsyerlkdezsxuip.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtbXlteHN5ZXJsa2RlenN4dWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTI0NzMsImV4cCI6MjA4OTY2ODQ3M30.kS0xKDTl3KyjWBCB4Tp-8WdWPkAqXC62djKg4VPgC6E');
@@ -35,7 +35,7 @@ export async function doUploadLarge(file:File,folder:string,uid:string,onProgres
   const url=`${SUPABASE_URL}/storage/v1/object/academy-uploads/${path}`;
   const xhr=new XMLHttpRequest();
   let startTime=Date.now();let lastLoaded=0;
-  xhr.open('POST',url);
+  xhr.open('PUT',url);
   xhr.setRequestHeader('Authorization','Bearer '+ANON_KEY);
   xhr.setRequestHeader('x-upsert','true');
   xhr.setRequestHeader('Content-Type',file.type||'application/octet-stream');
@@ -391,7 +391,7 @@ export function CreatorStudio({user,supabase,profile,onBack,showToast}:{user:any
             {f.done&&<div style={{fontSize:11,color:'#10b981',marginTop:4}}>✓ Uploaded — ready to publish</div>}
           </div>))}
         </div>
-        {bulkFiles.some(f=>f.done)&&<button style={{...B.btn('primary'),padding:'13px 32px',fontSize:15,width:'100%'}} onClick={publishBulkCourse} disabled={bulkSaving}>{bulkSaving?'Creating course...':'Publish Course 🚀 ('+bulkFiles.filter(f=>f.done).length+' lessons)'}</button>}
+        {bulkFiles.length>0&&<button style={{...B.btn('primary'),padding:'13px 32px',fontSize:15,width:'100%'}} onClick={publishBulkCourse} disabled={bulkSaving||bulkFiles.some(f=>f.uploading)}>{bulkSaving?'Creating course...':bulkFiles.some(f=>f.uploading)?'Uploading videos...':'Publish Course 🚀 ('+bulkFiles.filter(f=>f.done).length+' lessons)'}</button>}
       </>)}
     </div>)}
 
