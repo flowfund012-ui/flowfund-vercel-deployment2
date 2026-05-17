@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 import{useState,useEffect}from'react';
 import{createClient}from'@supabase/supabase-js';
 import{B,sb,gc,gi,doUpload,UploadField,ArticleDetail,BookReader,LessonViewer,CreatorStudio,WaveLogo,STORAGE_URL}from'./components';
@@ -21,6 +22,8 @@ export default function AcademyPage(){
   const[uploadBook,setUploadBook]=useState(false);
   const[newArticle,setNewArticle]=useState({title:'',content:'',category:'Budgeting',tags:'',cover_url:''});
   const[newBook,setNewBook]=useState({title:'',author:'',description:'',category:'Budgeting',is_free:true,price:'0',cover_url:'',file_url:''});
+  const[lessons,setLessons]=useState<any[]>([]);
+  const[activeLesson,setActiveLesson]=useState<any>(null);
   const cats=['All','Budgeting','Investing','Debt','Freelance','Tax','Crypto','Business','Savings'];
 
   useEffect(()=>{
@@ -36,62 +39,63 @@ export default function AcademyPage(){
     DB.from('academy_books').select('*').order('title',{ascending:true}).then(({data})=>setBooks(data||[]));
   },[]);
 
-  async function loadCourses(){
-    const{data}=await DB.from('academy_courses').select('*').eq('is_published',true).order('created_at',{ascending:false});
-    setCourses(data||[]);
-  }
+  useEffect(()=>{
+    if(view?.type==='course'){
+      DB.from('academy_lessons').select('*').eq('course_id',view.course.id).order('order_index').then(({data})=>{setLessons(data||[]);if(data&&data.length>0)setActiveLesson(data[0]);});
+    }
+  },[view?.course?.id]);
 
+  async function loadCourses(){const{data}=await DB.from('academy_courses').select('*').eq('is_published',true).order('created_at',{ascending:false});setCourses(data||[]);}
   function showToast(msg:string){setToast(msg);setTimeout(()=>setToast(''),3500);}
 
-  async function enroll(courseId:string){
+  async function enrollCourse(courseId:string){
     if(!user){showToast('Sign in to enroll');return;}
-    const exists=enrollments.find(e=>e.course_id===courseId);
-    if(exists){setView({type:'course',course:courses.find(c=>c.id===courseId),enrollment:exists});return;}
-    await DB.from('academy_enrollments').insert({user_id:user.id,course_id:courseId,progress:0});
+    const{error}=await DB.from('academy_enrollments').insert({user_id:user.id,course_id:courseId,progress:0});
+    if(error&&error.code!=='23505'){showToast('Error: '+error.message);return;}
     const newEnroll={course_id:courseId,progress:0};
-    setEnrollments(prev=>[...prev,newEnroll]);
+    setEnrollments(prev=>[...prev.filter(e=>e.course_id!==courseId),newEnroll]);
     showToast('Enrolled! 🎉');
-    setView({type:'course',course:courses.find(c=>c.id===courseId),enrollment:newEnroll});
+    setView({type:'course',course:courses.find(c=>c.id===courseId)});
   }
 
   async function markComplete(lesson:any,courseId:string){
-    const enrollment=enrollments.find(e=>e.course_id===courseId);
-    if(!enrollment||!user)return;
-    const{data:lessons}=await DB.from('academy_lessons').select('id').eq('course_id',courseId);
+    if(!user)return;
+    const{data:allLessons}=await DB.from('academy_lessons').select('id').eq('course_id',courseId);
     const{data:completed}=await DB.from('academy_progress').select('lesson_id').eq('user_id',user.id).eq('course_id',courseId);
     const completedIds=new Set((completed||[]).map((p:any)=>p.lesson_id));
     completedIds.add(lesson.id);
     await DB.from('academy_progress').upsert({user_id:user.id,course_id:courseId,lesson_id:lesson.id},{onConflict:'user_id,course_id,lesson_id'});
-    const pct=Math.round((completedIds.size/(lessons||[]).length)*100);
+    const pct=Math.round((completedIds.size/(allLessons||[]).length)*100);
     await DB.from('academy_enrollments').update({progress:pct}).eq('user_id',user.id).eq('course_id',courseId);
     setEnrollments(prev=>prev.map(e=>e.course_id===courseId?{...e,progress:pct}:e));
-    if(pct>=100)showToast('Course complete! 🎉 Certificate earned!');
+    if(pct>=100)showToast('Course complete! Certificate earned! 🎉');
+    else{const idx=lessons.findIndex(l=>l.id===lesson.id);if(idx<lessons.length-1)setActiveLesson(lessons[idx+1]);}
   }
 
   async function submitArticle(){
     if(!newArticle.title.trim()||!newArticle.content.trim()){showToast('Title and content required');return;}
-    const{error}=await DB.from('academy_articles').insert({...newArticle,author_id:user?.id||null,user_id:user?.id||null,author_name:user?.email?.split('@')[0]||'Anonymous',tags:newArticle.tags.split(',').map((t:string)=>t.trim()).filter(Boolean),is_published:true,views:0,likes:0});
-    if(error)showToast('Error: '+error.message);
-    else{showToast('Article published!');setWriteArticle(false);setNewArticle({title:'',content:'',category:'Budgeting',tags:'',cover_url:''});DB.from('academy_articles').select('*').eq('is_published',true).order('created_at',{ascending:false}).then(({data})=>setArticles(data||[]));}
+    const{error}=await DB.from('academy_articles').insert({...newArticle,author_id:user?.id||null,author_name:user?.email?.split('@')[0]||'Anonymous',tags:newArticle.tags.split(',').map((t:string)=>t.trim()).filter(Boolean),is_published:true,views:0,likes:0});
+    if(error){showToast('Error: '+error.message);return;}
+    showToast('Article published!');setWriteArticle(false);setNewArticle({title:'',content:'',category:'Budgeting',tags:'',cover_url:''});
+    DB.from('academy_articles').select('*').eq('is_published',true).order('created_at',{ascending:false}).then(({data})=>setArticles(data||[]));
   }
 
   async function submitBook(){
     if(!newBook.title.trim()){showToast('Book title required');return;}
-    const{error}=await DB.from('academy_books').insert({...newBook,author_id:user?.id||null,price:parseFloat(newBook.price)||0,is_free:newBook.is_free,is_published:true,total_downloads:0});
-    if(error)showToast('Error: '+error.message);
-    else{showToast('Book uploaded!');setUploadBook(false);setNewBook({title:'',author:'',description:'',category:'Budgeting',is_free:true,price:'0',cover_url:'',file_url:''});DB.from('academy_books').select('*').order('title',{ascending:true}).then(({data})=>setBooks(data||[]));}
+    const{error}=await DB.from('academy_books').insert({...newBook,author_id:user?.id||null,price:parseFloat(newBook.price)||0,is_published:true,total_downloads:0});
+    if(error){showToast('Error: '+error.message);return;}
+    showToast('Book uploaded!');setUploadBook(false);setNewBook({title:'',author:'',description:'',category:'Budgeting',is_free:true,price:'0',cover_url:'',file_url:''});
+    DB.from('academy_books').select('*').order('title',{ascending:true}).then(({data})=>setBooks(data||[]));
   }
 
   const filteredCourses=catFilter==='All'?courses:courses.filter(c=>c.category===catFilter);
 
-  if(isCreator)return(<CreatorStudio user={user} supabase={DB} profile={creatorProfile} onBack={()=>setIsCreator(false)} showToast={showToast}/>);
+  if(isCreator)return(<CreatorStudio user={user} supabase={DB} profile={creatorProfile} onBack={()=>{setIsCreator(false);loadCourses();}} showToast={showToast}/>);
   if(view?.type==='article')return(<ArticleDetail article={view.article} user={user} onBack={()=>setView(null)}/>);
   if(view?.type==='book-reader')return(<BookReader book={view.book} onBack={()=>setView(null)}/>);
   if(view?.type==='course'){
     const enrollment=enrollments.find(e=>e.course_id===view.course.id)||{progress:0};
-    const[lessons,setLessons]=useState<any[]>([]);const[activeLesson,setActiveLesson]=useState<any>(null);
-    useEffect(()=>{DB.from('academy_lessons').select('*').eq('course_id',view.course.id).order('order_index').then(({data})=>{setLessons(data||[]);if(data&&data.length>0)setActiveLesson(data[0]);});},[view.course.id]);
-    return(<LessonViewer course={{...view.course,progress:enrollment.progress}} lessons={lessons} activeLesson={activeLesson} setActiveLesson={setActiveLesson} user={user} onBack={()=>setView(null)} onComplete={(l)=>markComplete(l,view.course.id)}/>);
+    return(<LessonViewer course={{...view.course,progress:enrollment.progress}} lessons={lessons} activeLesson={activeLesson} setActiveLesson={setActiveLesson} user={user} onBack={()=>{setView(null);setLessons([]);setActiveLesson(null);}} onComplete={(l)=>markComplete(l,view.course.id)}/>);
   }
 
   return(
@@ -119,25 +123,22 @@ export default function AcademyPage(){
             {filteredCourses.map((c:any)=>{
               const enroll=enrollments.find(e=>e.course_id===c.id);
               return(
-                <div key={c.id} style={B.card} onClick={()=>enroll?setView({type:'course',course:c,enrollment:enroll}):null}>
+                <div key={c.id} style={B.card}>
                   <div style={{height:140,position:'relative',overflow:'hidden',background:`${gc(c.category)}18`}}>
                     {c.thumbnail_url
-                      ?<img src={c.thumbnail_url} alt={c.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} onError={(e)=>{(e.target as HTMLImageElement).style.display='none';}}/>
+                      ?<img src={c.thumbnail_url} alt={c.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}} onError={e=>{(e.target as HTMLImageElement).style.display='none';}}/>
                       :<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:48}}>{gi(c.category)}</div>
                     }
-                    <div style={{position:'absolute',top:8,right:8}}><span style={{...B.badge(c.is_free?'#10b981':'#f59e0b'),fontSize:10}}>{c.is_free?'FREE':'$'+c.price}</span></div>
+                    <div style={{position:'absolute',top:8,right:8}}><span style={{...B.badge(c.is_free?'#10b981':'#f59e0b'),fontSize:10,background:c.is_free?'#10b98133':'#f59e0b33'}}>{c.is_free?'FREE':'$'+c.price}</span></div>
                     {enroll&&<div style={{position:'absolute',bottom:0,left:0,right:0,height:3,background:'rgba(0,0,0,0.3)'}}><div style={{height:'100%',width:`${enroll.progress}%`,background:'linear-gradient(90deg,#1a6bff,#6c2ef5)'}}/></div>}
                   </div>
                   <div style={{padding:'12px 14px'}}>
-                    <div style={{display:'flex',gap:6,marginBottom:6,alignItems:'center'}}>
-                      <span style={B.badge(gc(c.category))}>{c.category}</span>
-                      <span style={{fontSize:11,color:'#475569'}}>{c.level}</span>
-                    </div>
-                    <div style={{fontWeight:700,fontSize:14,color:'#e2e8f0',lineHeight:1.3,marginBottom:6}}>{c.title}</div>
+                    <div style={{display:'flex',gap:6,marginBottom:6,alignItems:'center'}}><span style={B.badge(gc(c.category))}>{c.category}</span><span style={{fontSize:11,color:'#475569'}}>{c.level}</span></div>
+                    <div style={{fontWeight:700,fontSize:14,color:'#e2e8f0',lineHeight:1.3,marginBottom:4}}>{c.title}</div>
                     <div style={{fontSize:11,color:'#64748b',marginBottom:10}}>by {c.instructor_name||'Instructor'} · {c.total_lessons||0} lessons</div>
                     {enroll
-                      ?<button onClick={e=>{e.stopPropagation();setView({type:'course',course:c,enrollment:enroll});}} style={{...B.btn('primary'),width:'100%',padding:'8px',fontSize:12}}>Continue ({enroll.progress}%)</button>
-                      :<button onClick={e=>{e.stopPropagation();enroll?null:enroll===undefined&&user?enroll_course(c.id):showToast('Sign in to enroll');}} style={{...B.btn('primary'),width:'100%',padding:'8px',fontSize:12}} onClick={e=>{e.stopPropagation();enroll?setView({type:'course',course:c}):enrollCourse(c.id);}}>Enroll Now</button>
+                      ?<button onClick={()=>setView({type:'course',course:c})} style={{...B.btn('primary'),width:'100%',padding:'8px',fontSize:12}}>Continue ({enroll.progress}%)</button>
+                      :<button onClick={()=>enrollCourse(c.id)} style={{...B.btn('primary'),width:'100%',padding:'8px',fontSize:12}}>Enroll Now</button>
                     }
                   </div>
                 </div>
@@ -150,7 +151,7 @@ export default function AcademyPage(){
       {tab==='articles'&&(
         <div style={{padding:'16px 24px 80px'}}>
           <div style={{display:'flex',justifyContent:'flex-end',marginBottom:16}}>
-            {user&&<button onClick={()=>setWriteArticle(true)} style={{...B.btn('primary'),padding:'8px 16px',fontSize:13}}>+ Write</button>}
+            {user&&<button onClick={()=>setWriteArticle(v=>!v)} style={{...B.btn('primary'),padding:'8px 16px',fontSize:13}}>{writeArticle?'Cancel':'+ Write'}</button>}
           </div>
           {writeArticle&&(
             <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,padding:20,marginBottom:20}}>
@@ -165,13 +166,12 @@ export default function AcademyPage(){
           )}
           <div style={B.grid}>
             {articles.map((a:any)=>(
-              <div key={a.id} style={{...B.card,cursor:'pointer'}} onClick={()=>setView({type:'article',article:a})}>
-                {a.cover_url&&<img src={a.cover_url} alt={a.title} style={{width:'100%',height:120,objectFit:'cover',display:'block'}}/>}
-                {!a.cover_url&&<div style={{height:80,background:`${gc(a.category)}18`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:32}}>{gi(a.category)}</div>}
+              <div key={a.id} style={{...B.card}} onClick={()=>setView({type:'article',article:a})}>
+                {a.cover_url?<img src={a.cover_url} alt={a.title} style={{width:'100%',height:120,objectFit:'cover',display:'block'}}/>:<div style={{height:80,background:`${gc(a.category)}18`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:32}}>{gi(a.category)}</div>}
                 <div style={{padding:'12px 14px'}}>
                   <span style={B.badge(gc(a.category))}>{a.category}</span>
                   <div style={{fontWeight:700,fontSize:14,color:'#e2e8f0',lineHeight:1.3,margin:'8px 0 4px'}}>{a.title}</div>
-                  <div style={{fontSize:11,color:'#64748b'}}>by {a.author_name} · {a.read_time||5} min read · 👁 {a.views||0}</div>
+                  <div style={{fontSize:11,color:'#64748b'}}>by {a.author_name} · {a.read_time||5} min · 👁 {a.views||0} · ❤️ {a.likes||0}</div>
                 </div>
               </div>
             ))}
@@ -182,7 +182,7 @@ export default function AcademyPage(){
       {tab==='books'&&(
         <div style={{padding:'16px 24px 80px'}}>
           <div style={{display:'flex',justifyContent:'flex-end',marginBottom:16}}>
-            {user&&<button onClick={()=>setUploadBook(true)} style={{...B.btn('primary'),padding:'8px 16px',fontSize:13}}>+ Upload Book</button>}
+            {user&&<button onClick={()=>setUploadBook(v=>!v)} style={{...B.btn('primary'),padding:'8px 16px',fontSize:13}}>{uploadBook?'Cancel':'+ Upload Book'}</button>}
           </div>
           {uploadBook&&(
             <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:14,padding:20,marginBottom:20}}>
@@ -195,18 +195,15 @@ export default function AcademyPage(){
               </div>
               <div style={{marginBottom:12}}><label style={B.label}>Description</label><textarea style={{...B.ta,minHeight:70}} value={newBook.description} onChange={e=>setNewBook(p=>({...p,description:e.target.value}))} placeholder="What is this book about?"/></div>
               <UploadField label="Cover Image" accept="image/jpeg,image/png,image/webp" value={newBook.cover_url} onUrl={u=>setNewBook(p=>({...p,cover_url:u}))} uid={user?.id||'upload'} folder="book-covers" type="image"/>
-              <UploadField label="Book File (PDF)" accept="application/pdf" value={newBook.file_url} onUrl={u=>setNewBook(p=>({...p,file_url:u}))} uid={user?.id||'upload'} folder="books" type="file"/>
-              <div style={{display:'flex',gap:8,marginTop:4}}><button style={B.btn('primary')} onClick={submitBook}>Upload Book</button><button style={B.btn('ghost')} onClick={()=>setUploadBook(false)}>Cancel</button></div>
+              <UploadField label="Book File (PDF)" accept="application/pdf" value={newBook.file_url} onUrl={u=>setNewBook(p=>({...p,file_url:u}))} uid={user?.id||'upload'} folder="books" type="pdf"/>
+              <div style={{display:'flex',gap:8,marginTop:8}}><button style={B.btn('primary')} onClick={submitBook}>Upload Book</button><button style={B.btn('ghost')} onClick={()=>setUploadBook(false)}>Cancel</button></div>
             </div>
           )}
           <div style={B.grid}>
             {books.map((b:any)=>(
               <div key={b.id} style={B.card}>
                 <div style={{height:160,background:`${gc(b.category||'Default')}18`,position:'relative',overflow:'hidden'}}>
-                  {b.cover_url
-                    ?<img src={b.cover_url} alt={b.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>
-                    :<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:52}}>📖</div>
-                  }
+                  {b.cover_url?<img src={b.cover_url} alt={b.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:52}}>📖</div>}
                   <div style={{position:'absolute',top:8,right:8}}><span style={{...B.badge(b.is_free?'#10b981':'#f59e0b'),fontSize:10}}>{b.is_free?'FREE':'$'+b.price}</span></div>
                 </div>
                 <div style={{padding:'12px 14px'}}>
@@ -215,7 +212,7 @@ export default function AcademyPage(){
                   <div style={{fontSize:11,color:'#64748b',marginBottom:10}}>by {b.author}</div>
                   <div style={{display:'flex',gap:8}}>
                     {(b.file_url||b.file_path)&&<button onClick={()=>setView({type:'book-reader',book:b})} style={{...B.btn('primary'),flex:1,padding:'7px',fontSize:12}}>Read Now</button>}
-                    {(b.file_url||b.file_path)&&<a href={b.file_url||(STORAGE_URL+(b.file_path||''))} download style={{...B.btn('ghost'),padding:'7px 12px',fontSize:12,textDecoration:'none'}}>↓</a>}
+                    {(b.file_url||b.file_path)&&<a href={b.file_url||(STORAGE_URL+(b.file_path||''))} target="_blank" rel="noreferrer" style={{...B.btn('ghost'),padding:'7px 12px',fontSize:12,textDecoration:'none'}}>↓</a>}
                     {!b.file_url&&!b.file_path&&<button style={{...B.btn('ghost'),flex:1,padding:'7px',fontSize:12,opacity:0.5}} disabled>Coming Soon</button>}
                   </div>
                 </div>
@@ -228,24 +225,21 @@ export default function AcademyPage(){
       {tab==='my-learning'&&(
         <div style={{padding:'16px 24px 80px'}}>
           {enrollments.length===0?(
-            <div style={{textAlign:'center',padding:60,color:'#475569'}}><div style={{fontSize:44,marginBottom:12}}>📚</div><div>No courses enrolled yet</div><button style={{...B.btn('primary'),marginTop:16}} onClick={()=>setTab('courses')}>Browse Courses</button></div>
+            <div style={{textAlign:'center',padding:60,color:'#475569'}}><div style={{fontSize:44,marginBottom:12}}>📚</div><div style={{marginBottom:16}}>No courses enrolled yet</div><button style={{...B.btn('primary'),marginTop:8}} onClick={()=>setTab('courses')}>Browse Courses</button></div>
           ):(
             <div style={B.grid}>
               {enrollments.map(e=>{
                 const c=courses.find(co=>co.id===e.course_id);if(!c)return null;
                 return(
-                  <div key={e.course_id} style={{...B.card,cursor:'pointer'}} onClick={()=>setView({type:'course',course:c,enrollment:e})}>
+                  <div key={e.course_id} style={{...B.card,cursor:'pointer'}} onClick={()=>setView({type:'course',course:c})}>
                     <div style={{height:120,background:`${gc(c.category)}18`,position:'relative',overflow:'hidden'}}>
-                      {c.thumbnail_url
-                        ?<img src={c.thumbnail_url} alt={c.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>
-                        :<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:40}}>{gi(c.category)}</div>
-                      }
+                      {c.thumbnail_url?<img src={c.thumbnail_url} alt={c.title} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>:<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:40}}>{gi(c.category)}</div>}
                       <div style={{position:'absolute',bottom:0,left:0,right:0,height:4,background:'rgba(0,0,0,0.4)'}}><div style={{height:'100%',width:`${e.progress}%`,background:'linear-gradient(90deg,#1a6bff,#6c2ef5)'}}/></div>
                     </div>
                     <div style={{padding:'12px 14px'}}>
-                      <div style={{fontWeight:700,fontSize:14,color:'#e2e8f0',marginBottom:6}}>{c.title}</div>
+                      <div style={{fontWeight:700,fontSize:14,color:'#e2e8f0',marginBottom:4}}>{c.title}</div>
                       <div style={{fontSize:12,color:'#64748b',marginBottom:8}}>{e.progress}% complete</div>
-                      <button style={{...B.btn('primary'),width:'100%',padding:'7px',fontSize:12}}>Continue</button>
+                      <button style={{...B.btn('primary'),width:'100%',padding:'7px',fontSize:12}}>Continue →</button>
                     </div>
                   </div>
                 );
@@ -256,14 +250,4 @@ export default function AcademyPage(){
       )}
     </div>
   );
-
-  async function enrollCourse(courseId:string){
-    if(!user){showToast('Sign in to enroll');return;}
-    const{error}=await DB.from('academy_enrollments').insert({user_id:user.id,course_id:courseId,progress:0});
-    if(error&&error.code!=='23505'){showToast('Error: '+error.message);return;}
-    const newEnroll={course_id:courseId,progress:0};
-    setEnrollments(prev=>[...prev.filter(e=>e.course_id!==courseId),newEnroll]);
-    showToast('Enrolled! 🎉');
-    setView({type:'course',course:courses.find(c=>c.id===courseId),enrollment:newEnroll});
-  }
 }
